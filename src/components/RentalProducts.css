@@ -1,0 +1,286 @@
+.rental-products {
+  background: #fff;
+  padding: 16px 24px 64px;
+  position: relative;
+}
+
+.rental-products-inner {
+  max-width: 1320px;
+  margin: 0 auto;
+}
+
+.rental-products-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.rental-products-title-wrap {
+  position: relative;
+}
+
+.rental-products-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  color: #1a1a1a;
+  letter-spacing: -0.2px;
+}
+
+.rental-products-line {
+  display: block;
+  width: 48px;
+  height: 2px;
+  background: #4a90e2;
+  margin-top: 6px;
+}
+
+.rental-products-nav {
+  display: flex;
+  gap: 8px;
+}
+
+.rental-nav-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #555;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.rental-nav-btn:hover:not(:disabled) {
+  border-color: #4a90e2;
+  color: #4a90e2;
+}
+
+.rental-nav-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.rental-products-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(220px, 1fr));
+  gap: 20px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 4px;
+}
+
+.rental-products-grid::-webkit-scrollbar {
+  display: none;
+}
+
+/* Product card */
+.product-card {
+  background: #fff;
+  border: 1px solid #eee;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.2s;
+  min-width: 220px;
+}
+
+.product-card:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.product-card-image {
+  position: relative;
+  background: #f3f3f3;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.product-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 12px;
+}
+
+.product-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: #bbb;
+}
+
+.product-placeholder svg {
+  width: 64px;
+  height: 64px;
+}
+
+.product-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #2e8b57;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 4px 8px;
+  border-radius: 2px;
+  z-index: 1;
+}
+
+.product-card-body {
+  padding: 14px 16px 16px;
+}
+
+.product-stars {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 8px;
+}
+
+.product-title {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #222;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 36px;
+}
+
+.product-pricing {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.product-original {
+  font-size: 12px;
+  color: #aaa;
+  text-decoration: line-through;
+}
+
+.product-rental {
+  font-size: 15px;
+  font-weight: 700;
+  color: #4a90e2;
+}
+
+.product-period {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.product-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.product-delivery {
+  font-size: 11px;
+  color: #999;
+}
+
+.product-cart-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #4a90e2;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  flex-shrink: 0;
+}
+
+.product-cart-btn:hover {
+  background: #3a7fd4;
+  transform: scale(1.05);
+}
+
+/* WhatsApp FAB */
+.whatsapp-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #25d366;
+  color: #fff;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px 20px;
+  border-radius: 50px;
+  box-shadow: 0 4px 16px rgba(37, 211, 102, 0.4);
+  z-index: 100;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.whatsapp-fab:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.5);
+}
+
+@media (max-width: 1200px) {
+  .rental-products-grid {
+    grid-template-columns: repeat(4, minmax(200px, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .rental-products-grid {
+    grid-template-columns: repeat(3, minmax(200px, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .rental-products {
+    padding: 12px 16px 48px;
+  }
+
+  .rental-products-grid {
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
+    gap: 14px;
+  }
+
+  .product-card-image {
+    height: 160px;
+  }
+
+  .whatsapp-fab {
+    bottom: 16px;
+    right: 16px;
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 400px) {
+  .rental-products-grid {
+    grid-template-columns: 1fr;
+  }
+}

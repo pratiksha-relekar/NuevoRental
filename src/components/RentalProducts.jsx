@@ -1,0 +1,165 @@
+import { useRef, useState } from 'react'
+import { RENTAL_PRODUCTS } from '../data/products'
+import CategoryIcon from './CategoryIcon'
+import './RentalProducts.css'
+
+function StarRating({ count = 5 }) {
+  return (
+    <div className="product-stars" aria-label={`${count} out of 5 stars`}>
+      {Array.from({ length: 5 }, (_, i) => (
+        <svg key={i} width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+          <path
+            d="M7 1L8.8 5.2L13.4 5.5L10 8.5L11 13L7 10.6L3 13L4 8.5L0.6 5.5L5.2 5.2L7 1Z"
+            fill={i < count ? '#f5a623' : '#ddd'}
+          />
+        </svg>
+      ))}
+    </div>
+  )
+}
+
+function ProductPlaceholder({ category }) {
+  const iconMap = {
+    laptops: 'laptop',
+    desktops: 'desktop',
+    printers: 'printer',
+    projectors: 'projector',
+    accessories: 'accessories',
+    networking: 'networking',
+  }
+
+  return (
+    <div className="product-placeholder">
+      <CategoryIcon type={iconMap[category] ?? 'laptop'} />
+    </div>
+  )
+}
+
+function CartIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <path
+        d="M1 1H3L4.5 11H14L16 4H5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="6" cy="15" r="1.2" fill="currentColor" />
+      <circle cx="13" cy="15" r="1.2" fill="currentColor" />
+    </svg>
+  )
+}
+
+function RentalProducts({ activeCategory = 'all' }) {
+  const scrollRef = useRef(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(true)
+
+  const filtered =
+    activeCategory === 'all'
+      ? RENTAL_PRODUCTS
+      : RENTAL_PRODUCTS.filter((p) => p.category === activeCategory)
+
+  const updateScrollState = () => {
+    const el = scrollRef.current
+    if (!el) return
+    setCanScrollLeft(el.scrollLeft > 0)
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4)
+  }
+
+  const scroll = (direction) => {
+    const el = scrollRef.current
+    if (!el) return
+    el.scrollBy({ left: direction * 280, behavior: 'smooth' })
+    setTimeout(updateScrollState, 350)
+  }
+
+  return (
+    <section className="rental-products" aria-label="Available for rent">
+      <div className="rental-products-inner">
+        <div className="rental-products-header">
+          <div className="rental-products-title-wrap">
+            <h2 className="rental-products-title">Available for Rent</h2>
+            <span className="rental-products-line" aria-hidden="true" />
+          </div>
+          <div className="rental-products-nav">
+            <button
+              type="button"
+              className="rental-nav-btn"
+              onClick={() => scroll(-1)}
+              disabled={!canScrollLeft}
+              aria-label="Scroll left"
+            >
+              ‹
+            </button>
+            <button
+              type="button"
+              className="rental-nav-btn"
+              onClick={() => scroll(1)}
+              disabled={!canScrollRight}
+              aria-label="Scroll right"
+            >
+              ›
+            </button>
+          </div>
+        </div>
+
+        <div
+          className="rental-products-grid"
+          ref={scrollRef}
+          onScroll={updateScrollState}
+        >
+          {filtered.map((product) => (
+            <article key={product.id} className="product-card">
+              <div className="product-card-image">
+                {product.refurbished && (
+                  <span className="product-badge">REFURBISHED</span>
+                )}
+                {product.image ? (
+                  <img src={product.image} alt={product.title} />
+                ) : (
+                  <ProductPlaceholder category={product.category} />
+                )}
+              </div>
+              <div className="product-card-body">
+                <StarRating count={product.rating} />
+                <h3 className="product-title">{product.title}</h3>
+                <div className="product-pricing">
+                  <span className="product-original">₹{product.originalPrice}</span>
+                  <span className="product-rental">
+                    ₹{product.rentalPrice}
+                    <span className="product-period">/{product.period}</span>
+                  </span>
+                </div>
+                <div className="product-footer">
+                  <span className="product-delivery">
+                    Delivery {String(product.deliveryDays).padStart(2, '0')} days
+                  </span>
+                  <button type="button" className="product-cart-btn" aria-label="Add to cart">
+                    <CartIcon />
+                  </button>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+
+      <a
+        href="https://wa.me/911234567890"
+        className="whatsapp-fab"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+          <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.555 4.126 1.528 5.867L0 24l6.335-1.663A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.006-1.37l-.358-.213-3.76.987 1.004-3.66-.233-.375A9.818 9.818 0 1112 21.818z" />
+        </svg>
+        Chat with Us
+      </a>
+    </section>
+  )
+}
+
+export default RentalProducts

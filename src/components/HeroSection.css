@@ -1,0 +1,272 @@
+.hero-section {
+  background: #fff;
+  padding: 20px 24px 28px;
+}
+
+.hero-inner {
+  max-width: 1320px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.72fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+/* ── Main banner ── */
+.hero-main {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  min-height: 420px;
+  background: #f0f4f7;
+  overflow: hidden;
+}
+
+.hero-main-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 16px 8px 16px 16px;
+}
+
+.hero-product-img {
+  display: block;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+.hero-product-img--laptop {
+  width: 100%;
+  max-width: 420px;
+  max-height: 360px;
+}
+
+.hero-main-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 48px 40px 24px;
+}
+
+.hero-eyebrow {
+  margin: 0 0 4px;
+  font-size: 22px;
+  font-weight: 400;
+  color: #555;
+  line-height: 1.2;
+}
+
+.hero-main-content h1 {
+  margin: 0 0 16px;
+  font-size: 38px;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
+}
+
+.hero-subtitle {
+  margin: 0 0 32px;
+  font-size: 15px;
+  font-weight: 400;
+  color: #777;
+  line-height: 1.5;
+}
+
+.hero-cta-btn {
+  display: inline-block;
+  padding: 11px 30px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: #4a90e2;
+  border: 1.5px solid #4a90e2;
+  background: transparent;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+
+.hero-cta-btn:hover {
+  background: #4a90e2;
+  color: #fff;
+}
+
+/* ── Side banners ── */
+.hero-side {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 18px;
+}
+
+.hero-side-card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.hero-side-card--blue {
+  background: linear-gradient(155deg, #eef4f8 0%, #e2edf5 45%, #d8e8f2 100%);
+}
+
+.hero-side-card--pink {
+  background: linear-gradient(205deg, #f5eaf0 0%, #efe2ec 45%, #f0e4ee 100%);
+}
+
+.hero-side-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 190px;
+  padding: 12px 16px;
+  overflow: hidden;
+}
+
+.hero-product-img--watch {
+  width: 100%;
+  max-width: 200px;
+  max-height: 170px;
+}
+
+.hero-product-img--mobile {
+  width: 100%;
+  max-width: 190px;
+  max-height: 180px;
+}
+
+/* Side text */
+.hero-side-content {
+  display: flex;
+  flex-direction: column;
+  padding: 28px 24px;
+}
+
+.hero-side-content--right {
+  align-items: flex-start;
+  text-align: left;
+  padding-left: 8px;
+}
+
+.hero-side-content--left {
+  align-items: flex-start;
+  text-align: left;
+  padding-right: 8px;
+}
+
+.hero-side-eyebrow {
+  font-size: 13px;
+  font-weight: 400;
+  color: #888;
+  margin-bottom: 2px;
+}
+
+.hero-side-content h2 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.2;
+  letter-spacing: -0.3px;
+}
+
+.hero-side-line {
+  display: block;
+  width: 36px;
+  height: 2px;
+  margin: 10px 0 12px;
+}
+
+.hero-side-line--blue {
+  background: #4a90e2;
+}
+
+.hero-side-line--peach {
+  background: #e8a87c;
+}
+
+.hero-side-content p {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: #777;
+  line-height: 1.4;
+}
+
+.hero-side-link {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  color: #4a90e2;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  transition: opacity 0.2s;
+}
+
+.hero-side-link:hover {
+  opacity: 0.7;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1100px) {
+  .hero-inner {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-side {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-main {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .hero-main-visual {
+    padding: 24px 16px 8px;
+  }
+
+  .hero-product-img--laptop {
+    max-height: 260px;
+  }
+
+  .hero-main-content {
+    align-items: center;
+    text-align: center;
+    padding: 24px 24px 32px;
+  }
+
+  .hero-main-content h1 {
+    font-size: 30px;
+  }
+
+  .hero-side {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+
+  .hero-side-card {
+    min-height: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-section {
+    padding: 16px;
+  }
+
+  .hero-side-card {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  .hero-side-visual {
+    min-height: 140px;
+  }
+}
