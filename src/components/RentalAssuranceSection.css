@@ -71,12 +71,8 @@
   display: flex;
   align-items: stretch;
   justify-content: center;
-  gap: 10px;
+  gap: 16px;
   width: 100%;
-}
-
-.assurance-beam-item {
-  display: contents;
 }
 
 /* Step cards — equal width on desktop */
@@ -101,85 +97,6 @@
     border-color 0.3s ease,
     box-shadow 0.3s ease,
     transform 0.3s ease !important;
-}
-
-/* Animated arrows between cards */
-.assurance-flow-arrow {
-  display: flex;
-  align-items: center;
-  align-self: center;
-  flex-shrink: 0;
-  width: 36px;
-  margin-top: 0;
-  padding: 0;
-}
-
-.assurance-flow-arrow-track {
-  position: relative;
-  flex: 1;
-  height: 3px;
-  background: #e8edf2;
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.assurance-flow-arrow-beam {
-  position: absolute;
-  top: 0;
-  left: -50%;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, #4a90e2, #2b8fe8, transparent);
-  border-radius: 999px;
-  animation: flowArrowBeam 2s ease-in-out infinite;
-  animation-delay: var(--arrow-delay, 0s);
-}
-
-.assurance-flow-arrow-head {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  margin-left: -4px;
-  color: #4a90e2;
-  background: #f0f6fd;
-  border: 1px solid rgba(74, 144, 226, 0.25);
-  border-radius: 50%;
-  animation: flowArrowHead 2s ease-in-out infinite;
-  animation-delay: var(--arrow-delay, 0s);
-}
-
-@keyframes flowArrowBeam {
-  0% {
-    left: -50%;
-    opacity: 0;
-  }
-
-  20% {
-    opacity: 1;
-  }
-
-  80% {
-    opacity: 1;
-  }
-
-  100% {
-    left: 100%;
-    opacity: 0;
-  }
-}
-
-@keyframes flowArrowHead {
-  0%, 100% {
-    transform: translateX(0);
-    box-shadow: 0 0 0 rgba(74, 144, 226, 0);
-  }
-
-  50% {
-    transform: translateX(3px);
-    box-shadow: 0 0 12px rgba(74, 144, 226, 0.35);
-  }
 }
 
 @keyframes assuranceCardIn {
@@ -387,21 +304,10 @@
     align-items: stretch;
   }
 
-  .assurance-beam-item {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    min-width: 0;
-  }
-
   .assurance-step-card {
     flex: none;
     max-width: none;
     width: 100%;
-  }
-
-  .assurance-flow-arrow {
-    display: none;
   }
 
   .assurance-beam-container {
@@ -419,16 +325,9 @@
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 0;
+    gap: 16px;
     max-width: 360px;
     margin: 0 auto;
-  }
-
-  .assurance-beam-item {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    width: 100%;
   }
 
   .assurance-step-card {
@@ -441,57 +340,6 @@
     width: 100%;
   }
 
-  .assurance-flow-arrow {
-    display: flex;
-    flex-direction: column;
-    align-self: center;
-    width: auto;
-    height: 40px;
-    margin: 8px 0;
-    padding: 0;
-  }
-
-  .assurance-flow-arrow-track {
-    width: 3px;
-    height: 20px;
-    flex: none;
-  }
-
-  .assurance-flow-arrow-beam {
-    left: 0;
-    top: -50%;
-    width: 100%;
-    height: 50%;
-    background: linear-gradient(180deg, transparent, #4a90e2, #2b8fe8, transparent);
-    animation-name: flowArrowBeamVertical;
-  }
-
-  .assurance-flow-arrow-head {
-    margin-left: 0;
-    margin-top: -4px;
-    transform: rotate(90deg);
-  }
-
-  @keyframes flowArrowBeamVertical {
-    0% {
-      top: -50%;
-      opacity: 0;
-    }
-
-    20% {
-      opacity: 1;
-    }
-
-    80% {
-      opacity: 1;
-    }
-
-    100% {
-      top: 100%;
-      opacity: 0;
-    }
-  }
-
   .assurance-beam-container .animated-beam-svg {
     display: none;
   }
@@ -499,11 +347,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .assurance-step-card {
-    animation: none;
-  }
-
-  .assurance-flow-arrow-beam,
-  .assurance-flow-arrow-head {
     animation: none;
   }
 

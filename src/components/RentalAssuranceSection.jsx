@@ -1,6 +1,5 @@
 import { forwardRef, useRef } from 'react'
 import {
-  ArrowRight,
   ClipboardCheck,
   Headphones,
   PackageCheck,
@@ -50,23 +49,6 @@ const PROCESS_STEPS = [
     theme: 'rose',
   },
 ]
-
-function FlowArrow({ index }) {
-  return (
-    <div
-      className="assurance-flow-arrow"
-      style={{ '--arrow-delay': `${index * 0.2}s` }}
-      aria-hidden="true"
-    >
-      <span className="assurance-flow-arrow-track">
-        <span className="assurance-flow-arrow-beam" />
-      </span>
-      <span className="assurance-flow-arrow-head">
-        <ArrowRight size={18} strokeWidth={2.5} />
-      </span>
-    </div>
-  )
-}
 
 const StepCard = forwardRef(function StepCard({ step, index }, ref) {
   const Icon = step.icon
@@ -131,16 +113,38 @@ function RentalAssuranceSection() {
         <div className="assurance-beam-container" ref={containerRef}>
           <div className="assurance-beam-track">
             {PROCESS_STEPS.map((step, index) => (
-              <div key={step.id} className="assurance-beam-item">
-                <StepCard ref={stepRefs[index]} step={step} index={index} />
-                {index < PROCESS_STEPS.length - 1 && <FlowArrow index={index} />}
-              </div>
+              <StepCard key={step.id} ref={stepRefs[index]} step={step} index={index} />
             ))}
           </div>
 
-          <AnimatedBeam containerRef={containerRef} fromRef={step1Ref} toRef={step2Ref} duration={2.5} delay={0} />
-          <AnimatedBeam containerRef={containerRef} fromRef={step2Ref} toRef={step3Ref} duration={2.5} delay={0.3} reverse />
-          <AnimatedBeam containerRef={containerRef} fromRef={step3Ref} toRef={step4Ref} duration={2.5} delay={0.6} />
+          <AnimatedBeam
+            containerRef={containerRef}
+            fromRef={step1Ref}
+            toRef={step2Ref}
+            duration={2.5}
+            delay={0}
+            pathWidth={2.5}
+            pathOpacity={0.35}
+          />
+          <AnimatedBeam
+            containerRef={containerRef}
+            fromRef={step2Ref}
+            toRef={step3Ref}
+            duration={2.5}
+            delay={0.3}
+            reverse
+            pathWidth={2.5}
+            pathOpacity={0.35}
+          />
+          <AnimatedBeam
+            containerRef={containerRef}
+            fromRef={step3Ref}
+            toRef={step4Ref}
+            duration={2.5}
+            delay={0.6}
+            pathWidth={2.5}
+            pathOpacity={0.35}
+          />
           <AnimatedBeam
             containerRef={containerRef}
             fromRef={step4Ref}
@@ -148,6 +152,8 @@ function RentalAssuranceSection() {
             duration={2.5}
             delay={0.9}
             reverse
+            pathWidth={2.5}
+            pathOpacity={0.35}
             gradientStartColor="#2b8fe8"
             gradientStopColor="#e2557a"
           />

@@ -50,6 +50,26 @@ const NAV_ITEMS = [
   { type: 'link', label: 'Imported', to: '/corporate' },
 ]
 
+const NAV_DROPDOWN_IDS = new Set(['shop', 'super-deals', 'whats-new'])
+
+function getMenuLinks(menuId) {
+  if (menuId === 'categories') {
+    return [
+      { label: 'All Products', to: '/rent-products' },
+      ...CATEGORIES.map((c) => ({ label: c.label, to: `/rent-products?category=${c.id}` })),
+    ]
+  }
+  const navItem = NAV_ITEMS.find((item) => item.id === menuId)
+  return navItem?.links ?? []
+}
+
+function getMenuTitle(menuId) {
+  if (menuId === 'categories') return 'Browse Categories'
+  if (menuId === 'location') return 'Select Location'
+  const navItem = NAV_ITEMS.find((item) => item.id === menuId)
+  return navItem?.label ?? ''
+}
+
 function ChevronDown({ className }) {
   return (
     <svg
@@ -133,17 +153,34 @@ function UserIcon() {
 function Header() {
   const [location, setLocation] = useState('Pune')
   const [openMenu, setOpenMenu] = useState(null)
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 1024px)').matches,
+  )
   const headerRef = useRef(null)
 
   const closeMenus = () => setOpenMenu(null)
 
   const openOnly = (menu, event) => {
+    event.preventDefault()
     event.stopPropagation()
     setOpenMenu((prev) => (prev === menu ? null : menu))
   }
 
+  const showMobilePanel =
+    isMobile &&
+    openMenu &&
+    (openMenu === 'categories' || openMenu === 'location' || NAV_DROPDOWN_IDS.has(openMenu))
+
   useEffect(() => {
-    const handleClickOutside = (event) => {
+    const mq = window.matchMedia('(max-width: 1024px)')
+    const update = () => setIsMobile(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
+
+  useEffect(() => {
+    const handlePointerDown = (event) => {
       if (headerRef.current && !headerRef.current.contains(event.target)) {
         closeMenus()
       }
@@ -153,16 +190,26 @@ function Header() {
       if (event.key === 'Escape') closeMenus()
     }
 
-    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('pointerdown', handlePointerDown)
     document.addEventListener('keydown', handleEscape)
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('pointerdown', handlePointerDown)
       document.removeEventListener('keydown', handleEscape)
     }
   }, [])
 
+  useEffect(() => {
+    document.body.classList.toggle('header-menu-open', Boolean(openMenu))
+    return () => document.body.classList.remove('header-menu-open')
+  }, [openMenu])
+
+  const mobilePanelLinks = openMenu ? getMenuLinks(openMenu) : []
+
   return (
-    <header className="main-header" ref={headerRef}>
+    <header
+      className={`main-header${openMenu ? ' main-header--menu-open' : ''}`}
+      ref={headerRef}
+    >
       <div className="main-header-inner">
         <div className="header-top">
           <Logo />
@@ -183,8 +230,8 @@ function Header() {
                 </span>
                 <ChevronDown className="header-chevron" />
               </button>
-              {openMenu === 'location' && (
-                <ul className="header-dropdown-menu" role="listbox" aria-label="Select location">
+              {!isMobile && openMenu === 'location' && (
+                <ul className="header-dropdown-menu header-dropdown-menu--desktop" role="listbox" aria-label="Select location">
                   {LOCATIONS.map((city) => (
                     <li key={city}>
                       <button
@@ -229,92 +276,131 @@ function Header() {
           </div>
         </div>
 
-        <div className="header-bottom">
-          <div className={`header-dropdown header-categories${openMenu === 'categories' ? ' is-open' : ''}`}>
-            <button
-              type="button"
-              className="header-categories-btn"
-              onClick={(e) => openOnly('categories', e)}
-              aria-expanded={openMenu === 'categories'}
-              aria-haspopup="true"
-            >
-              <MenuIcon />
-              Browse Categories
-              <ChevronDown className="header-chevron" />
-            </button>
-            {openMenu === 'categories' && (
-              <ul className="header-dropdown-menu header-categories-menu">
-                <li>
-                  <Link to="/rent-products" onClick={closeMenus}>All Products</Link>
-                </li>
-                {CATEGORIES.map((category) => (
-                  <li key={category.id}>
-                    <Link
-                      to={`/rent-products?category=${category.id}`}
-                      onClick={closeMenus}
+        <div className="header-bottom-scroll">
+          <div className="header-bottom">
+            <div className={`header-dropdown header-categories${openMenu === 'categories' ? ' is-open' : ''}`}>
+              <button
+                type="button"
+                className="header-categories-btn"
+                onClick={(e) => openOnly('categories', e)}
+                aria-expanded={openMenu === 'categories'}
+                aria-haspopup="true"
+              >
+                <MenuIcon />
+                Browse Categories
+                <ChevronDown className="header-chevron" />
+              </button>
+              {!isMobile && openMenu === 'categories' && (
+                <ul className="header-dropdown-menu header-dropdown-menu--desktop header-categories-menu">
+                  <li>
+                    <Link to="/rent-products" onClick={closeMenus}>All Products</Link>
+                  </li>
+                  {CATEGORIES.map((category) => (
+                    <li key={category.id}>
+                      <Link
+                        to={`/rent-products?category=${category.id}`}
+                        onClick={closeMenus}
+                      >
+                        {category.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <nav className="header-nav" aria-label="Main navigation">
+              <ul className="header-nav-list">
+                {NAV_ITEMS.map((item) => {
+                  if (item.type === 'link') {
+                    return (
+                      <li key={item.label} className="header-nav-item">
+                        <NavLink
+                          to={item.to}
+                          end={item.end}
+                          className={({ isActive }) =>
+                            `header-nav-link${isActive ? ' active' : ''}${item.icon === 'bolt' ? ' header-nav-link--offer' : ''}`
+                          }
+                          onClick={closeMenus}
+                        >
+                          {item.icon === 'bolt' && (
+                            <span className="header-nav-bolt" aria-hidden="true">⚡</span>
+                          )}
+                          {item.label}
+                        </NavLink>
+                      </li>
+                    )
+                  }
+
+                  return (
+                    <li
+                      key={item.id}
+                      className={`header-nav-item header-dropdown header-nav-dropdown${openMenu === item.id ? ' is-open' : ''}`}
                     >
-                      {category.label}
+                      <button
+                        type="button"
+                        className="header-nav-link header-nav-dropdown-btn"
+                        onClick={(e) => openOnly(item.id, e)}
+                        aria-expanded={openMenu === item.id}
+                        aria-haspopup="true"
+                      >
+                        {item.label}
+                        <ChevronDown className="header-chevron" />
+                      </button>
+                      {!isMobile && openMenu === item.id && (
+                        <ul className="header-dropdown-menu header-dropdown-menu--desktop header-nav-dropdown-menu">
+                          {item.links.map((link) => (
+                            <li key={link.label}>
+                              <Link to={link.to} onClick={closeMenus}>
+                                {link.label}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </li>
+                  )
+                })}
+              </ul>
+            </nav>
+          </div>
+        </div>
+
+        {showMobilePanel && (
+          <div className="header-mobile-panel" role="region" aria-label={getMenuTitle(openMenu)}>
+            <p className="header-mobile-panel-title">{getMenuTitle(openMenu)}</p>
+            {openMenu === 'location' ? (
+              <ul className="header-mobile-panel-list">
+                {LOCATIONS.map((city) => (
+                  <li key={city}>
+                    <button
+                      type="button"
+                      className={location === city ? 'is-selected' : undefined}
+                      onClick={() => {
+                        setLocation(city)
+                        closeMenus()
+                      }}
+                    >
+                      {city}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <ul
+                className={`header-mobile-panel-list${openMenu === 'categories' ? ' header-mobile-panel-list--scroll' : ''}`}
+              >
+                {mobilePanelLinks.map((link) => (
+                  <li key={link.label}>
+                    <Link to={link.to} onClick={closeMenus}>
+                      {link.label}
                     </Link>
                   </li>
                 ))}
               </ul>
             )}
           </div>
-
-          <nav className="header-nav" aria-label="Main navigation">
-            <ul className="header-nav-list">
-              {NAV_ITEMS.map((item) => {
-                if (item.type === 'link') {
-                  return (
-                    <li key={item.label}>
-                      <NavLink
-                        to={item.to}
-                        end={item.end}
-                        className={({ isActive }) =>
-                          `header-nav-link${isActive ? ' active' : ''}${item.icon === 'bolt' ? ' header-nav-link--offer' : ''}`
-                        }
-                      >
-                        {item.icon === 'bolt' && (
-                          <span className="header-nav-bolt" aria-hidden="true">⚡</span>
-                        )}
-                        {item.label}
-                      </NavLink>
-                    </li>
-                  )
-                }
-
-                return (
-                  <li
-                    key={item.id}
-                    className={`header-dropdown header-nav-dropdown${openMenu === item.id ? ' is-open' : ''}`}
-                  >
-                    <button
-                      type="button"
-                      className="header-nav-link header-nav-dropdown-btn"
-                      onClick={(e) => openOnly(item.id, e)}
-                      aria-expanded={openMenu === item.id}
-                      aria-haspopup="true"
-                    >
-                      {item.label}
-                      <ChevronDown className="header-chevron" />
-                    </button>
-                    {openMenu === item.id && (
-                      <ul className="header-dropdown-menu header-nav-dropdown-menu">
-                        {item.links.map((link) => (
-                          <li key={link.label}>
-                            <Link to={link.to} onClick={closeMenus}>
-                              {link.label}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </li>
-                )
-              })}
-            </ul>
-          </nav>
-        </div>
+        )}
       </div>
     </header>
   )
