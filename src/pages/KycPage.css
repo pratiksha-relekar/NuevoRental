@@ -1,0 +1,197 @@
+.kyc-inner {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 48px;
+  align-items: center;
+}
+
+.kyc-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+}
+
+.kyc-shield-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 200px;
+  height: 200px;
+}
+
+.kyc-shield-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid rgba(74, 144, 226, 0.2);
+}
+
+.kyc-shield-ring--outer {
+  inset: 0;
+  animation: kycRingPulse 2.5s ease-out infinite;
+}
+
+.kyc-shield-ring--inner {
+  inset: 24px;
+  animation: kycRingPulse 2.5s ease-out 0.6s infinite;
+}
+
+.kyc-shield-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 100px;
+  color: #4a90e2;
+  background: rgba(74, 144, 226, 0.12);
+  border-radius: 50%;
+  animation: pagePulse 2.5s ease-in-out infinite;
+}
+
+.kyc-content .page-eyebrow,
+.kyc-content .page-title {
+  text-align: left;
+}
+
+.kyc-points {
+  margin: 24px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kyc-points li {
+  position: relative;
+  padding: 14px 18px 14px 44px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #2a3a52;
+  background: #fff;
+  border: 1px solid #e8edf2;
+  border-radius: 12px;
+  line-height: 1.5;
+}
+
+.kyc-points li::before {
+  content: '✔';
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  font-weight: 700;
+  color: #4a90e2;
+}
+
+.kyc-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.kyc-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #5a6a7f;
+  background: rgba(74, 144, 226, 0.06);
+  border: 1px solid rgba(74, 144, 226, 0.12);
+  border-radius: 999px;
+}
+
+.kyc-step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  background: #4a90e2;
+  border-radius: 50%;
+}
+
+.kyc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.kyc-btn {
+  display: inline-block;
+  padding: 12px 24px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  border-radius: 6px;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.kyc-btn--primary {
+  color: #fff;
+  background: #4a90e2;
+  border: none;
+}
+
+.kyc-btn--primary:hover {
+  background: #3a7fd4;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(74, 144, 226, 0.35);
+}
+
+.kyc-btn--ghost {
+  color: #4a90e2;
+  background: transparent;
+  border: 1.5px solid #4a90e2;
+}
+
+.kyc-btn--ghost:hover {
+  background: rgba(74, 144, 226, 0.08);
+  transform: translateY(-2px);
+}
+
+@keyframes kycRingPulse {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.8;
+  }
+
+  70% {
+    transform: scale(1.15);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1.15);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .kyc-inner {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .kyc-visual {
+    min-height: 220px;
+  }
+}
+
+@media (max-width: 768px) {
+  .kyc-steps {
+    flex-direction: column;
+  }
+}

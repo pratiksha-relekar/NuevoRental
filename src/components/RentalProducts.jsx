@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react'
-import { RENTAL_PRODUCTS } from '../data/products'
-import CategoryIcon from './CategoryIcon'
+import { RENTAL_PRODUCTS, getProductImage } from '../data/products'
 import './RentalProducts.css'
 
 function StarRating({ count = 5 }) {
@@ -18,20 +17,31 @@ function StarRating({ count = 5 }) {
   )
 }
 
-function ProductPlaceholder({ category }) {
-  const iconMap = {
-    laptops: 'laptop',
-    desktops: 'desktop',
-    printers: 'printer',
-    projectors: 'projector',
-    accessories: 'accessories',
-    networking: 'networking',
-  }
-
+function EyeIcon() {
   return (
-    <div className="product-placeholder">
-      <CategoryIcon type={iconMap[category] ?? 'laptop'} />
-    </div>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path
+        d="M1 8C1 8 3.5 3 8 3C12.5 3 15 8 15 8C15 8 12.5 13 8 13C3.5 13 1 8 1 8Z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      <circle cx="8" cy="8" r="2.5" stroke="currentColor" strokeWidth="1.4" />
+    </svg>
+  )
+}
+
+function HeartIcon({ filled }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path
+        d="M8 14S1.5 9.5 1.5 5.5C1.5 3.5 3 2 5 2C6.5 2 7.5 2.8 8 4C8.5 2.8 9.5 2 11 2C13 2 14.5 3.5 14.5 5.5C14.5 9.5 8 14 8 14Z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+        fill={filled ? 'currentColor' : 'none'}
+      />
+    </svg>
   )
 }
 
@@ -48,6 +58,63 @@ function CartIcon() {
       <circle cx="6" cy="15" r="1.2" fill="currentColor" />
       <circle cx="13" cy="15" r="1.2" fill="currentColor" />
     </svg>
+  )
+}
+
+
+export function ProductCard({ product }) {
+  const [wishlisted, setWishlisted] = useState(false)
+  const imageSrc = getProductImage(product)
+
+  return (
+    <article className="product-card">
+      <div className="product-card-image">
+        {product.refurbished && (
+          <span className="product-badge">REFURBISHED</span>
+        )}
+
+        <img src={imageSrc} alt={product.title} className="product-image" />
+
+        <div className="product-hover-actions">
+          <button
+            type="button"
+            className="product-action-btn"
+            aria-label={`View ${product.title}`}
+          >
+            <EyeIcon />
+          </button>
+          <button
+            type="button"
+            className={`product-action-btn product-action-btn--wishlist${wishlisted ? ' product-action-btn--active' : ''}`}
+            aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+            aria-pressed={wishlisted}
+            onClick={() => setWishlisted((prev) => !prev)}
+          >
+            <HeartIcon filled={wishlisted} />
+          </button>
+        </div>
+      </div>
+
+      <div className="product-card-body">
+        <StarRating count={product.rating} />
+        <h3 className="product-title">{product.title}</h3>
+        <div className="product-pricing">
+          <span className="product-original">₹{product.originalPrice}</span>
+          <span className="product-rental">
+            ₹{product.rentalPrice}
+            <span className="product-period">/{product.period}</span>
+          </span>
+        </div>
+        <div className="product-footer">
+          <span className="product-delivery">
+            Delivery {String(product.deliveryDays).padStart(2, '0')} days
+          </span>
+          <button type="button" className="product-cart-btn" aria-label="Add to cart">
+            <CartIcon />
+          </button>
+        </div>
+      </div>
+    </article>
   )
 }
 
@@ -76,7 +143,7 @@ function RentalProducts({ activeCategory = 'all' }) {
   }
 
   return (
-    <section className="rental-products" aria-label="Available for rent">
+    <section className="rental-products" id="rental-products" aria-label="Available for rent">
       <div className="rental-products-inner">
         <div className="rental-products-header">
           <div className="rental-products-title-wrap">
@@ -111,37 +178,7 @@ function RentalProducts({ activeCategory = 'all' }) {
           onScroll={updateScrollState}
         >
           {filtered.map((product) => (
-            <article key={product.id} className="product-card">
-              <div className="product-card-image">
-                {product.refurbished && (
-                  <span className="product-badge">REFURBISHED</span>
-                )}
-                {product.image ? (
-                  <img src={product.image} alt={product.title} />
-                ) : (
-                  <ProductPlaceholder category={product.category} />
-                )}
-              </div>
-              <div className="product-card-body">
-                <StarRating count={product.rating} />
-                <h3 className="product-title">{product.title}</h3>
-                <div className="product-pricing">
-                  <span className="product-original">₹{product.originalPrice}</span>
-                  <span className="product-rental">
-                    ₹{product.rentalPrice}
-                    <span className="product-period">/{product.period}</span>
-                  </span>
-                </div>
-                <div className="product-footer">
-                  <span className="product-delivery">
-                    Delivery {String(product.deliveryDays).padStart(2, '0')} days
-                  </span>
-                  <button type="button" className="product-cart-btn" aria-label="Add to cart">
-                    <CartIcon />
-                  </button>
-                </div>
-              </div>
-            </article>
+            <ProductCard key={product.id} product={product} />
           ))}
         </div>
       </div>

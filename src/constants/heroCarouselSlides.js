@@ -1,0 +1,73 @@
+import printerImg from '../assets/categories/printer.png'
+import projectorImg from '../assets/categories/projector.png'
+import accessoriesImg from '../assets/categories/accessories.png'
+import networkingImg from '../assets/categories/networking.png'
+
+export const HERO_CAROUSEL_SLIDES = [
+  {
+    id: 'printer',
+    badge: '33% OFF',
+    title: 'HP LaserJet Pro on Rent',
+    rentalPrice: 1200,
+    originalPrice: 1800,
+    period: 'month',
+    description: 'LaserJet, InkTank & multifunction devices.',
+    image: printerImg,
+    alt: 'HP LaserJet printer available for rent',
+  },
+  {
+    id: 'projector',
+    badge: '25% OFF',
+    title: 'BenQ Full HD Projector',
+    rentalPrice: 899,
+    originalPrice: 1200,
+    period: 'day',
+    description: 'Perfect for meetings, events & presentations.',
+    image: projectorImg,
+    alt: 'BenQ projector available for rent',
+  },
+  {
+    id: 'webcam',
+    badge: '25% OFF',
+    title: 'Lapcare USB Webcam',
+    rentalPrice: 299,
+    originalPrice: 399,
+    period: 'day',
+    description: 'HD video for remote work and conferences.',
+    image: accessoriesImg,
+    alt: 'USB webcam available for rent',
+  },
+  {
+    id: 'ups',
+    badge: '27% OFF',
+    title: 'APC UPS 1000VA on Rent',
+    rentalPrice: 550,
+    originalPrice: 750,
+    period: 'month',
+    description: 'Reliable power backup for your office setup.',
+    image: networkingImg,
+    alt: 'APC UPS available for rent',
+  },
+  {
+    id: 'cctv',
+    badge: '27% OFF',
+    title: 'CCTV Camera Kit on Rent',
+    rentalPrice: 1099,
+    originalPrice: 1500,
+    period: 'month',
+    description: 'Secure your workspace with smart surveillance.',
+    image: accessoriesImg,
+    alt: 'CCTV camera kit available for rent',
+  },
+  {
+    id: 'printer-alt',
+    badge: 'ON RENT',
+    title: 'Office Printers & Scanners',
+    rentalPrice: 999,
+    originalPrice: 1500,
+    period: 'month',
+    description: 'Flexible plans with doorstep delivery.',
+    image: printerImg,
+    alt: 'Office printers available for rent',
+  },
+]

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import './TopBar.css'
 
 function ChevronDown() {
@@ -45,15 +46,15 @@ function TopBar() {
     <div className="top-bar">
       <div className="top-bar-inner">
         <div className="top-bar-left">
-          <span>CONTACT US : 123 456 7890</span>
+          <span>CONTACT US : 8080808964</span>
           <span className="top-bar-divider" />
-          <span>EMAIL : info@nuevorental.com</span>
+          <span>EMAIL : support@nuevorental.com</span>
         </div>
         <div className="top-bar-right">
-          <a href="#login" className="top-bar-link">
+          <Link to="/dashboard" className="top-bar-link">
             <UserIcon />
             Login / Register
-          </a>
+          </Link>
           <span className="top-bar-divider" />
           <button type="button" className="top-bar-select">
             EN <ChevronDown />

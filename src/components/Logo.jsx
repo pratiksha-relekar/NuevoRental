@@ -1,8 +1,9 @@
+import { Link } from 'react-router-dom'
 import './Logo.css'
 
 function Logo() {
   return (
-    <a href="/" className="logo" aria-label="Nuevo Rental home">
+    <Link to="/" className="logo" aria-label="Nuevo Rental home">
       <span className="logo-text">
         NUEV
         <span className="logo-hex" aria-hidden="true">
@@ -17,7 +18,7 @@ function Logo() {
         </span>
         {' '}RENTAL
       </span>
-    </a>
+    </Link>
   )
 }
 

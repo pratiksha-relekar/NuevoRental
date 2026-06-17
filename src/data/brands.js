@@ -1,0 +1,18 @@
+export const RENTAL_BRANDS = [
+  { id: 'apple', name: 'Apple' },
+  { id: 'dell', name: 'Dell' },
+  { id: 'hp', name: 'HP' },
+  { id: 'lenovo', name: 'Lenovo' },
+  { id: 'asus', name: 'ASUS' },
+  { id: 'samsung', name: 'Samsung' },
+  { id: 'lg', name: 'LG' },
+  { id: 'microsoft', name: 'Microsoft' },
+  { id: 'logitech', name: 'Logitech' },
+  { id: 'sony', name: 'Sony' },
+  { id: 'canon', name: 'Canon' },
+  { id: 'epson', name: 'Epson' },
+  { id: 'benq', name: 'BenQ' },
+  { id: 'cisco', name: 'Cisco' },
+  { id: 'apc', name: 'APC' },
+  { id: 'acer', name: 'Acer' },
+]
