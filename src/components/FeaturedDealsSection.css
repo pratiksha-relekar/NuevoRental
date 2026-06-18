@@ -185,9 +185,29 @@
   right: -12px;
 }
 
+/* Glare hover wrapper */
+.deal-card-glare {
+  flex: 0 0 260px;
+  display: block;
+  width: auto;
+  height: auto;
+  border: none;
+  background: transparent;
+}
+
+.deal-card-glare::before {
+  z-index: 3;
+}
+
+.deal-card-glare .deal-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+}
+
 /* Deal card */
 .deal-card {
-  flex: 0 0 260px;
   background: #fff;
   border-radius: 12px;
   overflow: hidden;
@@ -198,7 +218,7 @@
     box-shadow 0.3s ease;
 }
 
-.deal-card:hover {
+.deal-card-glare:hover .deal-card {
   transform: translateY(-4px);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
 }
@@ -240,7 +260,7 @@
   transition: transform 0.35s ease;
 }
 
-.deal-card:hover .deal-card-image {
+.deal-card-glare:hover .deal-card-image {
   transform: scale(1.05);
 }
 
@@ -396,7 +416,7 @@
     padding: 36px 16px 44px;
   }
 
-  .deal-card {
+  .deal-card-glare {
     flex: 0 0 240px;
   }
 

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { DEAL_FILTERS, FEATURED_DEALS, filterFeaturedDeals } from '../data/featuredDeals'
+import GlareHover from './GlareHover'
 import './FeaturedDealsSection.css'
 
 function getCountdownTarget() {
@@ -46,51 +47,65 @@ function StarRating({ rating }) {
 
 function DealCard({ deal }) {
   return (
-    <article className="deal-card">
-      <div className="deal-card-image-wrap">
-        <span className="deal-card-badge">{deal.discountPercent}% OFF</span>
-        <img src={deal.image} alt={deal.title} className="deal-card-image" />
-      </div>
-
-      <div className="deal-card-body">
-        <h3 className="deal-card-title">{deal.title}</h3>
-
-        <div className="deal-card-brand">
-          <span className="deal-card-brand-icon" aria-hidden="true">N</span>
-          {deal.brand}
+    <GlareHover
+      className="deal-card-glare"
+      width="100%"
+      height="100%"
+      background="transparent"
+      borderRadius="12px"
+      borderColor="transparent"
+      glareColor="#ffffff"
+      glareOpacity={0.4}
+      glareAngle={-30}
+      glareSize={280}
+      transitionDuration={750}
+    >
+      <article className="deal-card">
+        <div className="deal-card-image-wrap">
+          <span className="deal-card-badge">{deal.discountPercent}% OFF</span>
+          <img src={deal.image} alt={deal.title} className="deal-card-image" />
         </div>
 
-        <div className="deal-card-pricing">
-          <span className="deal-card-offer">
-            ₹{deal.offerPrice.toLocaleString('en-IN')}
-            <span className="deal-card-period">/{deal.period}</span>
-          </span>
-          <span className="deal-card-original">₹{deal.originalPrice.toLocaleString('en-IN')}</span>
+        <div className="deal-card-body">
+          <h3 className="deal-card-title">{deal.title}</h3>
+
+          <div className="deal-card-brand">
+            <span className="deal-card-brand-icon" aria-hidden="true">N</span>
+            {deal.brand}
+          </div>
+
+          <div className="deal-card-pricing">
+            <span className="deal-card-offer">
+              ₹{deal.offerPrice.toLocaleString('en-IN')}
+              <span className="deal-card-period">/{deal.period}</span>
+            </span>
+            <span className="deal-card-original">₹{deal.originalPrice.toLocaleString('en-IN')}</span>
+          </div>
+
+          <div className="deal-card-meta">
+            <StarRating rating={deal.rating} />
+            <span className="deal-card-reviews">({deal.reviews})</span>
+          </div>
+
+          <p className={`deal-card-stock${deal.inStock ? ' deal-card-stock--in' : ' deal-card-stock--out'}`}>
+            {deal.inStock ? `In stock (${deal.stock})` : 'Out of stock'}
+          </p>
+
+          {deal.inStock ? (
+            <Link
+              to={`/product/${deal.productId}?deal=${deal.id}`}
+              className="deal-card-btn deal-card-btn--active"
+            >
+              Rent Now
+            </Link>
+          ) : (
+            <button type="button" className="deal-card-btn" disabled>
+              Out of Stock
+            </button>
+          )}
         </div>
-
-        <div className="deal-card-meta">
-          <StarRating rating={deal.rating} />
-          <span className="deal-card-reviews">({deal.reviews})</span>
-        </div>
-
-        <p className={`deal-card-stock${deal.inStock ? ' deal-card-stock--in' : ' deal-card-stock--out'}`}>
-          {deal.inStock ? `In stock (${deal.stock})` : 'Out of stock'}
-        </p>
-
-        {deal.inStock ? (
-          <Link
-            to={`/product/${deal.productId}?deal=${deal.id}`}
-            className="deal-card-btn deal-card-btn--active"
-          >
-            Rent Now
-          </Link>
-        ) : (
-          <button type="button" className="deal-card-btn" disabled>
-            Out of Stock
-          </button>
-        )}
-      </div>
-    </article>
+      </article>
+    </GlareHover>
   )
 }
 
