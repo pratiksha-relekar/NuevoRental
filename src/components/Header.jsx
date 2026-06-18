@@ -65,6 +65,7 @@ function getMenuLinks(menuId) {
 function getMenuTitle(menuId) {
   if (menuId === 'categories') return 'Browse Categories'
   if (menuId === 'location') return 'Select Location'
+  if (menuId === 'account') return 'My Account'
   const navItem = NAV_ITEMS.find((item) => item.id === menuId)
   return navItem?.label ?? ''
 }
@@ -179,7 +180,10 @@ function Header() {
   const showMobilePanel =
     isMobile &&
     openMenu &&
-    (openMenu === 'categories' || openMenu === 'location' || NAV_DROPDOWN_IDS.has(openMenu))
+    (openMenu === 'categories' ||
+      openMenu === 'location' ||
+      openMenu === 'account' ||
+      NAV_DROPDOWN_IDS.has(openMenu))
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 1024px)')
@@ -330,7 +334,7 @@ function Header() {
                   </span>
                   <ChevronDown className="header-chevron" />
                 </button>
-                {openMenu === 'account' && (
+                {openMenu === 'account' && !isMobile && (
                   <ul className="header-dropdown-menu header-account-menu" role="menu" aria-label="Account menu">
                     <li role="none">
                       <Link to="/dashboard" role="menuitem" onClick={closeMenus}>
@@ -471,6 +475,29 @@ function Header() {
                     </button>
                   </li>
                 ))}
+              </ul>
+            ) : openMenu === 'account' ? (
+              <ul className="header-mobile-panel-list header-mobile-panel-list--account">
+                {isAuthenticated ? (
+                  <>
+                    <li>
+                      <Link to="/dashboard" onClick={closeMenus}>
+                        My Dashboard
+                      </Link>
+                    </li>
+                    <li>
+                      <button type="button" className="header-mobile-logout" onClick={handleLogout}>
+                        Logout
+                      </button>
+                    </li>
+                  </>
+                ) : (
+                  <li>
+                    <Link to="/login" onClick={closeMenus}>
+                      Login / Sign Up
+                    </Link>
+                  </li>
+                )}
               </ul>
             ) : (
               <ul

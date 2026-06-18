@@ -303,12 +303,6 @@
   background: rgba(74, 144, 226, 0.08);
 }
 
-.header-account-menu {
-  right: 0;
-  left: auto;
-  min-width: 190px;
-}
-
 .header-account-logout {
   color: #c2557a;
 }
@@ -514,6 +508,14 @@
   animation: headerDropdownIn 0.22s ease forwards;
 }
 
+.header-dropdown-menu.header-account-menu {
+  right: 0;
+  left: auto;
+  min-width: 200px;
+  width: max-content;
+  max-width: min(240px, calc(100vw - 32px));
+}
+
 /* Mobile dropdown panel (below scrollable nav) */
 .header-mobile-panel {
   margin: 0 -24px;
@@ -682,6 +684,11 @@
   overflow-y: auto;
 }
 
+.header-dropdown-menu.header-account-menu a,
+.header-dropdown-menu.header-account-menu button {
+  white-space: nowrap;
+}
+
 /* ── Laptop ── */
 @media (max-width: 1200px) {
   .header-top {
@@ -690,6 +697,17 @@
 
   .header-account-text {
     display: none;
+  }
+
+  .header-account-dropdown .header-chevron {
+    display: none;
+  }
+
+  .header-account-dropdown .header-account {
+    justify-content: center;
+    padding: 8px;
+    min-width: 44px;
+    min-height: 44px;
   }
 
   .header-nav-link {
@@ -762,6 +780,10 @@
   .header-dropdown-menu--desktop {
     display: none;
   }
+
+  .header-account-menu {
+    display: none;
+  }
 }
 
 @media (max-width: 640px) {
@@ -827,6 +849,26 @@
     width: 44px;
     height: 44px;
   }
+
+  .header-account-dropdown .header-account {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+  }
+}
+
+.header-mobile-panel-list--account {
+  grid-template-columns: 1fr;
+}
+
+.header-mobile-logout {
+  color: #c2557a !important;
+}
+
+.header-mobile-logout:hover {
+  color: #a84466 !important;
+  background: rgba(194, 85, 122, 0.08) !important;
+  border-color: rgba(194, 85, 122, 0.2) !important;
 }
 
 /* iPhone safe area */
