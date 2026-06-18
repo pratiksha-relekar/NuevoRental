@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import './TopBar.css'
 
 function ChevronDown() {
@@ -42,6 +43,14 @@ function CartIcon() {
 }
 
 function TopBar() {
+  const { user, isAuthenticated, logout } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login', { replace: true })
+  }
+
   return (
     <div className="top-bar">
       <div className="top-bar-inner">
@@ -51,10 +60,23 @@ function TopBar() {
           <span>EMAIL : support@nuevorental.com</span>
         </div>
         <div className="top-bar-right">
-          <Link to="/dashboard" className="top-bar-link">
-            <UserIcon />
-            Login / Register
-          </Link>
+          {isAuthenticated ? (
+            <>
+              <Link to="/dashboard" className="top-bar-link">
+                <UserIcon />
+                {user.displayName}
+              </Link>
+              <span className="top-bar-divider" />
+              <button type="button" className="top-bar-link top-bar-logout" onClick={handleLogout}>
+                Logout
+              </button>
+            </>
+          ) : (
+            <Link to="/login" className="top-bar-link">
+              <UserIcon />
+              Login / Register
+            </Link>
+          )}
           <span className="top-bar-divider" />
           <button type="button" className="top-bar-select">
             EN <ChevronDown />

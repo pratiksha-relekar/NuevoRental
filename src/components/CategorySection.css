@@ -123,6 +123,17 @@
   transform: scale(1.06);
 }
 
+.category-item--mobiles .category-circle {
+  padding: 10px;
+}
+
+.category-item--mobiles .category-circle-img {
+  width: 108%;
+  height: 108%;
+  object-fit: contain;
+  object-position: center center;
+}
+
 .category-label {
   font-size: 14px;
   font-weight: 500;

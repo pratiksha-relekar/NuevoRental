@@ -145,6 +145,83 @@
   transform: scale(1.06);
 }
 
+.product-card-image--desktop {
+  height: 210px;
+}
+
+.product-image--desktop {
+  width: 96%;
+  height: 92%;
+  object-fit: contain;
+  object-position: center 92%;
+}
+
+.product-card-image--laptop {
+  height: 210px;
+}
+
+.product-image--laptop {
+  width: 92%;
+  height: 90%;
+  object-fit: contain;
+  object-position: center center;
+}
+
+.product-card-image--mobile {
+  height: 210px;
+}
+
+.product-image--mobile {
+  width: 78%;
+  height: 92%;
+  object-fit: contain;
+  object-position: center center;
+}
+
+.product-card-image--printer {
+  height: 210px;
+}
+
+.product-image--printer {
+  width: 90%;
+  height: 90%;
+  object-fit: contain;
+  object-position: center center;
+}
+
+.product-card-image--projector {
+  height: 210px;
+}
+
+.product-image--projector {
+  width: 92%;
+  height: 88%;
+  object-fit: contain;
+  object-position: center center;
+}
+
+.product-card-image--wearable {
+  height: 210px;
+}
+
+.product-image--wearable {
+  width: 72%;
+  height: 92%;
+  object-fit: contain;
+  object-position: center center;
+}
+
+.product-card-image--tv {
+  height: 210px;
+}
+
+.product-image--tv {
+  width: 94%;
+  height: 86%;
+  object-fit: contain;
+  object-position: center center;
+}
+
 /* Hover action buttons */
 .product-hover-actions {
   position: absolute;

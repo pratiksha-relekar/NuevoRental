@@ -1,31 +1,69 @@
-import laptopModernImg from '../assets/processed/laptop-modern.png'
-import laptopSilverImg from '../assets/processed/laptop-silver.png'
+import {
+  laptopAsus,
+  laptopMacbookSilver,
+  laptopMacbookBack,
+  laptopMacbookRose,
+  laptopPro,
+} from '../assets/laptop'
 import laptopDarkImg from '../assets/processed/laptop-dark.png'
+import laptopSilverImg from '../assets/processed/laptop-silver.png'
 import laptopColorImg from '../assets/processed/laptop-color.png'
-import desktopSetupImg from '../assets/processed/desktop-setup.png'
-import mobileImg from '../assets/mobile.png'
-import watchImg from '../assets/watch.png'
-import printerImg from '../assets/categories/printer.png'
-import projectorImg from '../assets/categories/projector.png'
+import {
+  desktopDellVostro1,
+  desktopLenovo,
+  desktopHpProdesk,
+  desktopDellVostro2,
+} from '../assets/Desktop'
+import {
+  mobileTrio1,
+  mobileTrio2,
+  mobileTrio3,
+  mobileIphoneColors,
+  mobileIphonePro,
+} from '../assets/mobile'
+import {
+  watchSmartWhite,
+  watchAppleBlack,
+  watchChronographDuo,
+  watchAppleInfograph,
+  watchAppleSport,
+} from '../assets/watches'
+import {
+  printerLaserjetWhite,
+  printerOfficeSet,
+  printerInkjetPhoto,
+} from '../assets/printer'
+import {
+  projectorPortable,
+  projectorPanasonic,
+  projectorGalaxy,
+  projectorBenq,
+} from '../assets/projector'
 import networkingImg from '../assets/categories/networking.png'
 import accessoriesImg from '../assets/categories/accessories.png'
+import {
+  tvThomsonSmart,
+  tvDualView,
+  tv4kUltra,
+} from '../assets/TV'
 import { RENTAL_PRODUCTS, getProductImage } from './products'
 import { CATEGORIES } from './categories'
 import { getDealById } from './featuredDeals'
 
 const GALLERY_BY_CATEGORY = {
-  laptops: [laptopSilverImg, laptopModernImg, laptopDarkImg, laptopColorImg],
-  desktops: [desktopSetupImg, laptopColorImg, laptopModernImg, laptopSilverImg],
-  mobiles: [mobileImg, mobileImg, watchImg, accessoriesImg],
-  tablets: [laptopDarkImg, laptopModernImg, laptopSilverImg, laptopColorImg],
-  monitors: [laptopSilverImg, laptopModernImg, laptopDarkImg, laptopColorImg],
-  printers: [printerImg, accessoriesImg, networkingImg, printerImg],
-  projectors: [projectorImg, accessoriesImg, projectorImg, networkingImg],
-  wearables: [watchImg, accessoriesImg, mobileImg, watchImg],
-  cctv: [accessoriesImg, networkingImg, accessoriesImg, printerImg],
-  accessories: [accessoriesImg, networkingImg, printerImg, projectorImg],
-  networking: [networkingImg, accessoriesImg, printerImg, networkingImg],
-  servers: [laptopColorImg, desktopSetupImg, laptopModernImg, laptopSilverImg],
+  laptops: [laptopPro, laptopAsus, laptopMacbookBack, laptopMacbookRose, laptopMacbookSilver],
+  desktops: [desktopDellVostro1, desktopLenovo, desktopHpProdesk, desktopDellVostro2],
+  mobiles: [mobileTrio1, mobileIphoneColors, mobileIphonePro, mobileTrio2, mobileTrio3],
+  tablets: [laptopDarkImg, laptopAsus, laptopPro, laptopMacbookRose],
+  monitors: [laptopSilverImg, laptopPro, laptopMacbookBack, laptopMacbookRose],
+  tvs: [tvThomsonSmart, tvDualView, tv4kUltra],
+  printers: [printerLaserjetWhite, printerOfficeSet, printerInkjetPhoto, accessoriesImg],
+  projectors: [projectorBenq, projectorPanasonic, projectorPortable, projectorGalaxy],
+  wearables: [watchAppleInfograph, watchAppleBlack, watchSmartWhite, watchChronographDuo, watchAppleSport],
+  cctv: [accessoriesImg, networkingImg, accessoriesImg, printerLaserjetWhite],
+  accessories: [accessoriesImg, networkingImg, printerLaserjetWhite, projectorBenq],
+  networking: [networkingImg, accessoriesImg, printerLaserjetWhite, networkingImg],
+  servers: [laptopColorImg, desktopDellVostro1, laptopAsus, laptopPro],
 }
 
 const CATEGORY_LABELS = Object.fromEntries(CATEGORIES.map((cat) => [cat.id, cat.label]))
@@ -36,6 +74,7 @@ const BRAND_BY_CATEGORY = {
   mobiles: 'Apple, Samsung, OnePlus',
   tablets: 'Apple, Samsung',
   monitors: 'Dell, LG, BenQ',
+  tvs: 'Samsung, LG, Sony, Thomson',
   printers: 'HP, Canon, Epson',
   projectors: 'BenQ, Epson',
   wearables: 'Apple, Samsung',

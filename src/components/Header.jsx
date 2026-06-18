@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { CATEGORIES } from '../data/categories'
 import { useCartWishlist } from '../context/CartWishlistContext'
+import { useAuth } from '../context/AuthContext'
 import Logo from './Logo'
 import HeaderSearch from './HeaderSearch'
 import './Header.css'
@@ -150,6 +151,8 @@ function UserIcon() {
 
 function Header() {
   const { cartCount, wishlistCount } = useCartWishlist()
+  const { user, isAuthenticated, logout } = useAuth()
+  const navigate = useNavigate()
   const [location, setLocation] = useState('Pune')
   const [openMenu, setOpenMenu] = useState(null)
   const [badgePulse, setBadgePulse] = useState({ cart: false, wishlist: false })
@@ -160,6 +163,12 @@ function Header() {
   const headerRef = useRef(null)
 
   const closeMenus = () => setOpenMenu(null)
+
+  const handleLogout = () => {
+    logout()
+    closeMenus()
+    navigate('/login', { replace: true })
+  }
 
   const openOnly = (menu, event) => {
     event.preventDefault()
@@ -305,13 +314,51 @@ function Header() {
                 </span>
               )}
             </Link>
-            <Link to="/dashboard" className="header-account">
-              <UserIcon />
-              <span className="header-account-text">
-                <span className="header-account-greet">Hello,</span>
-                <span className="header-account-label">Login / Sign Up</span>
-              </span>
-            </Link>
+            {isAuthenticated ? (
+              <div className={`header-dropdown header-account-dropdown${openMenu === 'account' ? ' is-open' : ''}`}>
+                <button
+                  type="button"
+                  className="header-account"
+                  onClick={(e) => openOnly('account', e)}
+                  aria-expanded={openMenu === 'account'}
+                  aria-haspopup="menu"
+                >
+                  <UserIcon />
+                  <span className="header-account-text">
+                    <span className="header-account-greet">Hello,</span>
+                    <span className="header-account-label">{user.displayName}</span>
+                  </span>
+                  <ChevronDown className="header-chevron" />
+                </button>
+                {openMenu === 'account' && (
+                  <ul className="header-dropdown-menu header-account-menu" role="menu" aria-label="Account menu">
+                    <li role="none">
+                      <Link to="/dashboard" role="menuitem" onClick={closeMenus}>
+                        My Dashboard
+                      </Link>
+                    </li>
+                    <li role="none">
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="header-account-logout"
+                        onClick={handleLogout}
+                      >
+                        Logout
+                      </button>
+                    </li>
+                  </ul>
+                )}
+              </div>
+            ) : (
+              <Link to="/login" className="header-account">
+                <UserIcon />
+                <span className="header-account-text">
+                  <span className="header-account-greet">Hello,</span>
+                  <span className="header-account-label">Login / Sign Up</span>
+                </span>
+              </Link>
+            )}
           </div>
         </div>
 

@@ -89,12 +89,16 @@ export function ProductCard({ product }) {
   return (
     <article className="product-card">
       <Link to={`/product/${product.id}`} className="product-card-link">
-        <div className="product-card-image">
+        <div className={`product-card-image${product.category === 'desktops' ? ' product-card-image--desktop' : ''}${product.category === 'laptops' ? ' product-card-image--laptop' : ''}${product.category === 'mobiles' ? ' product-card-image--mobile' : ''}${product.category === 'printers' ? ' product-card-image--printer' : ''}${product.category === 'projectors' ? ' product-card-image--projector' : ''}${product.category === 'wearables' ? ' product-card-image--wearable' : ''}${product.category === 'tvs' ? ' product-card-image--tv' : ''}`}>
           {product.refurbished && (
             <span className="product-badge">REFURBISHED</span>
           )}
 
-          <img src={imageSrc} alt={product.title} className="product-image" />
+          <img
+            src={imageSrc}
+            alt={product.title}
+            className={`product-image${product.category === 'desktops' ? ' product-image--desktop' : ''}${product.category === 'laptops' ? ' product-image--laptop' : ''}${product.category === 'mobiles' ? ' product-image--mobile' : ''}${product.category === 'printers' ? ' product-image--printer' : ''}${product.category === 'projectors' ? ' product-image--projector' : ''}${product.category === 'wearables' ? ' product-image--wearable' : ''}${product.category === 'tvs' ? ' product-image--tv' : ''}`}
+          />
 
           <div className="product-hover-actions">
             <span className="product-action-btn" aria-hidden="true">

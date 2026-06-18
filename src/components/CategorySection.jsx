@@ -23,7 +23,7 @@ function CategorySection({ activeCategory, onCategoryChange }) {
                 key={category.id}
                 type="button"
                 role="listitem"
-                className={`category-item${isActive ? ' category-item--active' : ''}`}
+                className={`category-item${isActive ? ' category-item--active' : ''}${category.id === 'mobiles' ? ' category-item--mobiles' : ''}`}
                 onClick={() => handleClick(category.id)}
                 aria-pressed={isActive}
               >

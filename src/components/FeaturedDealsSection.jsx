@@ -61,9 +61,13 @@ function DealCard({ deal }) {
       transitionDuration={750}
     >
       <article className="deal-card">
-        <div className="deal-card-image-wrap">
+        <div className={`deal-card-image-wrap${deal.category === 'desktops' ? ' deal-card-image-wrap--desktop' : ''}${deal.category === 'laptops' ? ' deal-card-image-wrap--laptop' : ''}`}>
           <span className="deal-card-badge">{deal.discountPercent}% OFF</span>
-          <img src={deal.image} alt={deal.title} className="deal-card-image" />
+          <img
+            src={deal.image}
+            alt={deal.title}
+            className={`deal-card-image${deal.category === 'desktops' ? ' deal-card-image--desktop' : ''}${deal.category === 'laptops' ? ' deal-card-image--laptop' : ''}`}
+          />
         </div>
 
         <div className="deal-card-body">

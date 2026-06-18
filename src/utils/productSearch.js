@@ -10,6 +10,7 @@ const SEARCH_ALIASES = {
   mobile: ['mobiles', 'phone', 'iphone', 'smartphone'],
   printer: ['printers', 'laserjet', 'print'],
   monitor: ['monitors', 'display', 'screen'],
+  tv: ['tvs', 'television', 'led tv', 'smart tv'],
   projector: ['projectors', 'benq'],
   watch: ['wearables', 'smartwatch', 'apple watch'],
   cctv: ['camera', 'surveillance', 'security'],

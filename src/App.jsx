@@ -1,5 +1,7 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext'
 import { CartWishlistProvider } from './context/CartWishlistContext'
+import { KycProvider } from './context/KycContext'
 import SiteLayout from './layouts/SiteLayout'
 import HomePage from './pages/HomePage'
 import AboutPage from './pages/AboutPage'
@@ -15,12 +17,16 @@ import ProductDetailPage from './pages/ProductDetailPage'
 import CartPage from './pages/CartPage'
 import WishlistPage from './pages/WishlistPage'
 import SearchResultsPage from './pages/SearchResultsPage'
+import LoginPage from './pages/LoginPage'
+import SignUpPage from './pages/SignUpPage'
 import './App.css'
 
 function App() {
   return (
     <BrowserRouter>
-      <CartWishlistProvider>
+      <AuthProvider>
+        <KycProvider>
+        <CartWishlistProvider>
         <Routes>
           <Route element={<SiteLayout />}>
             <Route index element={<HomePage />} />
@@ -37,9 +43,13 @@ function App() {
             <Route path="cart" element={<CartPage />} />
             <Route path="wishlist" element={<WishlistPage />} />
             <Route path="search" element={<SearchResultsPage />} />
+            <Route path="login" element={<LoginPage />} />
+            <Route path="signup" element={<SignUpPage />} />
           </Route>
         </Routes>
-      </CartWishlistProvider>
+        </CartWishlistProvider>
+        </KycProvider>
+      </AuthProvider>
     </BrowserRouter>
   )
 }
