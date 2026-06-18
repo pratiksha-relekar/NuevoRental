@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { CATEGORIES } from '../data/categories'
+import { useCartWishlist } from '../context/CartWishlistContext'
 import Logo from './Logo'
+import HeaderSearch from './HeaderSearch'
 import './Header.css'
 
 const LOCATIONS = [
@@ -151,8 +153,11 @@ function UserIcon() {
 }
 
 function Header() {
+  const { cartCount, wishlistCount } = useCartWishlist()
   const [location, setLocation] = useState('Pune')
   const [openMenu, setOpenMenu] = useState(null)
+  const [badgePulse, setBadgePulse] = useState({ cart: false, wishlist: false })
+  const prevCounts = useRef({ cart: cartCount, wishlist: wishlistCount })
   const [isMobile, setIsMobile] = useState(
     () => typeof window !== 'undefined' && window.matchMedia('(max-width: 1024px)').matches,
   )
@@ -203,6 +208,26 @@ function Header() {
     return () => document.body.classList.remove('header-menu-open')
   }, [openMenu])
 
+  useEffect(() => {
+    const prev = prevCounts.current
+    const nextPulse = { cart: false, wishlist: false }
+
+    if (cartCount > prev.cart) nextPulse.cart = true
+    if (wishlistCount !== prev.wishlist) nextPulse.wishlist = true
+
+    prevCounts.current = { cart: cartCount, wishlist: wishlistCount }
+
+    if (nextPulse.cart || nextPulse.wishlist) {
+      setBadgePulse(nextPulse)
+      const timer = window.setTimeout(() => {
+        setBadgePulse({ cart: false, wishlist: false })
+      }, 450)
+      return () => window.clearTimeout(timer)
+    }
+
+    return undefined
+  }, [cartCount, wishlistCount])
+
   const mobilePanelLinks = openMenu ? getMenuLinks(openMenu) : []
 
   return (
@@ -252,20 +277,38 @@ function Header() {
               )}
             </div>
 
-            <form className="header-search" role="search" onSubmit={(e) => e.preventDefault()}>
-              <input type="search" placeholder="Search products" aria-label="Search products" />
-              <button type="submit" className="header-search-submit">Search</button>
-            </form>
+            <HeaderSearch />
           </div>
 
           <div className="header-actions">
-            <a href="#wishlist" className="header-action-btn header-action-btn--wishlist" aria-label="Wishlist">
+            <Link
+              to="/wishlist"
+              className="header-action-btn header-action-btn--wishlist"
+              aria-label={`Wishlist${wishlistCount > 0 ? `, ${wishlistCount} items` : ''}`}
+            >
               <HeartIcon />
-            </a>
-            <a href="#cart" className="header-action-btn header-action-btn--cart" aria-label="Cart">
+              {wishlistCount > 0 && (
+                <span
+                  className={`header-action-badge header-action-badge--wishlist${badgePulse.wishlist ? ' header-action-badge--pulse' : ''}`}
+                >
+                  {wishlistCount}
+                </span>
+              )}
+            </Link>
+            <Link
+              to="/cart"
+              className="header-action-btn header-action-btn--cart"
+              aria-label={`Cart${cartCount > 0 ? `, ${cartCount} items` : ''}`}
+            >
               <CartIcon />
-              <span className="header-cart-badge">0</span>
-            </a>
+              {cartCount > 0 && (
+                <span
+                  className={`header-action-badge${badgePulse.cart ? ' header-action-badge--pulse' : ''}`}
+                >
+                  {cartCount}
+                </span>
+              )}
+            </Link>
             <Link to="/dashboard" className="header-account">
               <UserIcon />
               <span className="header-account-text">

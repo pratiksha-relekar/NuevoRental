@@ -1,0 +1,308 @@
+import laptopModernImg from '../assets/processed/laptop-modern.png'
+import laptopSilverImg from '../assets/processed/laptop-silver.png'
+import laptopDarkImg from '../assets/processed/laptop-dark.png'
+import laptopColorImg from '../assets/processed/laptop-color.png'
+import desktopSetupImg from '../assets/processed/desktop-setup.png'
+import mobileImg from '../assets/mobile.png'
+import watchImg from '../assets/watch.png'
+import printerImg from '../assets/categories/printer.png'
+import projectorImg from '../assets/categories/projector.png'
+import networkingImg from '../assets/categories/networking.png'
+import accessoriesImg from '../assets/categories/accessories.png'
+import { RENTAL_PRODUCTS, getProductImage } from './products'
+import { CATEGORIES } from './categories'
+import { getDealById } from './featuredDeals'
+
+const GALLERY_BY_CATEGORY = {
+  laptops: [laptopSilverImg, laptopModernImg, laptopDarkImg, laptopColorImg],
+  desktops: [desktopSetupImg, laptopColorImg, laptopModernImg, laptopSilverImg],
+  mobiles: [mobileImg, mobileImg, watchImg, accessoriesImg],
+  tablets: [laptopDarkImg, laptopModernImg, laptopSilverImg, laptopColorImg],
+  monitors: [laptopSilverImg, laptopModernImg, laptopDarkImg, laptopColorImg],
+  printers: [printerImg, accessoriesImg, networkingImg, printerImg],
+  projectors: [projectorImg, accessoriesImg, projectorImg, networkingImg],
+  wearables: [watchImg, accessoriesImg, mobileImg, watchImg],
+  cctv: [accessoriesImg, networkingImg, accessoriesImg, printerImg],
+  accessories: [accessoriesImg, networkingImg, printerImg, projectorImg],
+  networking: [networkingImg, accessoriesImg, printerImg, networkingImg],
+  servers: [laptopColorImg, desktopSetupImg, laptopModernImg, laptopSilverImg],
+}
+
+const CATEGORY_LABELS = Object.fromEntries(CATEGORIES.map((cat) => [cat.id, cat.label]))
+
+const BRAND_BY_CATEGORY = {
+  laptops: 'HP, Dell, Lenovo — Nuevo Tech',
+  desktops: 'Apple, Dell, HP — Nuevo Tech',
+  mobiles: 'Apple, Samsung, OnePlus',
+  tablets: 'Apple, Samsung',
+  monitors: 'Dell, LG, BenQ',
+  printers: 'HP, Canon, Epson',
+  projectors: 'BenQ, Epson',
+  wearables: 'Apple, Samsung',
+  cctv: 'Hikvision, CP Plus',
+  accessories: 'Logitech, Lapcare',
+  networking: 'TP-Link, APC, Cisco',
+  servers: 'Dell, HPE',
+}
+
+const SPECS_BY_CATEGORY = {
+  laptops: [
+    { label: 'Processor', value: 'Intel Core i5 (8th to 10th generation)' },
+    { label: 'RAM', value: '8GB DDR4 (upgradeable to 16GB on request)' },
+    { label: 'Storage', value: '256GB SSD' },
+    { label: 'Display', value: '14" / 15.6" Full HD anti-glare' },
+    { label: 'OS', value: 'Windows 10 / 11 Pro (licensed)' },
+    { label: 'Connectivity', value: 'Wi-Fi, Bluetooth, USB-C, HDMI' },
+  ],
+  desktops: [
+    { label: 'Processor', value: 'Intel Core i5 / Apple M1 (model dependent)' },
+    { label: 'RAM', value: '8GB – 16GB' },
+    { label: 'Storage', value: '256GB – 512GB SSD' },
+    { label: 'Display', value: 'Bundled monitor available on request' },
+    { label: 'OS', value: 'Windows 11 Pro / macOS' },
+    { label: 'Form Factor', value: 'Tower, AIO, or Mac Mini' },
+  ],
+  default: [
+    { label: 'Condition', value: 'Professionally tested & sanitized' },
+    { label: 'Warranty', value: 'Rental support included' },
+    { label: 'Delivery', value: 'Doorstep setup available in select cities' },
+    { label: 'Support', value: 'Dedicated helpline & pickup service' },
+  ],
+}
+
+const DESCRIPTION_BY_CATEGORY = {
+  laptops: `Rent a high-performance laptop built for professionals, developers, students, and remote teams. Every unit is quality-checked, data-wiped, and ready for immediate use with flexible monthly plans and zero deposit options on eligible models.
+
+Whether you need a device for a short project or a long-term team rollout, Nuevo Rental offers doorstep delivery, quick KYC, and hassle-free pickup when your rental ends. Inventory includes business-grade models from leading brands with specs suited for everyday productivity, coding, and design work.`,
+  desktops: `Get a complete desktop workstation for your office, studio, or WFH setup. Choose from tower PCs, all-in-ones, and premium iMac configurations — all tested, sanitized, and delivered ready to plug in.
+
+Ideal for teams that need stable performance for design, accounting, development, or front-desk operations. Flexible rental durations with optional monitor bundles and on-site setup support.`,
+  default: `Rent premium electronics with flexible plans tailored to your timeline and budget. All devices pass a 20-point quality check, are sanitized before dispatch, and come with dedicated rental support throughout your subscription.`,
+}
+
+const ADDITIONAL_INFO_SECTIONS = [
+  {
+    title: 'Basic Information',
+    items: [
+      'Devices are provided for both Personal and Business use.',
+      'Devices come with pre-installed licensed OS (Windows / Linux as applicable).',
+      'Basic software and drivers required for normal operation will be installed.',
+      'Third-party or paid software licenses are not included unless specifically agreed in writing.',
+    ],
+  },
+  {
+    title: 'Usage & Care',
+    items: [
+      'The customer is responsible for safe usage and basic care of the device.',
+      'Physical damage, liquid damage, fire damage, theft, or electrical surge damage is not covered under standard rental terms.',
+      'Devices must not be opened, modified, or repaired by unauthorized personnel.',
+    ],
+  },
+  {
+    title: "What's Included",
+    items: [
+      'Device & charger / power adapter',
+      'OS and basic drivers installed',
+      'Replacement support in case of technical failure',
+      'Maintenance support during rental period',
+    ],
+  },
+  {
+    title: 'Service & Replacement',
+    items: [
+      'Replacement SLA: Within 72 working hours',
+      'Replacement device will be same or higher configuration',
+    ],
+  },
+]
+
+const DESCRIPTION_EXTRAS = {
+  serviceReplacement: [
+    'Replacement SLA: Within 72 working hours',
+    'Replacement device will be same or higher configuration',
+  ],
+  importantNote: [
+    'Images are for representation purposes only.',
+    'Final brand and model are allocated based on live inventory. Equivalent or upgraded configurations are ensured.',
+    'Prices may vary as per the market and availability',
+  ],
+  location: 'Available in Pune & PCMC',
+  idealFor: 'Ideal for offices, startups, remote teams, and short-term projects',
+  keywords: 'office laptop on rent Pune, i7 laptop on rent, business laptop rental, zero deposit laptop rent, monthly laptop rental Pune',
+}
+
+export const RENTAL_DURATION_OPTIONS = [3, 6, 12, 24]
+
+const DURATION_PLAN_DEFS = [
+  { id: '1w', label: '1 Week', months: 0.25 },
+  { id: '1m', label: '1 Month(s)', months: 1 },
+  { id: '3m', label: '3 Month(s)', months: 3 },
+  { id: '6m', label: '6 Month(s)', months: 6 },
+  { id: '12m', label: '12 Month(s)', months: 12 },
+  { id: '24m', label: '24 Month(s)', months: 24 },
+]
+
+const MONTHLY_DISCOUNTS = {
+  0.25: 0.34,
+  1: 1,
+  3: 0.96,
+  6: 0.92,
+  12: 0.88,
+  24: 0.85,
+}
+
+export function getRentalDurationPlans(product) {
+  const base = product.rentalPrice
+  const isDaily = product.period === 'day'
+
+  return DURATION_PLAN_DEFS.map((plan) => {
+    let price
+    let periodUnit
+
+    if (isDaily) {
+      if (plan.months === 0.25) {
+        price = Math.round(base * 7 * 0.95)
+        periodUnit = 'Week'
+      } else {
+        const days = plan.months * 30
+        const discount = MONTHLY_DISCOUNTS[plan.months] ?? 1
+        price = Math.round(base * days * discount)
+        periodUnit = `${plan.months} Month(s)`
+      }
+    } else if (plan.months === 0.25) {
+      price = Math.round(base * MONTHLY_DISCOUNTS[0.25])
+      periodUnit = 'Week'
+    } else {
+      const discount = MONTHLY_DISCOUNTS[plan.months] ?? 1
+      price = Math.round(base * discount)
+      periodUnit = 'Month'
+    }
+
+    const priceSuffix = plan.months === 0.25 || periodUnit === 'Week'
+      ? '/Week'
+      : isDaily && plan.months > 0.25
+        ? ` (${plan.label})`
+        : '/Month'
+
+    return {
+      id: plan.id,
+      durationLabel: `Duration: ${plan.label}`,
+      shortLabel: plan.label,
+      months: plan.months,
+      price,
+      periodUnit,
+      priceLabel: `Price: ₹${price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}${priceSuffix}`,
+    }
+  })
+}
+
+function getGalleryImages(product) {
+  const set = GALLERY_BY_CATEGORY[product.category]
+  const main = getProductImage(product)
+
+  if (!set) return [main, main, main, main]
+
+  const gallery = [main, ...set.filter((img) => img !== main)]
+  return gallery.slice(0, 4)
+}
+
+function getSpecifications(product) {
+  return SPECS_BY_CATEGORY[product.category] ?? SPECS_BY_CATEGORY.default
+}
+
+function getDescription(product) {
+  const base = DESCRIPTION_BY_CATEGORY[product.category] ?? DESCRIPTION_BY_CATEGORY.default
+  const brandLine = `Brands may include: ${BRAND_BY_CATEGORY[product.category] ?? 'Leading OEM partners'}.`
+  return { intro: base, brandLine }
+}
+
+export function getProductById(id, dealId = null) {
+  const product = RENTAL_PRODUCTS.find((item) => item.id === Number(id))
+  if (!product) return null
+
+  let activeDeal = dealId ? getDealById(dealId) : null
+  if (activeDeal && activeDeal.productId !== product.id) {
+    activeDeal = null
+  }
+
+  const pricingBase = activeDeal
+    ? {
+        ...product,
+        rentalPrice: activeDeal.offerPrice,
+        originalPrice: activeDeal.originalPrice,
+      }
+    : product
+
+  const displayTitle = activeDeal?.title ?? product.title
+  const gallery = getGalleryImages(product)
+  const images = activeDeal?.image
+    ? [activeDeal.image, ...gallery.filter((img) => img !== activeDeal.image)]
+    : gallery
+
+  const { intro, brandLine } = getDescription(product)
+
+  return {
+    ...product,
+    title: displayTitle,
+    rentalPrice: pricingBase.rentalPrice,
+    originalPrice: pricingBase.originalPrice,
+    images,
+    reviewCount: activeDeal?.reviews ?? 120 + (product.id * 7) % 80,
+    ratingValue: activeDeal?.rating ?? product.rating - 0.5,
+    deposit: 0,
+    stock: activeDeal?.inStock ? `Available (${activeDeal.stock} in deal)` : 'Available',
+    categoryLabel: CATEGORY_LABELS[product.category] ?? 'Electronics',
+    brand: BRAND_BY_CATEGORY[product.category] ?? 'Nuevo Tech',
+    tags: product.refurbished ? 'As good as new' : 'Premium condition',
+    specifications: getSpecifications(product),
+    descriptionIntro: intro,
+    descriptionBrandLine: brandLine,
+    descriptionExtras: DESCRIPTION_EXTRAS,
+    additionalInfoSections: ADDITIONAL_INFO_SECTIONS,
+    durationPlans: getRentalDurationPlans(pricingBase),
+    activeDeal: activeDeal
+      ? {
+          id: activeDeal.id,
+          discountPercent: activeDeal.discountPercent,
+          offerPrice: activeDeal.offerPrice,
+          originalPrice: activeDeal.originalPrice,
+          stock: activeDeal.stock,
+          inStock: activeDeal.inStock,
+          period: activeDeal.period,
+        }
+      : null,
+  }
+}
+
+export function getRelatedProducts(productId, limit = 6) {
+  const current = RENTAL_PRODUCTS.find((item) => item.id === Number(productId))
+  if (!current) return []
+
+  const sameCategory = RENTAL_PRODUCTS.filter(
+    (item) => item.id !== current.id && item.category === current.category,
+  )
+
+  if (sameCategory.length >= limit) return sameCategory.slice(0, limit)
+
+  const others = RENTAL_PRODUCTS.filter(
+    (item) => item.id !== current.id && item.category !== current.category,
+  )
+
+  return [...sameCategory, ...others].slice(0, limit)
+}
+
+export function getRecommendedProducts(productId, limit = 8) {
+  const current = RENTAL_PRODUCTS.find((item) => item.id === Number(productId))
+  if (!current) return RENTAL_PRODUCTS.slice(0, limit)
+
+  const scored = RENTAL_PRODUCTS.filter((item) => item.id !== current.id).map((item) => {
+    let score = 0
+    if (item.category === current.category) score += 3
+    if (item.period === current.period) score += 1
+    if (Math.abs(item.rentalPrice - current.rentalPrice) < 1500) score += 2
+    return { item, score }
+  })
+
+  scored.sort((a, b) => b.score - a.score)
+  return scored.slice(0, limit).map(({ item }) => item)
+}

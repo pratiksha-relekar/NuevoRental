@@ -128,3 +128,17 @@ export function filterFeaturedDeals(deals, filterId) {
       return deals
   }
 }
+
+export function getDealById(dealId) {
+  return FEATURED_DEALS.find((deal) => deal.id === dealId) ?? null
+}
+
+export function getBestDealForProduct(productId) {
+  return FEATURED_DEALS
+    .filter((deal) => deal.productId === Number(productId) && deal.inStock)
+    .sort((a, b) => b.discountPercent - a.discountPercent)[0] ?? null
+}
+
+export function getDealsForProduct(productId) {
+  return FEATURED_DEALS.filter((deal) => deal.productId === Number(productId))
+}

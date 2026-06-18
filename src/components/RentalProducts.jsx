@@ -1,5 +1,7 @@
+import { Link } from 'react-router-dom'
 import { useRef, useState } from 'react'
 import { RENTAL_PRODUCTS, getProductImage } from '../data/products'
+import { useCartWishlist } from '../context/CartWishlistContext'
 import './RentalProducts.css'
 
 function StarRating({ count = 5 }) {
@@ -63,57 +65,78 @@ function CartIcon() {
 
 
 export function ProductCard({ product }) {
-  const [wishlisted, setWishlisted] = useState(false)
+  const { toggleWishlist, isInWishlist, addToCart } = useCartWishlist()
+  const [cartAdded, setCartAdded] = useState(false)
+  const cartTimer = useRef(null)
+  const wishlisted = isInWishlist(product.id)
   const imageSrc = getProductImage(product)
+
+  const handleWishlist = (event) => {
+    event.preventDefault()
+    event.stopPropagation()
+    toggleWishlist(product)
+  }
+
+  const handleAddToCart = (event) => {
+    event.preventDefault()
+    event.stopPropagation()
+    addToCart(product, { quantity: 1, durationPlanId: '1m' })
+    setCartAdded(true)
+    if (cartTimer.current) window.clearTimeout(cartTimer.current)
+    cartTimer.current = window.setTimeout(() => setCartAdded(false), 600)
+  }
 
   return (
     <article className="product-card">
-      <div className="product-card-image">
-        {product.refurbished && (
-          <span className="product-badge">REFURBISHED</span>
-        )}
+      <Link to={`/product/${product.id}`} className="product-card-link">
+        <div className="product-card-image">
+          {product.refurbished && (
+            <span className="product-badge">REFURBISHED</span>
+          )}
 
-        <img src={imageSrc} alt={product.title} className="product-image" />
+          <img src={imageSrc} alt={product.title} className="product-image" />
 
-        <div className="product-hover-actions">
-          <button
-            type="button"
-            className="product-action-btn"
-            aria-label={`View ${product.title}`}
-          >
-            <EyeIcon />
-          </button>
-          <button
-            type="button"
-            className={`product-action-btn product-action-btn--wishlist${wishlisted ? ' product-action-btn--active' : ''}`}
-            aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-            aria-pressed={wishlisted}
-            onClick={() => setWishlisted((prev) => !prev)}
-          >
-            <HeartIcon filled={wishlisted} />
-          </button>
+          <div className="product-hover-actions">
+            <span className="product-action-btn" aria-hidden="true">
+              <EyeIcon />
+            </span>
+            <button
+              type="button"
+              className={`product-action-btn product-action-btn--wishlist${wishlisted ? ' product-action-btn--active' : ''}`}
+              aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+              aria-pressed={wishlisted}
+              onClick={handleWishlist}
+            >
+              <HeartIcon filled={wishlisted} />
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div className="product-card-body">
-        <StarRating count={product.rating} />
-        <h3 className="product-title">{product.title}</h3>
-        <div className="product-pricing">
-          <span className="product-original">₹{product.originalPrice}</span>
-          <span className="product-rental">
-            ₹{product.rentalPrice}
-            <span className="product-period">/{product.period}</span>
-          </span>
+        <div className="product-card-body">
+          <StarRating count={product.rating} />
+          <h3 className="product-title">{product.title}</h3>
+          <div className="product-pricing">
+            <span className="product-original">₹{product.originalPrice}</span>
+            <span className="product-rental">
+              ₹{product.rentalPrice}
+              <span className="product-period">/{product.period}</span>
+            </span>
+          </div>
+          <div className="product-footer">
+            <span className="product-delivery">
+              Delivery {String(product.deliveryDays).padStart(2, '0')} days
+            </span>
+            <button
+              type="button"
+              className={`product-cart-btn${cartAdded ? ' product-cart-btn--added' : ''}`}
+              aria-label={`Add ${product.title} to cart`}
+              onClick={handleAddToCart}
+            >
+              <CartIcon />
+            </button>
+          </div>
         </div>
-        <div className="product-footer">
-          <span className="product-delivery">
-            Delivery {String(product.deliveryDays).padStart(2, '0')} days
-          </span>
-          <button type="button" className="product-cart-btn" aria-label="Add to cart">
-            <CartIcon />
-          </button>
-        </div>
-      </div>
+      </Link>
     </article>
   )
 }

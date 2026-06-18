@@ -191,6 +191,25 @@
   }
 }
 
+@media (max-width: 768px) {
+  .rent-products-grid-page {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .rent-products-grid-page .product-card {
+    border-radius: 10px;
+  }
+
+  .rent-products-grid-page .product-card-body {
+    padding: 12px 14px 14px;
+  }
+
+  .rent-products-grid-page .product-card-image {
+    height: 150px;
+  }
+}
+
 @media (max-width: 600px) {
   .rent-products-page {
     padding: 36px 16px 64px;
@@ -198,10 +217,5 @@
 
   .rent-products-filters {
     grid-template-columns: 1fr;
-  }
-
-  .rent-products-grid-page {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 14px;
   }
 }

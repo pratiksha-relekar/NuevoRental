@@ -79,7 +79,7 @@ function DealCard({ deal }) {
 
         {deal.inStock ? (
           <Link
-            to={`/rent-products?category=${deal.category}`}
+            to={`/product/${deal.productId}?deal=${deal.id}`}
             className="deal-card-btn deal-card-btn--active"
           >
             Rent Now
