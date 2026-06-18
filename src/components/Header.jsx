@@ -28,17 +28,13 @@ const SHOP_LINKS = [
 ]
 
 const SUPER_DEALS_LINKS = [
-  { label: 'Weekly Deal', to: '/rent-products' },
   { label: 'Pricing Plans', to: '/pricing' },
   { label: 'Corporate Rentals', to: '/corporate' },
-  { label: 'Bulk Discounts', to: '/corporate' },
 ]
 
 const WHATS_NEW_LINKS = [
   { label: 'About Us', to: '/about' },
-  { label: 'Track Order', to: '/track-order' },
   { label: 'Support', to: '/support' },
-  { label: 'Contact Us', to: '/contact' },
 ]
 
 const NAV_ITEMS = [
@@ -49,7 +45,7 @@ const NAV_ITEMS = [
   { type: 'dropdown', id: 'whats-new', label: "What's New", links: WHATS_NEW_LINKS },
   { type: 'link', label: 'Special Offer', to: '/pricing', icon: 'bolt' },
   { type: 'link', label: 'All Products', to: '/rent-products' },
-  { type: 'link', label: 'Imported', to: '/corporate' },
+  { type: 'link', label: 'Contact Us', to: '/contact' },
 ]
 
 const NAV_DROPDOWN_IDS = new Set(['shop', 'super-deals', 'whats-new'])

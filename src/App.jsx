@@ -15,7 +15,6 @@ import ProductDetailPage from './pages/ProductDetailPage'
 import CartPage from './pages/CartPage'
 import WishlistPage from './pages/WishlistPage'
 import SearchResultsPage from './pages/SearchResultsPage'
-import TrackOrderPage from './pages/TrackOrderPage'
 import './App.css'
 
 function App() {
@@ -38,7 +37,6 @@ function App() {
             <Route path="cart" element={<CartPage />} />
             <Route path="wishlist" element={<WishlistPage />} />
             <Route path="search" element={<SearchResultsPage />} />
-            <Route path="track-order" element={<TrackOrderPage />} />
           </Route>
         </Routes>
       </CartWishlistProvider>
