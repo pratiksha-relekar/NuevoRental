@@ -2,53 +2,9 @@ import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { Minus, Plus, ShieldCheck, ShoppingBag, Tag, Trash2, Truck } from 'lucide-react'
 import { useCartWishlist } from '../context/CartWishlistContext'
+import { computeCartSummary, formatINR } from '../utils/cartSummary'
 import '../styles/pageAnimations.css'
 import './CartWishlistPages.css'
-
-function formatINR(amount) {
-  return `₹${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-}
-
-function computeCartSummary(cartItems, cartTotal) {
-  const totalMrp = cartItems.reduce((sum, item) => {
-    const listPrice = item.originalPrice ?? item.rentalPrice ?? item.unitPrice
-    return sum + listPrice * item.quantity
-  }, 0)
-
-  const rentalDiscount = Math.max(0, totalMrp - cartTotal)
-  const nuevoOfferDiscount = Math.round(cartTotal * 0.1)
-  const bulkBonusDiscount = cartTotal >= 2500 ? Math.round(cartTotal * 0.05) : 0
-  const payAmount = Math.max(0, cartTotal - nuevoOfferDiscount - bulkBonusDiscount)
-
-  const waivedDelivery = 199
-  const waivedSetup = 149
-  const waivedPlatform = 99
-  const totalSavings =
-    rentalDiscount +
-    nuevoOfferDiscount +
-    bulkBonusDiscount +
-    waivedDelivery +
-    waivedSetup +
-    waivedPlatform
-
-  const savingsPercent = totalMrp > 0
-    ? Math.round((totalSavings / totalMrp) * 100)
-    : 0
-
-  return {
-    totalMrp,
-    rentalDiscount,
-    nuevoOfferDiscount,
-    bulkBonusDiscount,
-    payAmount,
-    securityDeposit: 0,
-    totalSavings,
-    savingsPercent,
-    waivedDelivery,
-    waivedSetup,
-    waivedPlatform,
-  }
-}
 
 function CartPage() {
   const {
@@ -254,7 +210,7 @@ function CartPage() {
                 <button type="button" className="bag-btn bag-btn--ghost bag-btn--block" onClick={clearCart}>
                   Clear Cart
                 </button>
-                <Link to="/kyc" className="bag-btn bag-btn--primary bag-btn--block">
+                <Link to="/checkout" className="bag-btn bag-btn--primary bag-btn--block">
                   Proceed to Checkout
                 </Link>
               </div>

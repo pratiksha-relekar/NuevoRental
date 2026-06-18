@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { CartWishlistProvider } from './context/CartWishlistContext'
 import { KycProvider } from './context/KycContext'
+import { OrdersProvider } from './context/OrdersContext'
 import SiteLayout from './layouts/SiteLayout'
 import HomePage from './pages/HomePage'
 import AboutPage from './pages/AboutPage'
@@ -17,6 +18,7 @@ import ProductDetailPage from './pages/ProductDetailPage'
 import CartPage from './pages/CartPage'
 import WishlistPage from './pages/WishlistPage'
 import SearchResultsPage from './pages/SearchResultsPage'
+import CheckoutPage from './pages/CheckoutPage'
 import LoginPage from './pages/LoginPage'
 import SignUpPage from './pages/SignUpPage'
 import './App.css'
@@ -26,6 +28,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <KycProvider>
+        <OrdersProvider>
         <CartWishlistProvider>
         <Routes>
           <Route element={<SiteLayout />}>
@@ -41,6 +44,7 @@ function App() {
             <Route path="rent-products" element={<RentProductsPage />} />
             <Route path="product/:id" element={<ProductDetailPage />} />
             <Route path="cart" element={<CartPage />} />
+            <Route path="checkout" element={<CheckoutPage />} />
             <Route path="wishlist" element={<WishlistPage />} />
             <Route path="search" element={<SearchResultsPage />} />
             <Route path="login" element={<LoginPage />} />
@@ -48,6 +52,7 @@ function App() {
           </Route>
         </Routes>
         </CartWishlistProvider>
+        </OrdersProvider>
         </KycProvider>
       </AuthProvider>
     </BrowserRouter>

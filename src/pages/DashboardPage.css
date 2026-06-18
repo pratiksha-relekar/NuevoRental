@@ -661,6 +661,148 @@
   background: rgba(194, 85, 122, 0.12);
 }
 
+.account-order-status--failed {
+  color: #c2557a;
+  background: rgba(194, 85, 122, 0.12);
+}
+
+.account-orders-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.account-order-card {
+  padding: 18px;
+  background: #f8fafc;
+  border: 1px solid #e8edf2;
+  border-radius: 14px;
+}
+
+.account-order-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #edf1f5;
+}
+
+.account-order-id {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a2744;
+}
+
+.account-order-date {
+  margin: 0;
+  font-size: 12px;
+  color: #8a96a8;
+}
+
+.account-order-status {
+  padding: 5px 12px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.account-order-status--placed {
+  color: #4a90e2;
+  background: rgba(74, 144, 226, 0.12);
+}
+
+.account-order-status--confirmed {
+  color: #2b8fe8;
+  background: rgba(43, 143, 232, 0.12);
+}
+
+.account-order-status--out_for_delivery {
+  color: #b7791f;
+  background: rgba(245, 166, 35, 0.15);
+}
+
+.account-order-status--delivered {
+  color: #2f855a;
+  background: rgba(47, 133, 90, 0.12);
+}
+
+.account-order-items {
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.account-order-items li {
+  display: grid;
+  grid-template-columns: 52px 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.account-order-items img {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #e8edf2;
+}
+
+.account-order-items p {
+  margin: 0 0 2px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a2744;
+}
+
+.account-order-items span {
+  font-size: 12px;
+  color: #8a96a8;
+}
+
+.account-order-items strong {
+  font-size: 13px;
+  color: #c2557a;
+  white-space: nowrap;
+}
+
+.account-order-delivery {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 20px;
+  margin: 0;
+  padding-top: 14px;
+  border-top: 1px solid #edf1f5;
+}
+
+.account-order-delivery dt {
+  margin-bottom: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: #8a96a8;
+}
+
+.account-order-delivery dd {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #1a2744;
+}
+
 .account-kyc-status {
   display: flex;
   align-items: flex-start;
@@ -733,5 +875,9 @@
 
   .account-edit-actions .account-btn {
     width: 100%;
+  }
+
+  .account-order-delivery {
+    grid-template-columns: 1fr;
   }
 }

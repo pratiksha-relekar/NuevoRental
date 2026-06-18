@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import GoogleAuthButton from '../components/GoogleAuthButton'
 import '../styles/pageAnimations.css'
@@ -7,16 +7,19 @@ import './AuthPage.css'
 
 function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { login, loginWithGoogle, isAuthenticated } = useAuth()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
+  const redirectTo = location.state?.from ?? '/dashboard'
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/dashboard', { replace: true })
+      navigate(redirectTo, { replace: true })
     }
-  }, [isAuthenticated, navigate])
+  }, [isAuthenticated, navigate, redirectTo])
+
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
 
   const handleSubmit = (event) => {
     event.preventDefault()
@@ -28,12 +31,12 @@ function LoginPage() {
     }
 
     login({ email, password })
-    navigate('/dashboard')
+    navigate(redirectTo)
   }
 
   const handleGoogle = () => {
     loginWithGoogle()
-    navigate('/dashboard')
+    navigate(redirectTo)
   }
 
   return (

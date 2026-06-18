@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCartWishlist } from '../context/CartWishlistContext'
 import { useKyc } from '../context/KycContext'
+import { useOrders, ORDER_STATUS_LABELS } from '../context/OrdersContext'
 import { KYC_STEP_STATUS, KYC_STEPS } from '../data/kycSteps'
+import { formatINR } from '../utils/cartSummary'
 import '../styles/pageAnimations.css'
 import './DashboardPage.css'
 
@@ -12,7 +14,7 @@ const NAV_ITEMS = [
   { id: 'settings', label: 'Account settings', icon: 'settings' },
   { id: 'support', label: 'Help & support', icon: 'help' },
   { type: 'divider' },
-  { id: 'orders', label: 'My Rentals', icon: 'orders', badgeKey: 'orders' },
+  { id: 'orders', label: 'My Orders', icon: 'orders', badgeKey: 'orders' },
   { id: 'wishlist', label: 'Wishlist', icon: 'heart', badgeKey: 'wishlist' },
   { id: 'kyc', label: 'KYC Status', icon: 'kyc' },
   { type: 'divider' },
@@ -156,10 +158,12 @@ const ICONS = {
 
 function DashboardPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { user, isAuthenticated, logout, updateProfile } = useAuth()
   const { cartCount, wishlistCount } = useCartWishlist()
   const { kycState, progress: kycProgress, isApproved: isKycApproved } = useKyc()
-  const [activeView, setActiveView] = useState('profile')
+  const { orders, orderCount } = useOrders()
+  const [activeView, setActiveView] = useState(() => location.state?.activeView ?? 'profile')
   const [isEditing, setIsEditing] = useState(false)
   const [form, setForm] = useState({
     firstName: '',
@@ -168,6 +172,13 @@ function DashboardPage() {
     location: '',
     aboutMe: '',
   })
+
+  useEffect(() => {
+    if (location.state?.activeView) {
+      setActiveView(location.state.activeView)
+      navigate(location.pathname, { replace: true, state: {} })
+    }
+  }, [location.pathname, location.state, navigate])
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -194,7 +205,7 @@ function DashboardPage() {
   const memberSince = formatMemberSince(user.memberSince)
 
   const badges = {
-    orders: cartCount,
+    orders: orderCount,
     wishlist: wishlistCount,
   }
 
@@ -490,38 +501,105 @@ function DashboardPage() {
               <div className="account-panel">
                 <div className="account-panel-header">
                   <div>
-                    <h2 className="account-panel-title">My Rentals</h2>
+                    <h2 className="account-panel-title">My Orders</h2>
                     <p className="account-panel-subtitle">
-                      Track active rentals, upcoming pickups, and rental history.
+                      Track placed rental orders, delivery status, and order history.
                     </p>
                   </div>
-                  <Link to="/cart" className="account-edit-btn">
-                    View cart
+                  <Link to="/rent-products" className="account-edit-btn">
+                    Rent more
                   </Link>
                 </div>
-                {cartCount > 0 ? (
-                  <div className="account-summary-card">
-                    <p>
-                      You have <strong>{cartCount}</strong> device{cartCount !== 1 ? 's' : ''} in your cart ready to rent.
-                    </p>
-                    <Link to="/cart" className="account-btn account-btn--primary account-btn--inline">
-                      Complete rental checkout
-                    </Link>
-                  </div>
+
+                {orders.length > 0 ? (
+                  <ul className="account-orders-list">
+                    {orders.map((order) => (
+                      <li key={order.id} className="account-order-card">
+                        <div className="account-order-card-top">
+                          <div>
+                            <p className="account-order-id">{order.id}</p>
+                            <p className="account-order-date">
+                              Placed on{' '}
+                              {new Intl.DateTimeFormat('en-IN', {
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              }).format(new Date(order.placedAt))}
+                            </p>
+                          </div>
+                          <span className={`account-order-status account-order-status--${order.status}`}>
+                            {ORDER_STATUS_LABELS[order.status] ?? order.status}
+                          </span>
+                        </div>
+
+                        <ul className="account-order-items">
+                          {order.items.map((item) => (
+                            <li key={item.key}>
+                              <img src={item.image} alt={item.title} />
+                              <div>
+                                <p>{item.title}</p>
+                                <span>Qty {item.quantity} · {item.durationLabel}</span>
+                              </div>
+                              <strong>{formatINR(item.unitPrice * item.quantity)}</strong>
+                            </li>
+                          ))}
+                        </ul>
+
+                        <dl className="account-order-delivery">
+                          <div>
+                            <dt>Deliver to</dt>
+                            <dd>
+                              {order.delivery.fullName}, {order.delivery.addressLine1},{' '}
+                              {order.delivery.city} – {order.delivery.pincode}
+                            </dd>
+                          </div>
+                          <div>
+                            <dt>Delivery slot</dt>
+                            <dd>
+                              {order.delivery.deliveryDate},{' '}
+                              {order.delivery.deliverySlot}
+                            </dd>
+                          </div>
+                          <div>
+                            <dt>Payment</dt>
+                            <dd>
+                              {order.payment.method === 'cod'
+                                ? 'Pay on delivery'
+                                : order.payment.method.toUpperCase()}
+                            </dd>
+                          </div>
+                          <div>
+                            <dt>Total paid</dt>
+                            <dd>{formatINR(order.summary.payAmount)}</dd>
+                          </div>
+                        </dl>
+                      </li>
+                    ))}
+                  </ul>
                 ) : (
                   <div className="account-empty-state">
-                    <p>No active rentals yet. Browse laptops, mobiles, printers, and more.</p>
-                    <Link to="/rent-products" className="account-btn account-btn--primary account-btn--inline">
-                      Browse rental products
+                    <p>No orders yet. Add devices to your cart and complete checkout to place a rental order.</p>
+                    {cartCount > 0 ? (
+                      <Link to="/checkout" className="account-btn account-btn--primary account-btn--inline">
+                        Complete checkout ({cartCount} item{cartCount !== 1 ? 's' : ''})
+                      </Link>
+                    ) : (
+                      <Link to="/rent-products" className="account-btn account-btn--primary account-btn--inline">
+                        Browse rental products
+                      </Link>
+                    )}
+                  </div>
+                )}
+
+                {cartCount > 0 && orders.length > 0 && (
+                  <div className="account-quick-links">
+                    <Link to="/checkout" className="account-quick-link">
+                      Complete checkout for {cartCount} cart item{cartCount !== 1 ? 's' : ''} →
                     </Link>
                   </div>
                 )}
-                <div className="account-quick-links">
-                  <Link to="/dashboard" className="account-quick-link" onClick={() => setActiveView('profile')}>
-                    Schedule pickup (coming soon) →
-                  </Link>
-                  <Link to="/pricing" className="account-quick-link">Extend or upgrade rental →</Link>
-                </div>
               </div>
             )}
 

@@ -125,11 +125,16 @@ function KycPage() {
   const [showWizard, setShowWizard] = useState(false)
   const [ocrMessage, setOcrMessage] = useState('')
   const [faceMatchMessage, setFaceMatchMessage] = useState('')
-  const [livenessPhase, setLivenessPhase] = useState('blink')
 
   const activeStepId = kycState.activeStepId
-  const cameraActive = activeStepId === 'camera' || activeStepId === 'liveness'
+  const cameraActive = activeStepId === 'camera'
   const { videoRef, error: cameraError, ready: cameraReady } = useCamera(cameraActive && showWizard)
+
+  useEffect(() => {
+    if (kycState.activeStepId === 'liveness') {
+      setActiveStep('face-match')
+    }
+  }, [kycState.activeStepId, setActiveStep])
 
   useEffect(() => {
     if (kycState.status === 'in_progress' || isApproved) {
@@ -212,32 +217,14 @@ function KycPage() {
   useEffect(() => {
     if (activeStepId === 'camera' && cameraReady) {
       const timer = window.setTimeout(() => {
-        completeStep('camera', 'liveness')
-        setActiveStep('liveness')
-        setLivenessPhase('blink')
+        completeStep('camera', 'face-match')
+        setActiveStep('face-match')
+        runFaceMatch()
       }, 1200)
       return () => window.clearTimeout(timer)
     }
     return undefined
-  }, [activeStepId, cameraReady, completeStep, setActiveStep])
-
-  const handleBlinkComplete = () => {
-    updateKyc((current) => ({
-      ...current,
-      liveness: { ...current.liveness, blinkDone: true },
-    }))
-    setLivenessPhase('turn')
-  }
-
-  const handleTurnHeadComplete = () => {
-    updateKyc((current) => ({
-      ...current,
-      liveness: { blinkDone: true, turnHeadDone: true },
-    }))
-    completeStep('liveness', 'face-match')
-    setActiveStep('face-match')
-    runFaceMatch()
-  }
+  }, [activeStepId, cameraReady, completeStep, setActiveStep, runFaceMatch])
 
   const handleBegin = () => {
     startKyc()
@@ -270,7 +257,7 @@ function KycPage() {
               <h2>Secure &amp; quick verification</h2>
               <ul>
                 <li>Upload Aadhaar and PAN for OCR verification</li>
-                <li>Complete live face check with blink and head-turn</li>
+                <li>Complete live face check with your front camera</li>
                 <li>All data is encrypted and used only for rental KYC</li>
               </ul>
               <div className="kyc-intro-actions">
@@ -401,45 +388,6 @@ function KycPage() {
                         )}
                       </>
                     )}
-                  </div>
-                </div>
-              )}
-
-              {activeStepId === 'liveness' && (
-                <div className="kyc-step-content">
-                  <h2>Blink &amp; Turn Head</h2>
-                  <p>Follow the on-screen prompts to confirm you are a real person.</p>
-                  <div className="kyc-camera-wrap">
-                    {cameraError ? (
-                      <div className="kyc-camera-error">
-                        <p>{cameraError}</p>
-                      </div>
-                    ) : (
-                      <>
-                        <video ref={videoRef} className="kyc-camera-video" playsInline muted autoPlay />
-                        <div className="kyc-camera-overlay" aria-hidden="true" />
-                      </>
-                    )}
-                  </div>
-                  <div className="kyc-liveness-actions">
-                    <button
-                      type="button"
-                      className={`kyc-liveness-btn${kycState.liveness.blinkDone ? ' is-done' : ''}`}
-                      disabled={livenessPhase !== 'blink'}
-                      onClick={handleBlinkComplete}
-                    >
-                      {kycState.liveness.blinkDone ? <CheckIcon /> : '1'}
-                      Blink slowly
-                    </button>
-                    <button
-                      type="button"
-                      className={`kyc-liveness-btn${kycState.liveness.turnHeadDone ? ' is-done' : ''}`}
-                      disabled={livenessPhase !== 'turn' || !kycState.liveness.blinkDone}
-                      onClick={handleTurnHeadComplete}
-                    >
-                      {kycState.liveness.turnHeadDone ? <CheckIcon /> : '2'}
-                      Turn head left &amp; right
-                    </button>
                   </div>
                 </div>
               )}
