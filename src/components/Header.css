@@ -317,6 +317,8 @@
   background: rgba(15, 23, 36, 0.28);
   cursor: default;
   animation: headerProfileScrimIn 0.2s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .header-profile-popover {
@@ -331,6 +333,10 @@
     0 4px 12px rgba(26, 39, 68, 0.08);
   animation: headerProfilePopoverIn 0.22s ease;
   box-sizing: border-box;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .header-profile-popover-user {
@@ -400,9 +406,17 @@
   border: none;
   border-radius: 12px;
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   transition:
     background 0.2s ease,
-    color 0.2s ease;
+    color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.header-profile-popover-link:active {
+  transform: scale(0.98);
+  background: rgba(74, 144, 226, 0.14);
 }
 
 .header-profile-popover-link svg {
@@ -426,6 +440,10 @@
 .header-profile-popover-link--logout:hover {
   background: rgba(194, 85, 122, 0.08);
   color: #a84466;
+}
+
+.header-profile-popover-link--logout:active {
+  background: rgba(194, 85, 122, 0.14);
 }
 
 @keyframes headerProfileScrimIn {
@@ -457,6 +475,19 @@
     padding: 14px;
     font-size: 15px;
   }
+}
+
+body.header-profile-open .main-header .header-bottom-scroll,
+body.header-profile-open .main-header .header-search-area,
+body.header-profile-open .main-header .header-location-btn,
+body.header-profile-open .main-header .header-action-btn {
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+body.header-profile-open .main-header .header-profile-trigger {
+  pointer-events: auto;
 }
 
 /* ── Bottom row ── */

@@ -194,6 +194,7 @@ function Header() {
   )
   const headerRef = useRef(null)
   const profileTriggerRef = useRef(null)
+  const profilePopoverRef = useRef(null)
   const [profilePopover, setProfilePopover] = useState(null)
 
   const profileOpen = openMenu === 'account'
@@ -204,6 +205,11 @@ function Header() {
     logout()
     closeMenus()
     navigate('/login', { replace: true })
+  }
+
+  const handleDashboard = () => {
+    closeMenus()
+    navigate('/dashboard')
   }
 
   const openOnly = (menu, event) => {
@@ -259,7 +265,15 @@ function Header() {
 
   useEffect(() => {
     const handlePointerDown = (event) => {
-      if (headerRef.current && !headerRef.current.contains(event.target)) {
+      const target = event.target
+
+      if (target instanceof Element) {
+        if (target.closest('.header-profile-popover')) return
+        if (target.closest('.header-profile-scrim')) return
+        if (profileTriggerRef.current?.contains(target)) return
+      }
+
+      if (headerRef.current && !headerRef.current.contains(target)) {
         closeMenus()
       }
     }
@@ -277,9 +291,16 @@ function Header() {
   }, [])
 
   useEffect(() => {
-    document.body.classList.toggle('header-menu-open', Boolean(openMenu))
-    return () => document.body.classList.remove('header-menu-open')
-  }, [openMenu])
+    document.body.classList.toggle('header-profile-open', profileOpen)
+    document.body.classList.toggle(
+      'header-menu-open',
+      Boolean(openMenu) && openMenu !== 'account',
+    )
+    return () => {
+      document.body.classList.remove('header-profile-open')
+      document.body.classList.remove('header-menu-open')
+    }
+  }, [openMenu, profileOpen])
 
   useEffect(() => {
     const prev = prevCounts.current
@@ -409,9 +430,11 @@ function Header() {
                       aria-label="Close account menu"
                     />
                     <div
+                      ref={profilePopoverRef}
                       className="header-profile-popover"
                       role="menu"
                       aria-label="Account menu"
+                      onPointerDown={(event) => event.stopPropagation()}
                       style={{
                         top: profilePopover.top,
                         right: profilePopover.right,
@@ -428,15 +451,15 @@ function Header() {
                         </div>
                       </div>
                       <div className="header-profile-popover-divider" />
-                      <Link
-                        to="/dashboard"
+                      <button
+                        type="button"
                         role="menuitem"
                         className="header-profile-popover-link"
-                        onClick={closeMenus}
+                        onClick={handleDashboard}
                       >
                         <DashboardMenuIcon />
                         My Dashboard
-                      </Link>
+                      </button>
                       <button
                         type="button"
                         role="menuitem"
