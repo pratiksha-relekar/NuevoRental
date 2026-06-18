@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { CATEGORIES } from '../data/categories'
 import { useCartWishlist } from '../context/CartWishlistContext'
@@ -65,7 +66,6 @@ function getMenuLinks(menuId) {
 function getMenuTitle(menuId) {
   if (menuId === 'categories') return 'Browse Categories'
   if (menuId === 'location') return 'Select Location'
-  if (menuId === 'account') return 'My Account'
   const navItem = NAV_ITEMS.find((item) => item.id === menuId)
   return navItem?.label ?? ''
 }
@@ -150,6 +150,37 @@ function UserIcon() {
   )
 }
 
+function DashboardMenuIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="3" y="3" width="8" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.6" />
+      <rect x="13" y="3" width="8" height="5" rx="1.5" stroke="currentColor" strokeWidth="1.6" />
+      <rect x="13" y="10" width="8" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.6" />
+      <rect x="3" y="13" width="8" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
+  )
+}
+
+function LogoutMenuIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M16 17l5-5-5-5M21 12H9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function getInitials(name) {
+  return (
+    name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? '')
+      .join('') || 'U'
+  )
+}
+
 function Header() {
   const { cartCount, wishlistCount } = useCartWishlist()
   const { user, isAuthenticated, logout } = useAuth()
@@ -162,6 +193,10 @@ function Header() {
     () => typeof window !== 'undefined' && window.matchMedia('(max-width: 1024px)').matches,
   )
   const headerRef = useRef(null)
+  const profileTriggerRef = useRef(null)
+  const [profilePopover, setProfilePopover] = useState(null)
+
+  const profileOpen = openMenu === 'account'
 
   const closeMenus = () => setOpenMenu(null)
 
@@ -180,10 +215,7 @@ function Header() {
   const showMobilePanel =
     isMobile &&
     openMenu &&
-    (openMenu === 'categories' ||
-      openMenu === 'location' ||
-      openMenu === 'account' ||
-      NAV_DROPDOWN_IDS.has(openMenu))
+    (openMenu === 'categories' || openMenu === 'location' || NAV_DROPDOWN_IDS.has(openMenu))
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 1024px)')
@@ -192,6 +224,38 @@ function Header() {
     mq.addEventListener('change', update)
     return () => mq.removeEventListener('change', update)
   }, [])
+
+  useLayoutEffect(() => {
+    if (!profileOpen || !profileTriggerRef.current) {
+      setProfilePopover(null)
+      return undefined
+    }
+
+    const updatePopoverPosition = () => {
+      const trigger = profileTriggerRef.current
+      if (!trigger) return
+
+      const rect = trigger.getBoundingClientRect()
+      const viewportPadding = 12
+      const panelWidth = Math.min(268, window.innerWidth - viewportPadding * 2)
+      const right = Math.max(
+        viewportPadding,
+        window.innerWidth - rect.right,
+      )
+      const top = rect.bottom + 10
+
+      setProfilePopover({ top, right, width: panelWidth })
+    }
+
+    updatePopoverPosition()
+    window.addEventListener('resize', updatePopoverPosition)
+    window.addEventListener('scroll', updatePopoverPosition, true)
+
+    return () => {
+      window.removeEventListener('resize', updatePopoverPosition)
+      window.removeEventListener('scroll', updatePopoverPosition, true)
+    }
+  }, [profileOpen, isMobile])
 
   useEffect(() => {
     const handlePointerDown = (event) => {
@@ -319,12 +383,13 @@ function Header() {
               )}
             </Link>
             {isAuthenticated ? (
-              <div className={`header-dropdown header-account-dropdown${openMenu === 'account' ? ' is-open' : ''}`}>
+              <div className={`header-profile${profileOpen ? ' is-open' : ''}`}>
                 <button
+                  ref={profileTriggerRef}
                   type="button"
-                  className="header-account"
+                  className="header-account header-profile-trigger"
                   onClick={(e) => openOnly('account', e)}
-                  aria-expanded={openMenu === 'account'}
+                  aria-expanded={profileOpen}
                   aria-haspopup="menu"
                 >
                   <UserIcon />
@@ -334,24 +399,56 @@ function Header() {
                   </span>
                   <ChevronDown className="header-chevron" />
                 </button>
-                {openMenu === 'account' && !isMobile && (
-                  <ul className="header-dropdown-menu header-account-menu" role="menu" aria-label="Account menu">
-                    <li role="none">
-                      <Link to="/dashboard" role="menuitem" onClick={closeMenus}>
+
+                {profileOpen && profilePopover && createPortal(
+                  <>
+                    <button
+                      type="button"
+                      className="header-profile-scrim"
+                      onClick={closeMenus}
+                      aria-label="Close account menu"
+                    />
+                    <div
+                      className="header-profile-popover"
+                      role="menu"
+                      aria-label="Account menu"
+                      style={{
+                        top: profilePopover.top,
+                        right: profilePopover.right,
+                        width: profilePopover.width,
+                      }}
+                    >
+                      <div className="header-profile-popover-user">
+                        <span className="header-profile-avatar" aria-hidden="true">
+                          {getInitials(user.displayName)}
+                        </span>
+                        <div className="header-profile-popover-meta">
+                          <strong>{user.displayName}</strong>
+                          <span>{user.email}</span>
+                        </div>
+                      </div>
+                      <div className="header-profile-popover-divider" />
+                      <Link
+                        to="/dashboard"
+                        role="menuitem"
+                        className="header-profile-popover-link"
+                        onClick={closeMenus}
+                      >
+                        <DashboardMenuIcon />
                         My Dashboard
                       </Link>
-                    </li>
-                    <li role="none">
                       <button
                         type="button"
                         role="menuitem"
-                        className="header-account-logout"
+                        className="header-profile-popover-link header-profile-popover-link--logout"
                         onClick={handleLogout}
                       >
+                        <LogoutMenuIcon />
                         Logout
                       </button>
-                    </li>
-                  </ul>
+                    </div>
+                  </>,
+                  document.body,
                 )}
               </div>
             ) : (
@@ -475,29 +572,6 @@ function Header() {
                     </button>
                   </li>
                 ))}
-              </ul>
-            ) : openMenu === 'account' ? (
-              <ul className="header-mobile-panel-list header-mobile-panel-list--account">
-                {isAuthenticated ? (
-                  <>
-                    <li>
-                      <Link to="/dashboard" onClick={closeMenus}>
-                        My Dashboard
-                      </Link>
-                    </li>
-                    <li>
-                      <button type="button" className="header-mobile-logout" onClick={handleLogout}>
-                        Logout
-                      </button>
-                    </li>
-                  </>
-                ) : (
-                  <li>
-                    <Link to="/login" onClick={closeMenus}>
-                      Login / Sign Up
-                    </Link>
-                  </li>
-                )}
               </ul>
             ) : (
               <ul
