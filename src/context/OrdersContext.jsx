@@ -9,6 +9,16 @@ import {
 import { useAuth } from './AuthContext'
 
 const ORDERS_STORAGE_KEY = 'nuevo-rental-orders'
+const KYC_STORAGE_KEY = 'nuevo-rental-kyc-records'
+
+function isKycApproved(email) {
+  try {
+    const records = JSON.parse(window.localStorage.getItem(KYC_STORAGE_KEY) ?? '{}')
+    return records[email]?.status === 'approved'
+  } catch {
+    return false
+  }
+}
 
 const OrdersContext = createContext(null)
 
@@ -56,9 +66,12 @@ export function OrdersProvider({ children }) {
     ({ items, delivery, payment, summary }) => {
       if (!userEmail) return null
 
+      const kycApproved = isKycApproved(userEmail)
+
       const order = {
         id: generateOrderId(),
-        status: 'placed',
+        status: kycApproved ? 'confirmed' : 'placed',
+        awaitingKyc: !kycApproved,
         placedAt: new Date().toISOString(),
         estimatedDelivery: '2–3 business days',
         items: items.map((item) => ({ ...item })),
@@ -106,4 +119,12 @@ export const ORDER_STATUS_LABELS = {
   out_for_delivery: 'Out for Delivery',
   delivered: 'Delivered',
   returned: 'Returned',
+  canceled: 'Canceled',
+}
+
+export function getOrderStatusLabel(order) {
+  if (order.awaitingKyc && order.status === 'placed') {
+    return 'Awaiting KYC approval'
+  }
+  return ORDER_STATUS_LABELS[order.status] ?? order.status
 }

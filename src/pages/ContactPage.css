@@ -344,6 +344,27 @@
   color: #6b7a8f;
 }
 
+.contact-form-success,
+.contact-form-error {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.55;
+  border-radius: 12px;
+}
+
+.contact-form-success {
+  color: #1f6b42;
+  background: rgba(31, 143, 85, 0.1);
+  border: 1px solid rgba(31, 143, 85, 0.2);
+}
+
+.contact-form-error {
+  color: #9a3058;
+  background: rgba(194, 85, 122, 0.1);
+  border: 1px solid rgba(194, 85, 122, 0.2);
+}
+
 .contact-form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;

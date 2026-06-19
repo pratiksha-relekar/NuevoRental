@@ -137,7 +137,7 @@ function KycPage() {
   }, [kycState.activeStepId, setActiveStep])
 
   useEffect(() => {
-    if (kycState.status === 'in_progress' || isApproved) {
+    if (kycState.status === 'in_progress' || kycState.status === 'in_review' || isApproved) {
       setShowWizard(true)
     }
   }, [kycState.status, isApproved])
@@ -197,10 +197,19 @@ function KycPage() {
       setFaceMatchMessage('Face match successful.')
       completeStep('face-match', 'success')
       window.setTimeout(() => {
-        completeStep('success', 'approved')
+        updateKyc((current) => ({
+          ...current,
+          status: 'in_review',
+          activeStepId: 'success',
+          stepStatuses: {
+            ...current.stepStatuses,
+            success: KYC_STEP_STATUS.DONE,
+          },
+          submittedAt: new Date().toISOString(),
+        }))
       }, 1500)
     }, 2500)
-  }, [completeStep, setStepStatus])
+  }, [completeStep, setStepStatus, updateKyc])
 
   const handleContinueUpload = () => {
     if (!kycState.documents.aadhaar || !kycState.documents.pan) return
@@ -403,7 +412,22 @@ function KycPage() {
                 </div>
               )}
 
-              {activeStepId === 'success' && (
+              {activeStepId === 'success' && kycState.status === 'in_review' && (
+                <div className="kyc-step-content kyc-step-content--center">
+                  <div className="kyc-success-icon"><CheckIcon /></div>
+                  <h2>Submitted for admin review</h2>
+                  <p>
+                    Your Aadhaar, PAN, and live face verification are complete. Our admin team will
+                    review your documents and confirm your rental orders shortly.
+                  </p>
+                  <div className="kyc-intro-actions">
+                    <Link to="/dashboard" className="kyc-btn kyc-btn--primary">View profile status</Link>
+                    <Link to="/rent-products" className="kyc-btn kyc-btn--ghost">Browse rental products</Link>
+                  </div>
+                </div>
+              )}
+
+              {activeStepId === 'success' && kycState.status !== 'in_review' && (
                 <div className="kyc-step-content kyc-step-content--center">
                   <div className="kyc-success-icon"><CheckIcon /></div>
                   <h2>Verification Success</h2>

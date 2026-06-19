@@ -511,5 +511,7 @@ export const RENTAL_PRODUCTS = [
 ]
 
 export function getProductImage(product) {
-  return product.image ?? CATEGORY_IMAGES[product.category] ?? laptopAsus
+  if (product?.imageUrl) return product.imageUrl
+  if (typeof product?.image === 'string' && product.image) return product.image
+  return product?.image ?? CATEGORY_IMAGES[product?.category] ?? laptopAsus
 }

@@ -1,0 +1,313 @@
+import { useMemo, useState } from 'react'
+import { motion, useReducedMotion } from 'motion/react'
+import {
+  BadgeCheck,
+  Clock3,
+  Eye,
+  FileImage,
+  Search,
+  ShieldCheck,
+  ShoppingBag,
+  Users,
+  XCircle,
+} from 'lucide-react'
+import {
+  approveUserKyc,
+  getAdminKycStats,
+  getAdminKycUserByEmail,
+  loadAdminKycUsers,
+  rejectUserKyc,
+} from '../../data/kycStorage'
+import { formatKycStatus } from '../../data/userStorage'
+import { KycReviewModal } from '../components/KycReviewModal'
+import './AdminKycPage.css'
+
+const FILTER_TABS = [
+  { id: 'all', label: 'All users' },
+  { id: 'in_review', label: 'Awaiting review' },
+  { id: 'in_progress', label: 'In progress' },
+  { id: 'approved', label: 'Verified' },
+  { id: 'rejected', label: 'Rejected' },
+  { id: 'not_started', label: 'Not started' },
+]
+
+function StatCard({ icon: Icon, label, value, note, tone, delay = 0 }) {
+  const reduceMotion = useReducedMotion()
+
+  return (
+    <motion.article
+      className={`admin-kyc-stat-card admin-kyc-stat-card--${tone}`}
+      initial={reduceMotion ? false : { opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      whileHover={reduceMotion ? undefined : { y: -4 }}
+    >
+      <span className="admin-kyc-stat-icon" aria-hidden="true">
+        <Icon size={18} />
+      </span>
+      <div>
+        <span className="admin-kyc-stat-label">{label}</span>
+        <strong>{value}</strong>
+        <small>{note}</small>
+      </div>
+    </motion.article>
+  )
+}
+
+function AdminKycPage() {
+  const reduceMotion = useReducedMotion()
+  const [version, setVersion] = useState(0)
+  const [search, setSearch] = useState('')
+  const [activeFilter, setActiveFilter] = useState('all')
+  const [selectedUser, setSelectedUser] = useState(null)
+
+  const users = useMemo(() => loadAdminKycUsers(), [version])
+  const stats = useMemo(() => getAdminKycStats(users), [users])
+
+  const filteredUsers = useMemo(() => {
+    const query = search.trim().toLowerCase()
+
+    return users.filter((user) => {
+      if (activeFilter !== 'all' && user.kycStatus !== activeFilter) return false
+      if (!query) return true
+
+      const haystack = [
+        user.displayName,
+        user.email,
+        user.phone,
+        user.location,
+        user.kycStatusLabel,
+        user.provider,
+      ]
+        .join(' ')
+        .toLowerCase()
+
+      return haystack.includes(query)
+    })
+  }, [users, search, activeFilter])
+
+  const refresh = () => setVersion((current) => current + 1)
+
+  const openReview = (user) => {
+    setSelectedUser(getAdminKycUserByEmail(user.email) ?? user)
+  }
+
+  const handleApprove = (user) => {
+    const confirmed = window.confirm(
+      `Approve KYC for ${user.displayName}? This will verify their identity and confirm ${user.pendingOrderCount} pending rental order${user.pendingOrderCount === 1 ? '' : 's'}.`,
+    )
+    if (!confirmed) return
+
+    approveUserKyc(user.email)
+    refresh()
+    setSelectedUser(getAdminKycUserByEmail(user.email))
+  }
+
+  const handleReject = (user) => {
+    const reason = window.prompt(
+      `Reject KYC for ${user.displayName}? Enter a reason for the customer (optional):`,
+      user.kyc.rejectionReason || '',
+    )
+    if (reason === null) return
+
+    rejectUserKyc(user.email, reason)
+    refresh()
+    setSelectedUser(getAdminKycUserByEmail(user.email))
+  }
+
+  return (
+    <div className="admin-kyc-page">
+      <header className="admin-kyc-page-head">
+        <div>
+          <h1>KYC Verifications</h1>
+          <p>
+            Review registered customers, compare Aadhaar/PAN uploads with OCR data, and approve identity
+            before confirming rental orders on Nuevo Rental.
+          </p>
+        </div>
+      </header>
+
+      <div className="admin-kyc-stat-grid">
+        <StatCard icon={Users} label="Registered users" value={stats.total} note="all rental accounts" tone="blue" delay={0} />
+        <StatCard icon={Clock3} label="Awaiting review" value={stats.awaitingReview} note="submitted for admin approval" tone="amber" delay={0.05} />
+        <StatCard icon={BadgeCheck} label="Verified" value={stats.verified} note="KYC approved by admin" tone="green" delay={0.1} />
+        <StatCard icon={XCircle} label="Rejected" value={stats.rejected} note="needs re-submission" tone="pink" delay={0.15} />
+        <StatCard icon={ShoppingBag} label="Pending orders" value={stats.withPendingOrders} note="orders waiting on KYC" tone="purple" delay={0.2} />
+      </div>
+
+      <section className="admin-kyc-panel">
+        <div className="admin-kyc-panel-head">
+          <div>
+            <h2>Identity verification queue</h2>
+            <p>{filteredUsers.length} matching user{filteredUsers.length === 1 ? '' : 's'}</p>
+          </div>
+        </div>
+
+        <div className="admin-kyc-toolbar">
+          <div className="admin-kyc-tabs">
+            {FILTER_TABS.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                className={`admin-kyc-tab${activeFilter === tab.id ? ' is-active' : ''}`}
+                onClick={() => setActiveFilter(tab.id)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          <label className="admin-kyc-search">
+            <Search size={16} aria-hidden="true" />
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search name, email, phone or city"
+            />
+          </label>
+        </div>
+
+        <div className="admin-kyc-table-wrap">
+          <table className="admin-kyc-table">
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Documents</th>
+                <th>OCR details</th>
+                <th>Orders</th>
+                <th>KYC status</th>
+                <th>Submitted</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredUsers.map((user) => (
+                <tr
+                  key={user.email}
+                  className={user.needsReview ? 'is-review-priority' : ''}
+                >
+                  <td>
+                    <div className="admin-kyc-user-cell">
+                      <span className="admin-kyc-avatar" aria-hidden="true">
+                        {user.initials}
+                        {user.isOnline && <span className="admin-kyc-online-dot" />}
+                      </span>
+                      <div>
+                        <strong>
+                          {user.displayName}
+                          {user.kycStatus === 'approved' && (
+                            <BadgeCheck className="admin-kyc-verified-icon" size={14} aria-label="Verified" />
+                          )}
+                        </strong>
+                        <span>{user.email}</span>
+                        {user.phone && <em>{user.phone}</em>}
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div className="admin-kyc-docs-cell">
+                      <span className={user.kyc.documents.hasAadhaar ? 'is-uploaded' : ''}>
+                        <FileImage size={13} aria-hidden="true" />
+                        Aadhaar {user.kyc.documents.hasAadhaar ? '✓' : '—'}
+                      </span>
+                      <span className={user.kyc.documents.hasPan ? 'is-uploaded' : ''}>
+                        <FileImage size={13} aria-hidden="true" />
+                        PAN {user.kyc.documents.hasPan ? '✓' : '—'}
+                      </span>
+                    </div>
+                  </td>
+                  <td>
+                    {user.kyc.ocrData ? (
+                      <div className="admin-kyc-ocr-cell">
+                        <strong>{user.kyc.ocrData.name || '—'}</strong>
+                        <span>{user.kyc.ocrData.aadhaar || '—'}</span>
+                        <span>{user.kyc.ocrData.pan || '—'}</span>
+                      </div>
+                    ) : (
+                      <em className="admin-kyc-muted">Not extracted</em>
+                    )}
+                  </td>
+                  <td>
+                    <div className="admin-kyc-orders-cell">
+                      <strong>{user.orderCount}</strong>
+                      {user.pendingOrderCount > 0 && (
+                        <span className="admin-kyc-pending-orders">
+                          {user.pendingOrderCount} awaiting KYC
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td>
+                    <span className={`admin-kyc-status admin-kyc-status--${user.kycStatus}`}>
+                      <ShieldCheck size={12} aria-hidden="true" />
+                      {formatKycStatus(user.kycStatus)}
+                    </span>
+                  </td>
+                  <td>{user.kyc.submittedLabel}</td>
+                  <td>
+                    <button
+                      type="button"
+                      className="admin-kyc-review-btn"
+                      onClick={() => openReview(user)}
+                    >
+                      <Eye size={15} aria-hidden="true" />
+                      Review
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {filteredUsers.length === 0 && (
+            <p className="admin-kyc-empty">No users match your search or filter.</p>
+          )}
+        </div>
+
+        <div className="admin-kyc-cards">
+          {filteredUsers.map((user, index) => (
+            <motion.article
+              key={user.email}
+              className={`admin-kyc-card${user.needsReview ? ' admin-kyc-card--priority' : ''}`}
+              initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.04 * index, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <div className="admin-kyc-card-top">
+                <div className="admin-kyc-user-cell">
+                  <span className="admin-kyc-avatar" aria-hidden="true">{user.initials}</span>
+                  <div>
+                    <strong>{user.displayName}</strong>
+                    <span>{user.email}</span>
+                  </div>
+                </div>
+                <span className={`admin-kyc-status admin-kyc-status--${user.kycStatus}`}>
+                  {formatKycStatus(user.kycStatus)}
+                </span>
+              </div>
+              <div className="admin-kyc-card-meta">
+                <span>{user.kyc.documents.hasAadhaar && user.kyc.documents.hasPan ? 'Docs uploaded' : 'Docs incomplete'}</span>
+                <span>{user.orderCount} orders</span>
+                {user.pendingOrderCount > 0 && <span>{user.pendingOrderCount} pending</span>}
+              </div>
+              <button type="button" className="admin-kyc-review-btn" onClick={() => openReview(user)}>
+                <Eye size={15} aria-hidden="true" />
+                Review KYC
+              </button>
+            </motion.article>
+          ))}
+        </div>
+      </section>
+
+      <KycReviewModal
+        user={selectedUser}
+        onClose={() => setSelectedUser(null)}
+        onApprove={handleApprove}
+        onReject={handleReject}
+      />
+    </div>
+  )
+}
+
+export default AdminKycPage

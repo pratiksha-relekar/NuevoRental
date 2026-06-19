@@ -46,8 +46,8 @@ import {
   tvDualView,
   tv4kUltra,
 } from '../assets/TV'
-import { RENTAL_PRODUCTS, getProductImage } from './products'
-import { CATEGORIES } from './categories'
+import { getCatalogProducts, getCategoryLabelMap } from './catalogStorage'
+import { getProductImage } from './products'
 import { getDealById } from './featuredDeals'
 
 const GALLERY_BY_CATEGORY = {
@@ -66,7 +66,7 @@ const GALLERY_BY_CATEGORY = {
   servers: [laptopColorImg, desktopDellVostro1, laptopAsus, laptopPro],
 }
 
-const CATEGORY_LABELS = Object.fromEntries(CATEGORIES.map((cat) => [cat.id, cat.label]))
+const CATEGORY_LABELS = getCategoryLabelMap()
 
 const BRAND_BY_CATEGORY = {
   laptops: 'HP, Dell, Lenovo — Nuevo Tech',
@@ -238,6 +238,11 @@ export function getRentalDurationPlans(product) {
 function getGalleryImages(product) {
   const set = GALLERY_BY_CATEGORY[product.category]
   const main = getProductImage(product)
+  const customImages = Array.isArray(product.images) ? product.images.filter(Boolean) : []
+
+  if (customImages.length > 0) {
+    return [main, ...customImages.filter((img) => img !== main)].slice(0, 4)
+  }
 
   if (!set) return [main, main, main, main]
 
@@ -250,14 +255,22 @@ function getSpecifications(product) {
 }
 
 function getDescription(product) {
+  if (product.description?.trim()) {
+    return {
+      intro: product.description.trim(),
+      brandLine: product.additionalInfo?.trim() || `Brands may include: ${BRAND_BY_CATEGORY[product.category] ?? 'Leading OEM partners'}.`,
+    }
+  }
+
   const base = DESCRIPTION_BY_CATEGORY[product.category] ?? DESCRIPTION_BY_CATEGORY.default
-  const brandLine = `Brands may include: ${BRAND_BY_CATEGORY[product.category] ?? 'Leading OEM partners'}.`
+  const brandLine = product.additionalInfo?.trim()
+    || `Brands may include: ${BRAND_BY_CATEGORY[product.category] ?? 'Leading OEM partners'}.`
   return { intro: base, brandLine }
 }
 
 export function getProductById(id, dealId = null) {
-  const product = RENTAL_PRODUCTS.find((item) => item.id === Number(id))
-  if (!product) return null
+  const product = getCatalogProducts().find((item) => item.id === Number(id))
+  if (!product || product.status === 'inactive' || product.status === 'draft') return null
 
   let activeDeal = dealId ? getDealById(dealId) : null
   if (activeDeal && activeDeal.productId !== product.id) {
@@ -314,16 +327,17 @@ export function getProductById(id, dealId = null) {
 }
 
 export function getRelatedProducts(productId, limit = 6) {
-  const current = RENTAL_PRODUCTS.find((item) => item.id === Number(productId))
+  const catalog = getCatalogProducts()
+  const current = catalog.find((item) => item.id === Number(productId))
   if (!current) return []
 
-  const sameCategory = RENTAL_PRODUCTS.filter(
+  const sameCategory = catalog.filter(
     (item) => item.id !== current.id && item.category === current.category,
   )
 
   if (sameCategory.length >= limit) return sameCategory.slice(0, limit)
 
-  const others = RENTAL_PRODUCTS.filter(
+  const others = catalog.filter(
     (item) => item.id !== current.id && item.category !== current.category,
   )
 
@@ -331,10 +345,11 @@ export function getRelatedProducts(productId, limit = 6) {
 }
 
 export function getRecommendedProducts(productId, limit = 8) {
-  const current = RENTAL_PRODUCTS.find((item) => item.id === Number(productId))
-  if (!current) return RENTAL_PRODUCTS.slice(0, limit)
+  const catalog = getCatalogProducts()
+  const current = catalog.find((item) => item.id === Number(productId))
+  if (!current) return catalog.slice(0, limit)
 
-  const scored = RENTAL_PRODUCTS.filter((item) => item.id !== current.id).map((item) => {
+  const scored = catalog.filter((item) => item.id !== current.id).map((item) => {
     let score = 0
     if (item.category === current.category) score += 3
     if (item.period === current.period) score += 1

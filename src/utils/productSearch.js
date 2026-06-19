@@ -1,8 +1,7 @@
-import { RENTAL_PRODUCTS } from '../data/products'
-import { CATEGORIES } from '../data/categories'
+import { getCatalogProducts, getCategoryLabelMap } from '../data/catalogStorage'
 import { FEATURED_DEALS } from '../data/featuredDeals'
 
-const CATEGORY_LABELS = Object.fromEntries(CATEGORIES.map((cat) => [cat.id, cat.label]))
+const CATEGORY_LABELS = getCategoryLabelMap()
 
 const SEARCH_ALIASES = {
   laptop: ['laptops', 'notebook', 'macbook', 'hp', 'dell', 'lenovo'],
@@ -85,7 +84,8 @@ export function searchProducts(query, { limit } = {}) {
   const tokens = normalizedQuery.split(/\s+/).filter(Boolean)
   const expandedTokens = expandTokens(tokens)
 
-  const ranked = RENTAL_PRODUCTS
+  const ranked = getCatalogProducts()
+    .filter((product) => product.status !== 'inactive' && product.status !== 'draft')
     .map((product) => ({
       product,
       score: scoreProduct(product, normalizedQuery, tokens, expandedTokens),

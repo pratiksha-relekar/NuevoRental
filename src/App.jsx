@@ -1,4 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { AdminAuthProvider } from './context/AdminAuthContext'
+import { CatalogProvider } from './context/CatalogContext'
 import { AuthProvider } from './context/AuthContext'
 import { CartWishlistProvider } from './context/CartWishlistContext'
 import { KycProvider } from './context/KycContext'
@@ -21,16 +23,21 @@ import SearchResultsPage from './pages/SearchResultsPage'
 import CheckoutPage from './pages/CheckoutPage'
 import LoginPage from './pages/LoginPage'
 import SignUpPage from './pages/SignUpPage'
+import { adminRoutes } from './admin/routes'
 import './App.css'
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <AdminAuthProvider>
+        <CatalogProvider>
         <KycProvider>
         <OrdersProvider>
         <CartWishlistProvider>
         <Routes>
+          {adminRoutes}
+
           <Route element={<SiteLayout />}>
             <Route index element={<HomePage />} />
             <Route path="about" element={<AboutPage />} />
@@ -54,6 +61,8 @@ function App() {
         </CartWishlistProvider>
         </OrdersProvider>
         </KycProvider>
+        </CatalogProvider>
+        </AdminAuthProvider>
       </AuthProvider>
     </BrowserRouter>
   )

@@ -1,0 +1,119 @@
+.admin-user-detail-modal {
+  position: relative;
+  width: min(100%, 520px);
+  padding: 22px;
+  background: #fff;
+  border: 1px solid #e8edf2;
+  border-radius: 18px;
+  box-shadow: 0 24px 60px rgba(26, 39, 68, 0.18);
+}
+
+.admin-user-detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.admin-user-detail-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-user-detail-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #4a90e2 0%, #2b8fe8 100%);
+  border-radius: 50%;
+}
+
+.admin-user-detail-profile h2 {
+  margin: 0 0 4px;
+  font-size: 20px;
+  color: #1a2744;
+}
+
+.admin-user-detail-profile p {
+  margin: 0;
+  font-size: 13px;
+  color: #8a96a8;
+}
+
+.admin-user-detail-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  color: #6b7a8f;
+  background: #f8fafc;
+  border: 1px solid #e8edf2;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.admin-user-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-user-detail-grid div {
+  padding: 12px;
+  background: #f8fafc;
+  border: 1px solid #edf1f5;
+  border-radius: 12px;
+}
+
+.admin-user-detail-grid span {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: #8a96a8;
+}
+
+.admin-user-detail-grid strong {
+  font-size: 14px;
+  color: #1a2744;
+}
+
+.admin-user-detail-about {
+  margin-top: 14px;
+  padding: 12px;
+  background: #f8fafc;
+  border: 1px solid #edf1f5;
+  border-radius: 12px;
+}
+
+.admin-user-detail-about span {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #8a96a8;
+}
+
+.admin-user-detail-about p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #5a6a7f;
+}
+
+@media (max-width: 640px) {
+  .admin-user-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}

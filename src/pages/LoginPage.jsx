@@ -92,6 +92,12 @@ function LoginPage() {
           <p className="auth-switch">
             Don&apos;t have an account? <Link to="/signup">Sign up</Link>
           </p>
+
+          <div className="auth-admin-access">
+            <Link to="/admin/login" className="auth-btn auth-btn--admin">
+              Admin Login
+            </Link>
+          </div>
         </div>
       </div>
     </section>

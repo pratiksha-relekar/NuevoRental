@@ -213,7 +213,10 @@ function CheckoutPage() {
             </div>
             <h1 id="checkout-success-heading">Order Placed Successfully!</h1>
             <p>
-              Thank you, {user.displayName}. Your rental order <strong>{orderPlaced.id}</strong> has been confirmed.
+              Thank you, {user.displayName}. Your rental order <strong>{orderPlaced.id}</strong>{' '}
+              {orderPlaced.awaitingKyc
+                ? 'is saved and will be confirmed once admin approves your KYC verification.'
+                : 'has been confirmed.'}
             </p>
             <dl className="checkout-success-details">
               <div>

@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { ProductCard } from '../components/RentalProducts'
-import { RENTAL_PRODUCTS } from '../data/products'
-import { CATEGORIES } from '../data/categories'
+import { useCatalog } from '../context/CatalogContext'
 import '../styles/pageAnimations.css'
 import '../components/RentalProducts.css'
 import './RentProductsPage.css'
@@ -57,6 +56,7 @@ const DEFAULT_FILTERS = {
 }
 
 function RentProductsPage() {
+  const { products, categories } = useCatalog()
   const [searchParams] = useSearchParams()
   const categoryFromUrl = searchParams.get('category')
 
@@ -74,7 +74,8 @@ function RentProductsPage() {
   const filteredProducts = useMemo(() => {
     const priceRange = PRICE_RANGES.find((range) => range.value === filters.priceRange) ?? PRICE_RANGES[0]
 
-    return RENTAL_PRODUCTS.filter((product) => {
+    return products.filter((product) => {
+      if (product.status === 'inactive' || product.status === 'draft') return false
       if (filters.category !== 'all' && product.category !== filters.category) return false
       if (filters.duration !== 'all' && product.period !== filters.duration) return false
       if (product.rentalPrice < priceRange.min || product.rentalPrice > priceRange.max) return false
@@ -82,7 +83,7 @@ function RentProductsPage() {
       if (filters.specs !== 'All Specs' && !product.title.includes(filters.specs)) return false
       return true
     })
-  }, [filters])
+  }, [filters, products])
 
   const updateFilter = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }))
@@ -127,7 +128,7 @@ function RentProductsPage() {
                 onChange={(e) => updateFilter('category', e.target.value)}
               >
                 <option value="all">All Categories</option>
-                {CATEGORIES.map((cat) => (
+                {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>{cat.label}</option>
                 ))}
               </select>

@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCartWishlist } from '../context/CartWishlistContext'
 import { useKyc } from '../context/KycContext'
-import { useOrders, ORDER_STATUS_LABELS } from '../context/OrdersContext'
+import { useOrders, getOrderStatusLabel } from '../context/OrdersContext'
 import { KYC_STEP_STATUS, KYC_STEPS } from '../data/kycSteps'
 import { formatINR } from '../utils/cartSummary'
 import '../styles/pageAnimations.css'
@@ -530,7 +530,7 @@ function DashboardPage() {
                             </p>
                           </div>
                           <span className={`account-order-status account-order-status--${order.status}`}>
-                            {ORDER_STATUS_LABELS[order.status] ?? order.status}
+                            {getOrderStatusLabel(order)}
                           </span>
                         </div>
 
@@ -656,14 +656,20 @@ function DashboardPage() {
                     <h3>
                       {isKycApproved
                         ? 'KYC Approved'
-                        : kycState.status === 'in_progress'
-                          ? `Verification in progress (${kycProgress}%)`
-                          : 'Verification pending'}
+                        : kycState.status === 'in_review'
+                          ? 'Awaiting admin review'
+                          : kycState.status === 'in_progress'
+                            ? `Verification in progress (${kycProgress}%)`
+                            : kycState.status === 'rejected'
+                              ? 'KYC rejected — resubmit documents'
+                              : 'Verification pending'}
                     </h3>
                     <p>
                       {isKycApproved
                         ? 'Your identity is verified. You can rent high-value devices without delays.'
-                        : 'Complete Aadhaar/PAN upload, OCR verification, and live face check to get approved.'}
+                        : kycState.status === 'in_review'
+                          ? 'Your documents are submitted. Admin will review your KYC and confirm pending rental orders.'
+                          : 'Complete Aadhaar/PAN upload, OCR verification, and live face check to get approved.'}
                     </p>
                   </div>
                 </div>

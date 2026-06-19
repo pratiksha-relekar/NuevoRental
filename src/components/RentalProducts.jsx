@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useRef, useState } from 'react'
-import { RENTAL_PRODUCTS, getProductImage } from '../data/products'
+import { getProductImage } from '../data/products'
+import { useCatalog } from '../context/CatalogContext'
 import { useCartWishlist } from '../context/CartWishlistContext'
 import './RentalProducts.css'
 
@@ -146,14 +147,17 @@ export function ProductCard({ product }) {
 }
 
 function RentalProducts({ activeCategory = 'all' }) {
+  const { products } = useCatalog()
   const scrollRef = useRef(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(true)
 
+  const visibleProducts = products.filter((product) => product.status !== 'inactive' && product.status !== 'draft')
+
   const filtered =
     activeCategory === 'all'
-      ? RENTAL_PRODUCTS
-      : RENTAL_PRODUCTS.filter((p) => p.category === activeCategory)
+      ? visibleProducts
+      : visibleProducts.filter((p) => p.category === activeCategory)
 
   const updateScrollState = () => {
     const el = scrollRef.current

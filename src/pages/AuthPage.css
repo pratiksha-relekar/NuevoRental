@@ -215,6 +215,28 @@
   text-decoration: underline;
 }
 
+.auth-admin-access {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e8edf2;
+}
+
+.auth-btn--admin {
+  color: #1a2744;
+  background: #fff;
+  border: 1.5px solid #1a2744;
+  text-decoration: none;
+  box-shadow: none;
+}
+
+.auth-btn--admin:hover {
+  color: #fff;
+  background: #1a2744;
+  border-color: #1a2744;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(26, 39, 68, 0.18);
+}
+
 @media (max-width: 520px) {
   .auth-card {
     padding: 28px 20px 24px;

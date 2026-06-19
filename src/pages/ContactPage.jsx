@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import Lightfall from '../components/Lightfall'
+import { submitSupportRequest } from '../data/supportStorage'
 import '../styles/pageAnimations.css'
 import './ContactPage.css'
 
@@ -110,6 +112,54 @@ function LightfallGridSection({ children, className = '', minHeight = 360 }) {
 }
 
 function ContactPage() {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submittedId, setSubmittedId] = useState(null)
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    setError('')
+
+    const formData = new FormData(event.currentTarget)
+    const name = String(formData.get('name') ?? '').trim()
+    const phone = String(formData.get('phone') ?? '').trim()
+    const email = String(formData.get('email') ?? '').trim()
+    const topic = String(formData.get('topic') ?? 'other')
+    const message = String(formData.get('message') ?? '').trim()
+
+    if (!name || !phone || !email || !message) {
+      setError('Please fill in your name, phone, email, and message.')
+      return
+    }
+
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      setError('Please enter a valid email address.')
+      return
+    }
+
+    const phoneDigits = phone.replace(/\D/g, '')
+    if (phoneDigits.length < 10) {
+      setError('Please enter a valid 10-digit mobile number.')
+      return
+    }
+
+    setIsSubmitting(true)
+    await new Promise((resolve) => window.setTimeout(resolve, 800))
+
+    const request = submitSupportRequest({
+      name,
+      phone: phoneDigits.slice(-10),
+      email,
+      topic,
+      message,
+      source: 'contact',
+    })
+
+    setSubmittedId(request.id)
+    event.currentTarget.reset()
+    setIsSubmitting(false)
+  }
+
   return (
     <section className="page-section contact-page" aria-labelledby="contact-heading">
       <div className="contact-page-bg" aria-hidden="true">
@@ -174,9 +224,23 @@ function ContactPage() {
             </Link>
           </div>
 
-          <form className="contact-form contact-reveal contact-reveal--d1" onSubmit={(e) => e.preventDefault()}>
+          <form className="contact-form contact-reveal contact-reveal--d1" onSubmit={handleSubmit}>
             <h2 className="contact-form-title">Send a Message</h2>
             <p className="contact-form-desc">Fill in your details and we&apos;ll get back to you shortly.</p>
+
+            {submittedId && (
+              <p className="contact-form-success" role="status">
+                Thank you! Your inquiry <strong>{submittedId}</strong> was submitted. Our support team
+                will contact you within 24 hours.
+              </p>
+            )}
+
+            {error && (
+              <p className="contact-form-error" role="alert">
+                {error}
+              </p>
+            )}
+
             <div className="contact-form-row">
               <label className="contact-field">
                 <span>Full Name</span>
@@ -206,8 +270,12 @@ function ContactPage() {
               <span>Message</span>
               <textarea name="message" rows={4} placeholder="Tell us about your rental needs..." />
             </label>
-            <button type="submit" className="contact-btn contact-btn--primary contact-btn--full">
-              Submit Inquiry
+            <button
+              type="submit"
+              className="contact-btn contact-btn--primary contact-btn--full"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Submitting…' : 'Submit Inquiry'}
             </button>
           </form>
         </div>
