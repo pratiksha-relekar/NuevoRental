@@ -20,8 +20,9 @@ function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
     setError('')
 
@@ -30,13 +31,32 @@ function LoginPage() {
       return
     }
 
-    login({ email, password })
-    navigate(redirectTo)
+    setLoading(true)
+    try {
+      const result = await login({ email, password })
+      if (!result.ok) {
+        setError(result.error)
+        return
+      }
+      navigate(redirectTo)
+    } catch {
+      setError('Unable to log in right now. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleGoogle = () => {
-    loginWithGoogle()
-    navigate(redirectTo)
+  const handleGoogle = async () => {
+    setError('')
+    setLoading(true)
+    try {
+      await loginWithGoogle()
+      navigate(redirectTo)
+    } catch {
+      setError('Google sign-in failed. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -59,6 +79,7 @@ function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@company.com"
                 autoComplete="email"
+                disabled={loading}
               />
             </label>
 
@@ -71,6 +92,7 @@ function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
                 autoComplete="current-password"
+                disabled={loading}
               />
             </label>
 
@@ -80,14 +102,14 @@ function LoginPage() {
               <Link to="/support">Forgot password?</Link>
             </p>
 
-            <button type="submit" className="auth-btn auth-btn--primary">
-              Login
+            <button type="submit" className="auth-btn auth-btn--primary" disabled={loading}>
+              {loading ? 'Logging in…' : 'Login'}
             </button>
           </form>
 
           <div className="auth-divider">or</div>
 
-          <GoogleAuthButton onClick={handleGoogle} />
+          <GoogleAuthButton onClick={handleGoogle} disabled={loading} />
 
           <p className="auth-switch">
             Don&apos;t have an account? <Link to="/signup">Sign up</Link>

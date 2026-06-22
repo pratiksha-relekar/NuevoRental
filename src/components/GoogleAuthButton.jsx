@@ -21,9 +21,9 @@ function GoogleIcon() {
   )
 }
 
-function GoogleAuthButton({ label = 'Continue with Google', onClick }) {
+function GoogleAuthButton({ label = 'Continue with Google', onClick, disabled = false }) {
   return (
-    <button type="button" className="auth-google-btn" onClick={onClick}>
+    <button type="button" className="auth-google-btn" onClick={onClick} disabled={disabled}>
       <GoogleIcon />
       {label}
     </button>

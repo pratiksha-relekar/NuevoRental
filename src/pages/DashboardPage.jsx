@@ -209,8 +209,8 @@ function DashboardPage() {
     wishlist: wishlistCount,
   }
 
-  const handleLogout = () => {
-    logout()
+  const handleLogout = async () => {
+    await logout()
     navigate('/login', { replace: true })
   }
 
@@ -223,9 +223,12 @@ function DashboardPage() {
     setIsEditing(false)
   }
 
-  const handleSaveProfile = (event) => {
+  const handleSaveProfile = async (event) => {
     event.preventDefault()
-    updateProfile(form)
+    const result = await updateProfile(form)
+    if (result?.ok === false) {
+      return
+    }
     setIsEditing(false)
   }
 

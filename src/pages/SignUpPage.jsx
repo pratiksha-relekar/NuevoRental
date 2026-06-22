@@ -16,6 +16,7 @@ function SignUpPage() {
     confirmPassword: '',
   })
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -27,7 +28,7 @@ function SignUpPage() {
     setForm((prev) => ({ ...prev, [field]: event.target.value }))
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
     setError('')
 
@@ -48,13 +49,32 @@ function SignUpPage() {
       return
     }
 
-    signUp({ firstName, lastName, email, password })
-    navigate('/dashboard')
+    setLoading(true)
+    try {
+      const result = await signUp({ firstName, lastName, email, password })
+      if (!result.ok) {
+        setError(result.error)
+        return
+      }
+      navigate('/dashboard')
+    } catch {
+      setError('Unable to create your account right now. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleGoogle = () => {
-    loginWithGoogle()
-    navigate('/dashboard')
+  const handleGoogle = async () => {
+    setError('')
+    setLoading(true)
+    try {
+      await loginWithGoogle()
+      navigate('/dashboard')
+    } catch {
+      setError('Google sign-in failed. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -79,6 +99,7 @@ function SignUpPage() {
                     onChange={updateField('firstName')}
                     placeholder="First name"
                     autoComplete="given-name"
+                    disabled={loading}
                   />
                 </label>
                 <label className="auth-field">
@@ -90,6 +111,7 @@ function SignUpPage() {
                     onChange={updateField('lastName')}
                     placeholder="Last name"
                     autoComplete="family-name"
+                    disabled={loading}
                   />
                 </label>
               </div>
@@ -104,6 +126,7 @@ function SignUpPage() {
                 onChange={updateField('email')}
                 placeholder="you@company.com"
                 autoComplete="email"
+                disabled={loading}
               />
             </label>
 
@@ -116,6 +139,7 @@ function SignUpPage() {
                 onChange={updateField('password')}
                 placeholder="Create a password"
                 autoComplete="new-password"
+                disabled={loading}
               />
             </label>
 
@@ -128,19 +152,20 @@ function SignUpPage() {
                 onChange={updateField('confirmPassword')}
                 placeholder="Confirm your password"
                 autoComplete="new-password"
+                disabled={loading}
               />
             </label>
 
             {error && <p className="auth-error" role="alert">{error}</p>}
 
-            <button type="submit" className="auth-btn auth-btn--primary">
-              Sign Up
+            <button type="submit" className="auth-btn auth-btn--primary" disabled={loading}>
+              {loading ? 'Creating account…' : 'Sign Up'}
             </button>
           </form>
 
           <div className="auth-divider">or</div>
 
-          <GoogleAuthButton onClick={handleGoogle} />
+          <GoogleAuthButton onClick={handleGoogle} disabled={loading} />
 
           <p className="auth-switch">
             Already have an account? <Link to="/login">Login</Link>

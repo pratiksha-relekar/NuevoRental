@@ -1,3 +1,5 @@
+import { deleteUserByEmail, fetchAllUsers } from '../backend/firestore/users'
+
 const AUTH_USER_KEY = 'nuevo-rental-auth-user'
 const AUTH_USERS_KEY = 'nuevo-rental-auth-users'
 const ORDERS_KEY = 'nuevo-rental-orders'
@@ -41,34 +43,78 @@ function formatJoinedDate(isoDate) {
   })
 }
 
+function mapProfileToAdminUser(email, profile, orders, kycRecords, currentSession) {
+  const orderCount = Array.isArray(orders[email]) ? orders[email].length : 0
+  const kycStatus = kycRecords[email]?.status ?? 'not_started'
+
+  return {
+    email,
+    displayName: profile.displayName || email.split('@')[0],
+    firstName: profile.firstName ?? '',
+    lastName: profile.lastName ?? '',
+    phone: profile.phone ?? '',
+    location: profile.location ?? '',
+    aboutMe: profile.aboutMe ?? '',
+    provider: profile.provider ?? 'email',
+    memberSince: profile.memberSince ?? null,
+    orderCount,
+    kycStatus,
+    isOnline: currentSession?.email === email,
+    initials: getInitials(profile.displayName, email),
+    joinedLabel: formatJoinedDate(profile.memberSince),
+    role: orderCount > 0 ? 'renter' : 'customer',
+  }
+}
+
 export function loadAdminUsers() {
   const users = loadJson(AUTH_USERS_KEY, {})
   const currentSession = loadJson(AUTH_USER_KEY, null)
   const orders = loadJson(ORDERS_KEY, {})
   const kycRecords = loadJson(KYC_KEY, {})
 
-  return Object.entries(users).map(([email, profile]) => {
-    const orderCount = Array.isArray(orders[email]) ? orders[email].length : 0
-    const kycStatus = kycRecords[email]?.status ?? 'not_started'
+  return Object.entries(users).map(([email, profile]) =>
+    mapProfileToAdminUser(email, profile, orders, kycRecords, currentSession),
+  )
+}
 
-    return {
-      email,
-      displayName: profile.displayName || email.split('@')[0],
-      firstName: profile.firstName ?? '',
-      lastName: profile.lastName ?? '',
-      phone: profile.phone ?? '',
-      location: profile.location ?? '',
-      aboutMe: profile.aboutMe ?? '',
-      provider: profile.provider ?? 'email',
-      memberSince: profile.memberSince ?? null,
-      orderCount,
-      kycStatus,
-      isOnline: currentSession?.email === email,
-      initials: getInitials(profile.displayName, email),
-      joinedLabel: formatJoinedDate(profile.memberSince),
-      role: orderCount > 0 ? 'renter' : 'customer',
+export async function fetchAdminUsers() {
+  const currentSession = loadJson(AUTH_USER_KEY, null)
+  const orders = loadJson(ORDERS_KEY, {})
+  const kycRecords = loadJson(KYC_KEY, {})
+
+  try {
+    const firestoreUsers = await fetchAllUsers()
+    if (firestoreUsers.length > 0) {
+      const mapped = firestoreUsers.map((profile) => {
+        const email = profile.email ?? profile.id
+        return mapProfileToAdminUser(email, profile, orders, kycRecords, currentSession)
+      })
+
+      const registry = {}
+      firestoreUsers.forEach((profile) => {
+        const email = profile.email ?? profile.id
+        registry[email] = {
+          firstName: profile.firstName,
+          lastName: profile.lastName,
+          displayName: profile.displayName,
+          phone: profile.phone,
+          location: profile.location,
+          aboutMe: profile.aboutMe,
+          memberSince: profile.memberSince,
+          provider: profile.provider,
+          photoURL: profile.photoURL ?? '',
+          uid: profile.uid ?? '',
+        }
+      })
+      saveJson(AUTH_USERS_KEY, registry)
+
+      return mapped
     }
-  })
+  } catch {
+    // Fall back to local registry when Firestore is unavailable.
+  }
+
+  return loadAdminUsers()
 }
 
 export function getAdminUserStats(users) {
@@ -92,7 +138,13 @@ export function getAdminUserStats(users) {
   }
 }
 
-export function deleteRegisteredUser(email) {
+export async function deleteRegisteredUser(email) {
+  try {
+    await deleteUserByEmail(email)
+  } catch {
+    // Continue with local cleanup even if Firestore delete fails.
+  }
+
   const users = loadJson(AUTH_USERS_KEY, {})
   delete users[email]
   saveJson(AUTH_USERS_KEY, users)

@@ -1,3 +1,5 @@
+import { COLLECTIONS, saveDocument } from '../backend/firestore'
+
 const SUPPORT_KEY = 'nuevo-rental-support-requests'
 
 export const SUPPORT_TOPIC_LABELS = {
@@ -195,6 +197,11 @@ export function submitSupportRequest(payload) {
   }
 
   saveJson(SUPPORT_KEY, [request, ...requests])
+
+  void saveDocument(COLLECTIONS.supportRequests, request.id, request).catch(() => {
+    // Keep localStorage flow working if Firestore is unavailable.
+  })
+
   return request
 }
 

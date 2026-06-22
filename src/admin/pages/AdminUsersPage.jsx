@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   BadgeCheck,
   CircleUserRound,
@@ -14,9 +14,9 @@ import {
 } from 'lucide-react'
 import {
   deleteRegisteredUser,
+  fetchAdminUsers,
   formatKycStatus,
   getAdminUserStats,
-  loadAdminUsers,
 } from '../../data/userStorage'
 import { UserDetailModal } from '../components/UserDetailModal'
 import './AdminUsersPage.css'
@@ -38,12 +38,37 @@ function StatCard({ icon: Icon, label, value, note, tone }) {
 
 function AdminUsersPage() {
   const [version, setVersion] = useState(0)
+  const [users, setUsers] = useState([])
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [providerFilter, setProviderFilter] = useState('all')
   const [kycFilter, setKycFilter] = useState('all')
   const [selectedUser, setSelectedUser] = useState(null)
 
-  const users = useMemo(() => loadAdminUsers(), [version])
+  useEffect(() => {
+    let active = true
+
+    async function loadUsers() {
+      setLoading(true)
+      try {
+        const nextUsers = await fetchAdminUsers()
+        if (active) {
+          setUsers(nextUsers)
+        }
+      } finally {
+        if (active) {
+          setLoading(false)
+        }
+      }
+    }
+
+    loadUsers()
+
+    return () => {
+      active = false
+    }
+  }, [version])
+
   const stats = useMemo(() => getAdminUserStats(users), [users])
 
   const filteredUsers = useMemo(() => {
@@ -68,10 +93,10 @@ function AdminUsersPage() {
     })
   }, [users, search, providerFilter, kycFilter])
 
-  const handleDelete = (user) => {
+  const handleDelete = async (user) => {
     const confirmed = window.confirm(`Delete account for ${user.displayName}? This removes their orders and KYC data.`)
     if (!confirmed) return
-    deleteRegisteredUser(user.email)
+    await deleteRegisteredUser(user.email)
     setVersion((current) => current + 1)
   }
 

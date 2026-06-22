@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { FirebaseProvider } from './context/FirebaseContext'
 import { AdminAuthProvider } from './context/AdminAuthContext'
 import { CatalogProvider } from './context/CatalogContext'
 import { AuthProvider } from './context/AuthContext'
@@ -28,6 +29,7 @@ import './App.css'
 
 function App() {
   return (
+    <FirebaseProvider>
     <BrowserRouter>
       <AuthProvider>
         <AdminAuthProvider>
@@ -65,6 +67,7 @@ function App() {
         </AdminAuthProvider>
       </AuthProvider>
     </BrowserRouter>
+    </FirebaseProvider>
   )
 }
 
