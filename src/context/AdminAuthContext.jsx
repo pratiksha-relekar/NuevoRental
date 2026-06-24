@@ -12,8 +12,13 @@ import {
   updateAdminProfile,
 } from '../data/adminStorage'
 import { ensureAdminCatalogUser } from '../backend/firestore/adminCatalog'
+import { refreshAdminCaches } from '../data/userStorage'
+import {
+  clearAdminSessionCache,
+  SESSION_CACHE_KEYS,
+} from '../utils/sessionCache'
 
-const ADMIN_SESSION_KEY = 'nuevo-rental-admin-session'
+const ADMIN_SESSION_KEY = SESSION_CACHE_KEYS.ADMIN_SESSION
 
 const AdminAuthContext = createContext(null)
 
@@ -94,6 +99,7 @@ export function AdminAuthProvider({ children }) {
 
       try {
         await ensureAdminCatalogUser(session)
+        await refreshAdminCaches()
       } catch {
         // Allow admin login even if Firestore sync fails.
       }
@@ -106,6 +112,7 @@ export function AdminAuthProvider({ children }) {
   }, [])
 
   const logout = useCallback(() => {
+    clearAdminSessionCache()
     setAdmin(null)
   }, [])
 

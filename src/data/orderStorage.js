@@ -1,11 +1,12 @@
-import { deleteUserOrder, updateUserOrder } from '../backend/firestore/orders'
+import { deleteUserOrder, fetchUserOrders, updateUserOrder } from '../backend/firestore/orders'
 import { KYC_STEPS } from './kycSteps'
 import { formatKycStatus } from './userStorage'
+import { SESSION_CACHE_KEYS } from '../utils/sessionCache'
 
-const ORDERS_KEY = 'nuevo-rental-orders'
-const USERS_KEY = 'nuevo-rental-auth-users'
-const KYC_KEY = 'nuevo-rental-kyc-records'
-const AUTH_USER_KEY = 'nuevo-rental-auth-user'
+const ORDERS_KEY = SESSION_CACHE_KEYS.ORDERS
+const USERS_KEY = SESSION_CACHE_KEYS.AUTH_USERS
+const KYC_KEY = SESSION_CACHE_KEYS.KYC
+const AUTH_USER_KEY = SESSION_CACHE_KEYS.AUTH_USER
 
 export const ADMIN_ORDER_STATUS_LABELS = {
   placed: 'Order Placed',
@@ -152,6 +153,8 @@ export function loadAdminOrders() {
   const currentSession = loadJson(AUTH_USER_KEY, null)
 
   return Object.entries(records).flatMap(([userEmail, orders]) => {
+    if (!users[userEmail]) return []
+
     const profile = users[userEmail] ?? {}
     const kycRecord = kycRecords[userEmail] ?? null
     const userOrders = Array.isArray(orders) ? orders : []
@@ -212,6 +215,24 @@ export function loadAdminOrders() {
       }
     })
   }).sort((a, b) => new Date(b.placedAt ?? 0) - new Date(a.placedAt ?? 0))
+}
+
+export async function fetchAdminOrders(users = null) {
+  const resolvedUsers = users ?? await (await import('./userStorage')).fetchAdminUsers()
+  const ordersMirror = {}
+
+  await Promise.all(
+    resolvedUsers.map(async (user) => {
+      try {
+        ordersMirror[user.email] = await fetchUserOrders(user.email)
+      } catch {
+        ordersMirror[user.email] = []
+      }
+    }),
+  )
+
+  saveJson(ORDERS_KEY, ordersMirror)
+  return loadAdminOrders()
 }
 
 export function getAdminOrderById(userEmail, orderId) {

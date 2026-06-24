@@ -1,0 +1,1 @@
+import{n as e}from"./orders-8si9LoXr.js";export{e as deleteUserOrders};

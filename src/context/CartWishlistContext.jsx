@@ -25,9 +25,16 @@ import {
   subscribeToUserWishlist,
 } from '../backend/firestore/wishlist'
 import { useAuth } from './AuthContext'
+import {
+  clearGuestCartWishlistCache,
+  CUSTOMER_LOGOUT_EVENT,
+  loadGuestCartFromCache,
+  loadGuestWishlistFromCache,
+  SESSION_CACHE_KEYS,
+} from '../utils/sessionCache'
 
-const CART_STORAGE_KEY = 'nuevo-rental-cart'
-const WISHLIST_STORAGE_KEY = 'nuevo-rental-wishlist'
+const CART_STORAGE_KEY = SESSION_CACHE_KEYS.CART
+const WISHLIST_STORAGE_KEY = SESSION_CACHE_KEYS.WISHLIST
 
 const CartWishlistContext = createContext(null)
 
@@ -73,29 +80,78 @@ function snapshotProduct(product) {
 
 export function CartWishlistProvider({ children }) {
   const { user, isAuthenticated } = useAuth()
-  const [cartItems, setCartItems] = useState(() => loadFromStorage(CART_STORAGE_KEY, []))
-  const [wishlistItems, setWishlistItems] = useState(() => loadFromStorage(WISHLIST_STORAGE_KEY, []))
+  const [cartItems, setCartItems] = useState([])
+  const [wishlistItems, setWishlistItems] = useState([])
   const [wishlistReady, setWishlistReady] = useState(!isAuthenticated)
   const [cartReady, setCartReady] = useState(!isAuthenticated)
   const mergedGuestWishlistRef = useRef(false)
   const mergedGuestCartRef = useRef(false)
+  const previousUserEmailRef = useRef(user?.email ?? null)
+  const guestHydratedRef = useRef(false)
+  const allowGuestPersistRef = useRef(true)
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      saveToStorage(CART_STORAGE_KEY, cartItems)
+    const handleLogout = () => {
+      allowGuestPersistRef.current = false
+      setCartItems([])
+      setWishlistItems([])
+      mergedGuestWishlistRef.current = false
+      mergedGuestCartRef.current = false
+      guestHydratedRef.current = true
+      setWishlistReady(true)
+      setCartReady(true)
+      allowGuestPersistRef.current = true
     }
-  }, [cartItems, isAuthenticated])
+
+    window.addEventListener(CUSTOMER_LOGOUT_EVENT, handleLogout)
+    return () => window.removeEventListener(CUSTOMER_LOGOUT_EVENT, handleLogout)
+  }, [])
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      saveToStorage(WISHLIST_STORAGE_KEY, wishlistItems)
+    const previousEmail = previousUserEmailRef.current
+    const currentEmail = user?.email ?? null
+
+    if (previousEmail && previousEmail !== currentEmail) {
+      allowGuestPersistRef.current = false
+      setCartItems([])
+      setWishlistItems([])
+      clearGuestCartWishlistCache()
+      mergedGuestWishlistRef.current = false
+      mergedGuestCartRef.current = false
+      guestHydratedRef.current = false
     }
-  }, [wishlistItems, isAuthenticated])
+
+    previousUserEmailRef.current = currentEmail
+
+    if (!currentEmail) {
+      if (!guestHydratedRef.current) {
+        setCartItems(loadGuestCartFromCache())
+        setWishlistItems(loadGuestWishlistFromCache())
+        guestHydratedRef.current = true
+      }
+      allowGuestPersistRef.current = true
+      setWishlistReady(true)
+      setCartReady(true)
+      return undefined
+    }
+
+    guestHydratedRef.current = false
+    return undefined
+  }, [user?.email])
+
+  useEffect(() => {
+    if (user?.email || !allowGuestPersistRef.current || !guestHydratedRef.current) return
+    saveToStorage(CART_STORAGE_KEY, cartItems)
+  }, [cartItems, user?.email])
+
+  useEffect(() => {
+    if (user?.email || !allowGuestPersistRef.current || !guestHydratedRef.current) return
+    saveToStorage(WISHLIST_STORAGE_KEY, wishlistItems)
+  }, [wishlistItems, user?.email])
 
   useEffect(() => {
     if (!user?.email) {
       mergedGuestWishlistRef.current = false
-      setWishlistReady(true)
       return undefined
     }
 
@@ -142,12 +198,11 @@ export function CartWishlistProvider({ children }) {
       active = false
       unsubscribe()
     }
-  }, [user])
+  }, [user?.email])
 
   useEffect(() => {
     if (!user?.email) {
       mergedGuestCartRef.current = false
-      setCartReady(true)
       return undefined
     }
 
@@ -194,7 +249,7 @@ export function CartWishlistProvider({ children }) {
       active = false
       unsubscribe()
     }
-  }, [user])
+  }, [user?.email])
 
   const cartCount = useMemo(
     () => cartItems.reduce((total, item) => total + item.quantity, 0),

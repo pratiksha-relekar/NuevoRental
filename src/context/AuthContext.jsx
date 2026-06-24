@@ -19,9 +19,14 @@ import {
 } from '../backend/firestore/users'
 import { refreshWishlistAddresses } from '../backend/firestore/wishlist'
 import { refreshCartAddresses } from '../backend/firestore/cart'
+import {
+  clearCustomerSessionCache,
+  emitCustomerLogout,
+  SESSION_CACHE_KEYS,
+} from '../utils/sessionCache'
 
-const AUTH_USER_KEY = 'nuevo-rental-auth-user'
-const AUTH_USERS_KEY = 'nuevo-rental-auth-users'
+const AUTH_USER_KEY = SESSION_CACHE_KEYS.AUTH_USER
+const AUTH_USERS_KEY = SESSION_CACHE_KEYS.AUTH_USERS
 
 const AuthContext = createContext(null)
 
@@ -36,6 +41,10 @@ function loadFromStorage(key, fallback) {
 
 function saveToStorage(key, value) {
   try {
+    if (value === null || value === undefined) {
+      window.localStorage.removeItem(key)
+      return
+    }
     window.localStorage.setItem(key, JSON.stringify(value))
   } catch {
     // Ignore quota / private mode errors
@@ -138,6 +147,8 @@ export function AuthProvider({ children }) {
   }, [user?.email])
 
   const logout = useCallback(async () => {
+    const email = user?.email ?? null
+
     if (user?.provider === 'google') {
       try {
         await signOutFirebase()
@@ -145,8 +156,11 @@ export function AuthProvider({ children }) {
         // Clear local session even if Firebase sign-out fails.
       }
     }
+
+    clearCustomerSessionCache(email)
+    emitCustomerLogout()
     setUser(null)
-  }, [user?.provider])
+  }, [user?.email, user?.provider])
 
   const value = useMemo(
     () => ({

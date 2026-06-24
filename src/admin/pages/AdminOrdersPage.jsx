@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import {
   BadgeCheck,
@@ -17,6 +17,7 @@ import {
   ADMIN_ORDER_STATUS_LABELS,
   getAdminOrderById,
   getAdminOrderStats,
+  fetchAdminOrders,
   loadAdminOrders,
   updateAdminOrderStatus,
 } from '../../data/orderStorage'
@@ -66,6 +67,26 @@ function AdminOrdersPage() {
 
   const orders = useMemo(() => loadAdminOrders(), [version])
   const stats = useMemo(() => getAdminOrderStats(orders), [orders])
+
+  useEffect(() => {
+    let active = true
+
+    async function loadOrders() {
+      try {
+        await fetchAdminOrders()
+        if (active) {
+          setVersion((current) => current + 1)
+        }
+      } catch {
+        // Fall back to cached orders mirror.
+      }
+    }
+
+    loadOrders()
+    return () => {
+      active = false
+    }
+  }, [])
 
   const filteredOrders = useMemo(() => {
     const query = search.trim().toLowerCase()

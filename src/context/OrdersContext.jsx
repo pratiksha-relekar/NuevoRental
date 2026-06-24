@@ -8,9 +8,9 @@ import {
 } from 'react'
 import { placeUserOrder, subscribeToUserOrders } from '../backend/firestore/orders'
 import { useAuth } from './AuthContext'
+import { SESSION_CACHE_KEYS } from '../utils/sessionCache'
 
-const ORDERS_STORAGE_KEY = 'nuevo-rental-orders'
-const KYC_STORAGE_KEY = 'nuevo-rental-kyc-records'
+const KYC_STORAGE_KEY = SESSION_CACHE_KEYS.KYC
 
 function isKycApproved(email) {
   try {
@@ -22,16 +22,6 @@ function isKycApproved(email) {
 }
 
 const OrdersContext = createContext(null)
-
-function loadUserOrdersFromStorage(email) {
-  try {
-    const raw = window.localStorage.getItem(ORDERS_STORAGE_KEY)
-    const records = raw ? JSON.parse(raw) : {}
-    return records[email] ?? []
-  } catch {
-    return []
-  }
-}
 
 export function OrdersProvider({ children }) {
   const { user } = useAuth()
@@ -49,7 +39,7 @@ export function OrdersProvider({ children }) {
 
     let active = true
     setOrdersReady(false)
-    setOrders(loadUserOrdersFromStorage(userEmail))
+    setOrders([])
 
     const unsubscribe = subscribeToUserOrders(
       userEmail,

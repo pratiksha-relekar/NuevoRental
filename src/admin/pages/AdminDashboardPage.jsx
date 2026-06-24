@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import {
   IndianRupee,
   Package,
@@ -7,8 +7,10 @@ import {
   Users,
 } from 'lucide-react'
 import { getCatalogProducts } from '../../data/catalogStorage'
-import { getPendingKycReviewCount } from '../../data/kycStorage'
+import { getPendingKycReviewCount, fetchPendingKycReviewCount } from '../../data/kycStorage'
 import { getOpenSupportCount } from '../../data/supportStorage'
+import { fetchAdminUsers } from '../../data/userStorage'
+import { getAdminOrderStats, loadAdminOrders } from '../../data/orderStorage'
 import { formatINR } from '../../utils/cartSummary'
 import { AdminTrendChart } from '../components/AdminTrendChart'
 import { AdminRevenueSection } from '../components/AdminRevenueSection'
@@ -86,41 +88,8 @@ const ADMIN_MODULES = [
   },
 ]
 
-function loadUserCount() {
-  try {
-    const users = JSON.parse(window.localStorage.getItem('nuevo-rental-auth-users') ?? '{}')
-    return Object.keys(users).length
-  } catch {
-    return 0
-  }
-}
-
-function loadOrderCount() {
-  try {
-    const orders = JSON.parse(window.localStorage.getItem('nuevo-rental-orders') ?? '{}')
-    return Object.values(orders).reduce((sum, list) => sum + (Array.isArray(list) ? list.length : 0), 0)
-  } catch {
-    return 0
-  }
-}
-
-function loadPendingKycCount() {
-  return getPendingKycReviewCount()
-}
-
 function loadOpenSupportCount() {
   return getOpenSupportCount()
-}
-
-function loadRevenue() {
-  try {
-    const orders = JSON.parse(window.localStorage.getItem('nuevo-rental-orders') ?? '{}')
-    return Object.values(orders)
-      .flat()
-      .reduce((sum, order) => sum + (order?.summary?.payAmount ?? 0), 0)
-  } catch {
-    return 0
-  }
 }
 
 function formatStatValue(id, stats) {
@@ -132,18 +101,53 @@ function formatStatValue(id, stats) {
 }
 
 function AdminDashboardPage() {
-  const stats = useMemo(
-    () => ({
-      products: getCatalogProducts().length,
-      users: loadUserCount(),
-      orders: loadOrderCount(),
-      kyc: loadPendingKycCount(),
-      revenue: loadRevenue(),
-      website: 12,
-      support: loadOpenSupportCount(),
-    }),
-    [],
-  )
+  const [stats, setStats] = useState({
+    products: getCatalogProducts().length,
+    users: 0,
+    orders: 0,
+    kyc: getPendingKycReviewCount(),
+    revenue: 0,
+    website: 12,
+    support: loadOpenSupportCount(),
+  })
+
+  useEffect(() => {
+    let active = true
+
+    async function loadStats() {
+      try {
+        const users = await fetchAdminUsers()
+        const orders = loadAdminOrders()
+        const orderStats = getAdminOrderStats(orders)
+
+        if (!active) return
+
+        setStats({
+          products: getCatalogProducts().length,
+          users: users.length,
+          orders: orderStats.total,
+          kyc: await fetchPendingKycReviewCount(),
+          revenue: orderStats.revenue,
+          website: 12,
+          support: loadOpenSupportCount(),
+        })
+      } catch {
+        if (active) {
+          setStats((current) => ({
+            ...current,
+            products: getCatalogProducts().length,
+            kyc: getPendingKycReviewCount(),
+            support: loadOpenSupportCount(),
+          }))
+        }
+      }
+    }
+
+    loadStats()
+    return () => {
+      active = false
+    }
+  }, [])
 
   const statForModule = (id) => {
     if (id === 'products') return stats.products

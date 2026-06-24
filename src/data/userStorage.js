@@ -1,9 +1,15 @@
+import { getAdminCatalogUserId } from '../backend/firestore/adminCatalog'
 import { deleteUserByEmail, fetchAllUsers } from '../backend/firestore/users'
+import {
+  purgeDeletedUserFromCaches,
+  replaceAuthUsersRegistry,
+  SESSION_CACHE_KEYS,
+} from '../utils/sessionCache'
 
-const AUTH_USER_KEY = 'nuevo-rental-auth-user'
-const AUTH_USERS_KEY = 'nuevo-rental-auth-users'
-const ORDERS_KEY = 'nuevo-rental-orders'
-const KYC_KEY = 'nuevo-rental-kyc-records'
+const AUTH_USER_KEY = SESSION_CACHE_KEYS.AUTH_USER
+const AUTH_USERS_KEY = SESSION_CACHE_KEYS.AUTH_USERS
+const ORDERS_KEY = SESSION_CACHE_KEYS.ORDERS
+const KYC_KEY = SESSION_CACHE_KEYS.KYC
 
 function loadJson(key, fallback) {
   try {
@@ -43,6 +49,16 @@ function formatJoinedDate(isoDate) {
   })
 }
 
+function isAdminCatalogAccount(profile) {
+  const id = (profile.email ?? profile.id ?? '').toLowerCase()
+  return (
+    id === getAdminCatalogUserId()
+    || profile.provider === 'admin'
+    || profile.role === 'admin'
+    || profile.isAdmin === true
+  )
+}
+
 function mapProfileToAdminUser(email, profile, orders, kycRecords, currentSession) {
   const orderCount = Array.isArray(orders[email]) ? orders[email].length : 0
   const kycStatus =
@@ -76,9 +92,11 @@ export function loadAdminUsers() {
   const orders = loadJson(ORDERS_KEY, {})
   const kycRecords = loadJson(KYC_KEY, {})
 
-  return Object.entries(users).map(([email, profile]) =>
-    mapProfileToAdminUser(email, profile, orders, kycRecords, currentSession),
-  )
+  return Object.entries(users)
+    .filter(([email, profile]) => !isAdminCatalogAccount({ ...profile, email }))
+    .map(([email, profile]) =>
+      mapProfileToAdminUser(email, profile, orders, kycRecords, currentSession),
+    )
 }
 
 export async function fetchAdminUsers() {
@@ -87,38 +105,25 @@ export async function fetchAdminUsers() {
   const kycRecords = loadJson(KYC_KEY, {})
 
   try {
-    const firestoreUsers = await fetchAllUsers()
-    if (firestoreUsers.length > 0) {
-      const mapped = firestoreUsers.map((profile) => {
-        const email = profile.email ?? profile.id
-        return mapProfileToAdminUser(email, profile, orders, kycRecords, currentSession)
-      })
+    const firestoreUsers = (await fetchAllUsers()).filter((profile) => !isAdminCatalogAccount(profile))
+    replaceAuthUsersRegistry(firestoreUsers)
 
-      const registry = {}
-      firestoreUsers.forEach((profile) => {
-        const email = profile.email ?? profile.id
-        registry[email] = {
-          firstName: profile.firstName,
-          lastName: profile.lastName,
-          displayName: profile.displayName,
-          phone: profile.phone,
-          location: profile.location,
-          aboutMe: profile.aboutMe,
-          memberSince: profile.memberSince,
-          provider: profile.provider,
-          photoURL: profile.photoURL ?? '',
-          uid: profile.uid ?? '',
-        }
-      })
-      saveJson(AUTH_USERS_KEY, registry)
-
-      return mapped
-    }
+    return firestoreUsers.map((profile) => {
+      const email = profile.email ?? profile.id
+      return mapProfileToAdminUser(email, profile, orders, kycRecords, currentSession)
+    })
   } catch {
     // Fall back to local registry when Firestore is unavailable.
   }
 
   return loadAdminUsers()
+}
+
+export async function refreshAdminCaches() {
+  const users = await fetchAdminUsers()
+  const { fetchAdminOrders } = await import('./orderStorage')
+  await fetchAdminOrders(users)
+  return users
 }
 
 export function getAdminUserStats(users) {
@@ -149,17 +154,7 @@ export async function deleteRegisteredUser(email) {
     // Continue with local cleanup even if Firestore delete fails.
   }
 
-  const users = loadJson(AUTH_USERS_KEY, {})
-  delete users[email]
-  saveJson(AUTH_USERS_KEY, users)
-
-  const orders = loadJson(ORDERS_KEY, {})
-  delete orders[email]
-  saveJson(ORDERS_KEY, orders)
-
-  const kycRecords = loadJson(KYC_KEY, {})
-  delete kycRecords[email]
-  saveJson(KYC_KEY, kycRecords)
+  purgeDeletedUserFromCaches(email)
 
   const currentSession = loadJson(AUTH_USER_KEY, null)
   if (currentSession?.email === email) {

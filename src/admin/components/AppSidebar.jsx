@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import {
   ExternalLink,
@@ -14,8 +14,10 @@ import {
 } from 'lucide-react'
 import { useAdminAuth } from '../../context/AdminAuthContext'
 import { useCatalog } from '../../context/CatalogContext'
-import { getPendingKycReviewCount } from '../../data/kycStorage'
+import { getPendingKycReviewCount, fetchPendingKycReviewCount } from '../../data/kycStorage'
 import { getOpenSupportCount } from '../../data/supportStorage'
+import { fetchAdminUsers } from '../../data/userStorage'
+import { loadAdminOrders } from '../../data/orderStorage'
 import { cn } from '../../lib/utils'
 import {
   Sidebar,
@@ -31,28 +33,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '../../components/ui/sidebar'
-
-function loadUserCount() {
-  try {
-    const users = JSON.parse(window.localStorage.getItem('nuevo-rental-auth-users') ?? '{}')
-    return Object.keys(users).length
-  } catch {
-    return 0
-  }
-}
-
-function loadOrderCount() {
-  try {
-    const orders = JSON.parse(window.localStorage.getItem('nuevo-rental-orders') ?? '{}')
-    return Object.values(orders).reduce((sum, list) => sum + (Array.isArray(list) ? list.length : 0), 0)
-  } catch {
-    return 0
-  }
-}
-
-function loadPendingKycCount() {
-  return getPendingKycReviewCount()
-}
 
 function loadSupportCount() {
   return getOpenSupportCount()
@@ -73,17 +53,50 @@ export function AppSidebar({ onLogout }) {
   const { admin } = useAdminAuth()
   const { products } = useCatalog()
   const { setOpenMobile, isMobile } = useSidebar()
+  const [stats, setStats] = useState({
+    products: products.length,
+    users: 0,
+    orders: 0,
+    kyc: getPendingKycReviewCount(),
+    support: loadSupportCount(),
+  })
 
-  const stats = useMemo(
-    () => ({
-      products: products.length,
-      users: loadUserCount(),
-      orders: loadOrderCount(),
-      kyc: loadPendingKycCount(),
-      support: loadSupportCount(),
-    }),
-    [products],
-  )
+  useEffect(() => {
+    if (!admin) return undefined
+
+    let active = true
+
+    async function loadStats() {
+      try {
+        const users = await fetchAdminUsers()
+        const orders = loadAdminOrders()
+
+        if (!active) return
+
+        setStats({
+          products: products.length,
+          users: users.length,
+          orders: orders.length,
+          kyc: await fetchPendingKycReviewCount(),
+          support: loadSupportCount(),
+        })
+      } catch {
+        if (active) {
+          setStats((current) => ({
+            ...current,
+            products: products.length,
+            kyc: getPendingKycReviewCount(),
+            support: loadSupportCount(),
+          }))
+        }
+      }
+    }
+
+    loadStats()
+    return () => {
+      active = false
+    }
+  }, [admin, products.length])
 
   const closeMobile = () => {
     if (isMobile) setOpenMobile(false)
