@@ -1,13 +1,13 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { Camera, ImagePlus, Trash2, Upload, X } from 'lucide-react'
+import {
+  isRemoteImageUrl,
+  uploadProductCatalogImage,
+  uploadProductDraftImage,
+} from '../../backend/storage/imageStorage'
 import { getProductImage } from '../../data/products'
+import { PROJECT_PLAN_OPTIONS } from '../../data/projectPlans'
 import './ProductFormModal.css'
-
-const PERIODS = [
-  { value: 'month', label: 'Per month' },
-  { value: 'week', label: 'Per week' },
-  { value: 'day', label: 'Per day' },
-]
 
 const CONDITIONS = ['New', 'Refurbished', 'Used – Good', 'Used – Like New']
 const STATUSES = ['active', 'inactive', 'draft']
@@ -19,6 +19,7 @@ const EMPTY_FORM = {
   rentalPrice: '',
   originalPrice: '',
   period: 'month',
+  securityDeposit: '',
   location: '',
   condition: 'New',
   status: 'active',
@@ -31,37 +32,12 @@ const EMPTY_FORM = {
   refurbished: false,
 }
 
-async function compressImageFile(file, maxWidth = 960, quality = 0.82) {
-  const dataUrl = await new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result)
-    reader.onerror = reject
-    reader.readAsDataURL(file)
-  })
-
-  const image = await new Promise((resolve, reject) => {
-    const img = new Image()
-    img.onload = () => resolve(img)
-    img.onerror = reject
-    img.src = dataUrl
-  })
-
-  const scale = Math.min(1, maxWidth / image.width)
-  const canvas = document.createElement('canvas')
-  canvas.width = Math.max(1, Math.round(image.width * scale))
-  canvas.height = Math.max(1, Math.round(image.height * scale))
-
-  const context = canvas.getContext('2d')
-  if (!context) return dataUrl
-
-  context.drawImage(image, 0, 0, canvas.width, canvas.height)
-  return canvas.toDataURL('image/jpeg', quality)
-}
-
 function ProductImageUpload({
   primaryImage,
   galleryImages,
   fallbackPreview,
+  productId,
+  uploadSessionId,
   onPrimaryChange,
   onGalleryChange,
   onError,
@@ -70,6 +46,14 @@ function ProductImageUpload({
   const cameraInputRef = useRef(null)
   const galleryInputRef = useRef(null)
   const [uploading, setUploading] = useState(false)
+
+  const uploadProductImage = async (file, { kind = 'primary', index = 0 } = {}) => {
+    if (productId) {
+      return uploadProductCatalogImage(productId, file, { kind, index })
+    }
+
+    return uploadProductDraftImage(uploadSessionId, file, { kind, index })
+  }
 
   const processFiles = async (files, { asPrimary = false, appendGallery = false } = {}) => {
     const imageFiles = Array.from(files).filter((file) => file.type.startsWith('image/'))
@@ -80,23 +64,38 @@ function ProductImageUpload({
 
     setUploading(true)
     try {
-      const compressed = await Promise.all(imageFiles.map((file) => compressImageFile(file)))
-
       if (asPrimary) {
-        onPrimaryChange(compressed[0])
+        const uploaded = await uploadProductImage(imageFiles[0], { kind: 'primary' })
+        onPrimaryChange(uploaded.storageUrl)
         return
       }
 
       if (appendGallery) {
-        const merged = [...galleryImages, ...compressed].slice(0, MAX_GALLERY_IMAGES)
+        const startIndex = galleryImages.length
+        const uploadedUrls = await Promise.all(
+          imageFiles.map((file, offset) =>
+            uploadProductImage(file, { kind: 'gallery', index: startIndex + offset }).then((result) => result.storageUrl),
+          ),
+        )
+        const merged = [...galleryImages, ...uploadedUrls].slice(0, MAX_GALLERY_IMAGES)
         onGalleryChange(merged)
         return
       }
 
-      onPrimaryChange(compressed[0])
-      onGalleryChange(compressed.slice(1, MAX_GALLERY_IMAGES))
+      const [firstFile, ...restFiles] = imageFiles
+      const primaryUpload = await uploadProductImage(firstFile, { kind: 'primary' })
+      onPrimaryChange(primaryUpload.storageUrl)
+
+      if (restFiles.length > 0) {
+        const galleryUploads = await Promise.all(
+          restFiles.slice(0, MAX_GALLERY_IMAGES - 1).map((file, index) =>
+            uploadProductImage(file, { kind: 'gallery', index }).then((result) => result.storageUrl),
+          ),
+        )
+        onGalleryChange(galleryUploads)
+      }
     } catch {
-      onError('Could not process the selected image. Please try another file.')
+      onError('Could not upload the selected image. Please try another file.')
     } finally {
       setUploading(false)
     }
@@ -192,7 +191,7 @@ function ProductImageUpload({
 
         <div className="admin-image-gallery-grid">
           {galleryImages.map((image, index) => (
-            <div key={`${image.slice(0, 24)}-${index}`} className="admin-image-gallery-item">
+            <div key={`${isRemoteImageUrl(image) ? image : image.slice(0, 24)}-${index}`} className="admin-image-gallery-item">
               <img src={image} alt={`Gallery ${index + 1}`} />
               <button
                 type="button"
@@ -231,12 +230,13 @@ function ProductImageUpload({
         }}
       />
 
-      {uploading && <p className="admin-image-upload-status">Processing image...</p>}
+      {uploading && <p className="admin-image-upload-status">Uploading image to Firebase Storage...</p>}
     </div>
   )
 }
 
 export function ProductFormModal({ open, product, categories, onClose, onSave }) {
+  const uploadSessionId = useId().replace(/:/g, '')
   const [form, setForm] = useState(EMPTY_FORM)
   const [primaryImage, setPrimaryImage] = useState('')
   const [galleryImages, setGalleryImages] = useState([])
@@ -251,6 +251,7 @@ export function ProductFormModal({ open, product, categories, onClose, onSave })
         ...product,
         rentalPrice: product.rentalPrice ?? '',
         originalPrice: product.originalPrice ?? '',
+        securityDeposit: product.securityDeposit ?? '',
       })
       setPrimaryImage(product.imageUrl ?? '')
       setGalleryImages(Array.isArray(product.images) ? product.images.filter(Boolean) : [])
@@ -349,18 +350,29 @@ export function ProductFormModal({ open, product, categories, onClose, onSave })
             </label>
 
             <label className="admin-modal-field">
-              <span>Rental period</span>
-              <select value={form.period} onChange={(e) => updateField('period', e.target.value)}>
-                {PERIODS.map((period) => (
-                  <option key={period.value} value={period.value}>
-                    {period.label}
-                  </option>
-                ))}
-              </select>
+              <span>Security deposit (₹)</span>
+              <input
+                type="number"
+                min="0"
+                value={form.securityDeposit}
+                onChange={(e) => updateField('securityDeposit', e.target.value)}
+                placeholder="0"
+              />
             </label>
           </div>
 
           <div className="admin-modal-row">
+            <label className="admin-modal-field">
+              <span>Base project plan</span>
+              <select value={form.period} onChange={(e) => updateField('period', e.target.value)}>
+                {PROJECT_PLAN_OPTIONS.map((plan) => (
+                  <option key={plan.value} value={plan.value}>
+                    {plan.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
             <label className="admin-modal-field">
               <span>Condition</span>
               <select value={form.condition} onChange={(e) => updateField('condition', e.target.value)}>
@@ -371,7 +383,9 @@ export function ProductFormModal({ open, product, categories, onClose, onSave })
                 ))}
               </select>
             </label>
+          </div>
 
+          <div className="admin-modal-row">
             <label className="admin-modal-field">
               <span>Status</span>
               <select value={form.status} onChange={(e) => updateField('status', e.target.value)}>
@@ -418,6 +432,8 @@ export function ProductFormModal({ open, product, categories, onClose, onSave })
             primaryImage={primaryImage}
             galleryImages={galleryImages}
             fallbackPreview={fallbackPreview}
+            productId={product?.id ?? null}
+            uploadSessionId={uploadSessionId}
             onPrimaryChange={setPrimaryImage}
             onGalleryChange={setGalleryImages}
             onError={setImageError}

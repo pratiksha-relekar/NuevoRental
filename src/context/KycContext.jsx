@@ -4,8 +4,16 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react'
+import {
+  deleteUserKyc,
+  markKycNoticeRead,
+  saveUserKycRecord,
+  submitUserKycForReview,
+  subscribeToUserKyc,
+} from '../backend/firestore/kyc'
 import { useAuth } from './AuthContext'
 import {
   KYC_STEP_STATUS,
@@ -13,62 +21,95 @@ import {
   createDefaultKycState,
 } from '../data/kycSteps'
 
-const KYC_STORAGE_KEY = 'nuevo-rental-kyc-records'
-
 const KycContext = createContext(null)
-
-function loadAllRecords() {
-  try {
-    const raw = window.localStorage.getItem(KYC_STORAGE_KEY)
-    return raw ? JSON.parse(raw) : {}
-  } catch {
-    return {}
-  }
-}
-
-function saveAllRecords(records) {
-  try {
-    window.localStorage.setItem(KYC_STORAGE_KEY, JSON.stringify(records))
-  } catch {
-    // Ignore storage errors
-  }
-}
 
 export function KycProvider({ children }) {
   const { user } = useAuth()
-  const [records, setRecords] = useState(loadAllRecords)
-
-  useEffect(() => {
-    saveAllRecords(records)
-  }, [records])
+  const [kycState, setKycState] = useState(createDefaultKycState)
+  const [kycReady, setKycReady] = useState(false)
+  const [saveError, setSaveError] = useState('')
+  const kycStateRef = useRef(kycState)
 
   const userEmail = user?.email ?? null
 
-  const kycState = useMemo(() => {
-    if (!userEmail) return createDefaultKycState()
-    return records[userEmail] ?? createDefaultKycState()
-  }, [records, userEmail])
+  useEffect(() => {
+    kycStateRef.current = kycState
+  }, [kycState])
 
-  const updateKyc = useCallback(
-    (updater) => {
-      if (!userEmail) return
+  useEffect(() => {
+    if (!userEmail) {
+      setKycState(createDefaultKycState())
+      setKycReady(true)
+      return undefined
+    }
 
-      setRecords((prev) => {
-        const current = prev[userEmail] ?? createDefaultKycState()
-        const next = typeof updater === 'function' ? updater(current) : { ...current, ...updater }
+    let active = true
+    setKycReady(false)
 
-        return {
-          ...prev,
-          [userEmail]: next,
+    const unsubscribe = subscribeToUserKyc(
+      userEmail,
+      (record) => {
+        if (active) {
+          setKycState(record)
+          kycStateRef.current = record
+          setKycReady(true)
         }
-      })
+      },
+      () => {
+        if (active) {
+          setKycReady(true)
+        }
+      },
+    )
+
+    return () => {
+      active = false
+      unsubscribe()
+    }
+  }, [userEmail])
+
+  const saveKycNow = useCallback(
+    async (record) => {
+      if (!userEmail) return null
+
+      const payload = record ?? kycStateRef.current
+      setSaveError('')
+
+      try {
+        const saved = await saveUserKycRecord(userEmail, payload)
+        setKycState(saved)
+        kycStateRef.current = saved
+        return saved
+      } catch (error) {
+        const message = error?.message || 'Could not save KYC details. Please try again.'
+        setSaveError(message)
+        throw error
+      }
     },
     [userEmail],
   )
 
+  const updateKyc = useCallback(
+    (updater, { persist = true } = {}) => {
+      if (!userEmail) return Promise.resolve(null)
+
+      const current = kycStateRef.current
+      const next = typeof updater === 'function' ? updater(current) : { ...current, ...updater }
+      setKycState(next)
+      kycStateRef.current = next
+
+      if (!persist) {
+        return Promise.resolve(next)
+      }
+
+      return saveKycNow(next)
+    },
+    [userEmail, saveKycNow],
+  )
+
   const setStepStatus = useCallback(
     (stepId, status) => {
-      updateKyc((current) => ({
+      return updateKyc((current) => ({
         ...current,
         status: current.status === 'not_started' ? 'in_progress' : current.status,
         stepStatuses: {
@@ -82,7 +123,7 @@ export function KycProvider({ children }) {
 
   const setActiveStep = useCallback(
     (stepId) => {
-      updateKyc((current) => ({
+      return updateKyc((current) => ({
         ...current,
         activeStepId: stepId,
         status: current.status === 'not_started' ? 'in_progress' : current.status,
@@ -93,7 +134,7 @@ export function KycProvider({ children }) {
 
   const completeStep = useCallback(
     (stepId, nextStepId) => {
-      updateKyc((current) => {
+      return updateKyc((current) => {
         const stepStatuses = {
           ...current.stepStatuses,
           [stepId]: KYC_STEP_STATUS.DONE,
@@ -104,7 +145,7 @@ export function KycProvider({ children }) {
 
         return {
           ...current,
-          status: isLast ? 'approved' : 'in_progress',
+          status: isLast ? 'approved' : current.status === 'not_started' ? 'in_progress' : current.status,
           stepStatuses,
           activeStepId: nextActive,
           completedAt: isLast ? new Date().toISOString() : current.completedAt,
@@ -114,20 +155,47 @@ export function KycProvider({ children }) {
     [updateKyc],
   )
 
-  const startKyc = useCallback(() => {
-    updateKyc(() => ({
+  const startKyc = useCallback(async () => {
+    const next = {
       ...createDefaultKycState(),
       status: 'in_progress',
       activeStepId: 'upload',
-    }))
-  }, [updateKyc])
+    }
+    setKycState(next)
+    kycStateRef.current = next
+    return saveKycNow(next)
+  }, [saveKycNow])
 
-  const resetKyc = useCallback(() => {
+  const submitForReview = useCallback(async () => {
+    if (!userEmail) return null
+    setSaveError('')
+
+    try {
+      const saved = await submitUserKycForReview(userEmail, kycStateRef.current)
+      setKycState(saved)
+      kycStateRef.current = saved
+      return saved
+    } catch (error) {
+      const message = error?.message || 'Could not submit KYC for review. Please try again.'
+      setSaveError(message)
+      throw error
+    }
+  }, [userEmail])
+
+  const resetKyc = useCallback(async () => {
     if (!userEmail) return
-    setRecords((prev) => ({
-      ...prev,
-      [userEmail]: createDefaultKycState(),
-    }))
+    const next = createDefaultKycState()
+    setKycState(next)
+    kycStateRef.current = next
+    await deleteUserKyc(userEmail)
+    await saveUserKycRecord(userEmail, next)
+  }, [userEmail])
+
+  const dismissVerificationNotice = useCallback(async () => {
+    if (!userEmail) return
+    const updated = await markKycNoticeRead(userEmail)
+    setKycState(updated)
+    kycStateRef.current = updated
   }, [userEmail])
 
   const progress = useMemo(() => {
@@ -137,19 +205,46 @@ export function KycProvider({ children }) {
     return Math.round((doneCount / KYC_STEPS.length) * 100)
   }, [kycState.stepStatuses])
 
+  const verificationNotice = useMemo(() => {
+    const notice = kycState.verificationNotice
+    if (!notice || notice.read) return null
+    return notice
+  }, [kycState.verificationNotice])
+
   const value = useMemo(
     () => ({
       kycState,
+      kycReady,
       progress,
       isApproved: kycState.status === 'approved',
+      verificationNotice,
+      saveError,
       updateKyc,
+      saveKycNow,
+      submitForReview,
       setStepStatus,
       setActiveStep,
       completeStep,
       startKyc,
       resetKyc,
+      dismissVerificationNotice,
     }),
-    [kycState, progress, updateKyc, setStepStatus, setActiveStep, completeStep, startKyc, resetKyc],
+    [
+      kycState,
+      kycReady,
+      progress,
+      verificationNotice,
+      saveError,
+      updateKyc,
+      saveKycNow,
+      submitForReview,
+      setStepStatus,
+      setActiveStep,
+      completeStep,
+      startKyc,
+      resetKyc,
+      dismissVerificationNotice,
+    ],
   )
 
   return <KycContext.Provider value={value}>{children}</KycContext.Provider>

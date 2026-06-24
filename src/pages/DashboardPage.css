@@ -9,6 +9,29 @@
   margin: 0 auto;
 }
 
+.account-kyc-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 1px solid #fbd38d;
+  background: #fffaf0;
+}
+
+.account-kyc-notice p {
+  margin: 0;
+  font-size: 14px;
+  color: #2d3748;
+}
+
+.account-kyc-notice--approved {
+  border-color: #9ae6b4;
+  background: #f0fff4;
+}
+
 .account-top {
   display: grid;
   grid-template-columns: auto 1fr auto;

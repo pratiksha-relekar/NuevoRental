@@ -229,10 +229,12 @@ export async function deleteUserByEmail(email) {
   const { deleteUserWishlist } = await import('./wishlist.js')
   const { deleteUserCart } = await import('./cart.js')
   const { deleteUserOrders } = await import('./orders.js')
+  const { deleteUserKyc } = await import('./kyc.js')
   const { deleteAdminCatalog } = await import('./adminCatalog.js')
   await deleteUserWishlist(email)
   await deleteUserCart(email)
   await deleteUserOrders(email)
+  await deleteUserKyc(email)
   await deleteAdminCatalog(email)
   await removeDocument(COLLECTIONS.users, userId)
 }

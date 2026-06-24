@@ -56,6 +56,7 @@ function enrichProduct(product) {
     images: [],
     featured: false,
     verified: true,
+    securityDeposit: 0,
     ...product,
   }
 }
@@ -137,6 +138,7 @@ export function upsertProduct(product) {
       rentalPrice: Number(product.rentalPrice) || 0,
       originalPrice: Number(product.originalPrice) || 0,
       period: product.period || 'month',
+      securityDeposit: Number(product.securityDeposit) || 0,
       location: product.location?.trim() || 'Pan India',
       condition: product.condition || 'New',
       status: product.status || 'active',

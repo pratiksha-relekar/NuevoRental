@@ -2,8 +2,10 @@ export { COLLECTIONS, USER_SUBCOLLECTIONS } from './collections'
 export {
   addDocument,
   fetchCollection,
+  fetchCollectionGroup,
   fetchDocument,
   fetchSubcollection,
+  fetchSubDocument,
   getCollectionRef,
   getDocRef,
   getSubDocRef,
@@ -89,3 +91,19 @@ export {
   upsertAdminCategory,
   upsertAdminProduct,
 } from './adminCatalog'
+export {
+  approveUserKycRecord,
+  deleteUserKyc,
+  fetchAdminKycUsersFromFirestore,
+  fetchAllKycVerificationDocs,
+  fetchKycRecordsByEmail,
+  getUserKycRecord,
+  KYC_DOC_ID,
+  KYC_MIRROR_KEY,
+  markKycNoticeRead,
+  normalizeKycRecord,
+  rejectUserKycRecord,
+  saveUserKycRecord,
+  submitUserKycForReview,
+  subscribeToUserKyc,
+} from './kyc'

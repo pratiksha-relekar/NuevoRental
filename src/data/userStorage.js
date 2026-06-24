@@ -45,7 +45,11 @@ function formatJoinedDate(isoDate) {
 
 function mapProfileToAdminUser(email, profile, orders, kycRecords, currentSession) {
   const orderCount = Array.isArray(orders[email]) ? orders[email].length : 0
-  const kycStatus = kycRecords[email]?.status ?? 'not_started'
+  const kycStatus =
+    profile.kycStatus
+    ?? profile.kycIndex?.status
+    ?? kycRecords[email]?.status
+    ?? 'not_started'
 
   return {
     email,

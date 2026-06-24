@@ -1,6 +1,8 @@
 import { CATEGORIES } from '../../data/categories'
 import { RENTAL_PRODUCTS } from '../../data/products'
 import { loadAdminSettings } from '../../data/adminStorage'
+import { getRentalDurationPlans } from '../../data/projectPlans'
+import { resolveProductImagesForSave } from '../storage/imageStorage'
 import { COLLECTIONS, USER_SUBCOLLECTIONS } from './collections'
 import {
   fetchDocument,
@@ -83,6 +85,7 @@ function enrichProduct(product) {
     images: [],
     featured: false,
     verified: true,
+    securityDeposit: 0,
     ...product,
     id: Number(product.id) || product.id,
   }
@@ -109,13 +112,18 @@ function normalizeCategoryRecord(record) {
 }
 
 function buildProductPayload(product) {
+  const rentalPrice = Number(product.rentalPrice) || 0
+  const period = product.period || 'month'
+
   return {
     productId: Number(product.id) || product.id,
     title: product.title?.trim(),
     category: product.category,
-    rentalPrice: Number(product.rentalPrice) || 0,
+    rentalPrice,
     originalPrice: Number(product.originalPrice) || 0,
-    period: product.period || 'month',
+    period,
+    securityDeposit: Number(product.securityDeposit) || 0,
+    projectPlans: getRentalDurationPlans({ ...product, rentalPrice, period }),
     location: product.location?.trim() || 'Pan India',
     condition: product.condition || 'New',
     status: product.status || 'active',
@@ -329,8 +337,14 @@ export async function upsertAdminProduct(adminUserId, product, admin) {
   }
 
   const docId = String(productId)
+  const resolvedImages = await resolveProductImagesForSave(productId, {
+    imageUrl: payload.imageUrl,
+    images: payload.images,
+  })
+
   await saveSubDocument(COLLECTIONS.users, adminUserId, USER_SUBCOLLECTIONS.products, docId, {
     ...payload,
+    ...resolvedImages,
     id: productId,
     productId,
     managedBy: admin.username,

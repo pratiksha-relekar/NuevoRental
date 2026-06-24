@@ -4,7 +4,6 @@ import {
   FileImage,
   MapPin,
   Package,
-  Search,
   ShieldCheck,
   ShoppingBag,
   User,
@@ -12,6 +11,7 @@ import {
   X,
   XCircle,
 } from 'lucide-react'
+import { getKycDocumentPreview } from '../../data/kycStorage'
 import { formatINR } from '../../utils/cartSummary'
 import { formatKycStatus } from '../../data/userStorage'
 import { getProductImage } from '../../data/products'
@@ -19,14 +19,16 @@ import './ProductFormModal.css'
 import './KycReviewModal.css'
 
 function DocumentCard({ label, document }) {
+  const preview = getKycDocumentPreview(document)
+
   return (
     <article className="admin-kyc-doc-card">
       <div className="admin-kyc-doc-card-head">
         <FileImage size={16} aria-hidden="true" />
         <strong>{label}</strong>
       </div>
-      {document?.preview ? (
-        <img src={document.preview} alt={`${label} preview`} className="admin-kyc-doc-preview" />
+      {preview ? (
+        <img src={preview} alt={`${label} preview`} className="admin-kyc-doc-preview" />
       ) : (
         <div className="admin-kyc-doc-empty">No document uploaded</div>
       )}
@@ -38,11 +40,14 @@ function DocumentCard({ label, document }) {
   )
 }
 
-export function KycReviewModal({ user, onClose, onApprove, onReject }) {
+export function KycReviewModal({ user, loading = false, onClose, onApprove, onReject }) {
   if (!user) return null
 
   const { kyc, orders, pendingOrders } = user
-  const canDecide = user.kycStatus === 'in_review' || (user.hasDocuments && user.pendingOrderCount > 0)
+  const canDecide = user.canReview ?? (
+    user.kycStatus !== 'approved'
+    && (user.kycStatus === 'in_review' || user.hasDocuments)
+  )
 
   return (
     <div className="admin-modal-root admin-modal-root--wide" role="presentation">
@@ -69,6 +74,10 @@ export function KycReviewModal({ user, onClose, onApprove, onReject }) {
             <X size={18} />
           </button>
         </div>
+
+        {loading && (
+          <p className="admin-kyc-review-loading">Loading latest KYC documents from Firestore...</p>
+        )}
 
         <div className="admin-kyc-review-badges">
           <span className={`admin-kyc-review-status admin-kyc-review-status--${user.kycStatus}`}>
@@ -127,6 +136,7 @@ export function KycReviewModal({ user, onClose, onApprove, onReject }) {
             <div className="admin-kyc-doc-grid">
               <DocumentCard label="Aadhaar card" document={kyc.documents.aadhaar} />
               <DocumentCard label="PAN card" document={kyc.documents.pan} />
+              <DocumentCard label="Live selfie" document={kyc.documents.selfie} />
             </div>
           </section>
 
@@ -195,23 +205,6 @@ export function KycReviewModal({ user, onClose, onApprove, onReject }) {
                       {order.deliveryCity} · {order.scheduleLabel}
                     </small>
                     <small>Placed {order.placedLabel}</small>
-                    <ul className="admin-kyc-order-items">
-                      {order.items.map((item) => (
-                        <li key={`${order.id}-${item.id}-${item.title}`}>
-                          <img
-                            src={typeof item.image === 'string' ? item.image : getProductImage(item)}
-                            alt=""
-                          />
-                          <div>
-                            <strong>{item.title}</strong>
-                            <span>
-                              Qty {item.quantity}
-                              {item.durationLabel ? ` · ${item.durationLabel}` : ''}
-                            </span>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
                   </li>
                 ))}
               </ul>
@@ -243,11 +236,11 @@ export function KycReviewModal({ user, onClose, onApprove, onReject }) {
           </section>
         </div>
 
-        {canDecide && user.kycStatus !== 'approved' && (
+        {canDecide && (
           <div className="admin-kyc-review-actions">
             <p>
-              Review the uploaded Aadhaar/PAN documents, compare OCR details with the customer profile,
-              and check rental orders. Approving KYC will confirm {pendingOrders.length || 'pending'} rental order
+              Review the uploaded Aadhaar/PAN documents and live selfie. Approving KYC lets this customer
+              rent products and confirms {pendingOrders.length || 'any pending'} rental order
               {pendingOrders.length === 1 ? '' : 's'} for dispatch.
             </p>
             <div className="admin-kyc-review-action-btns">
@@ -255,6 +248,7 @@ export function KycReviewModal({ user, onClose, onApprove, onReject }) {
                 type="button"
                 className="admin-kyc-review-btn admin-kyc-review-btn--reject"
                 onClick={() => onReject(user)}
+                disabled={loading}
               >
                 <XCircle size={16} aria-hidden="true" />
                 Reject KYC
@@ -263,10 +257,10 @@ export function KycReviewModal({ user, onClose, onApprove, onReject }) {
                 type="button"
                 className="admin-kyc-review-btn admin-kyc-review-btn--approve"
                 onClick={() => onApprove(user)}
-                disabled={!user.hasDocuments}
+                disabled={loading || !user.hasDocuments}
               >
                 <CheckCircle2 size={16} aria-hidden="true" />
-                Approve KYC & confirm orders
+                Approve KYC
               </button>
             </div>
           </div>
@@ -275,7 +269,7 @@ export function KycReviewModal({ user, onClose, onApprove, onReject }) {
         {user.kycStatus === 'approved' && (
           <div className="admin-kyc-review-approved-banner">
             <CheckCircle2 size={18} aria-hidden="true" />
-            KYC verified on {kyc.completedLabel}. Rental orders are confirmed for fulfillment.
+            KYC verified on {kyc.completedLabel}. Customer can rent any product on Nuevo Rental.
           </div>
         )}
       </div>

@@ -161,7 +161,7 @@ function DashboardPage() {
   const location = useLocation()
   const { user, isAuthenticated, logout, updateProfile } = useAuth()
   const { cartCount, wishlistCount } = useCartWishlist()
-  const { kycState, progress: kycProgress, isApproved: isKycApproved } = useKyc()
+  const { kycState, progress: kycProgress, isApproved: isKycApproved, verificationNotice, dismissVerificationNotice } = useKyc()
   const { orders, orderCount } = useOrders()
   const [activeView, setActiveView] = useState(() => location.state?.activeView ?? 'profile')
   const [isEditing, setIsEditing] = useState(false)
@@ -260,6 +260,15 @@ function DashboardPage() {
             + Rent a Device
           </Link>
         </header>
+
+        {verificationNotice && (
+          <div className={`account-kyc-notice${kycState.status === 'approved' ? ' account-kyc-notice--approved' : ''}`}>
+            <p>{verificationNotice.message}</p>
+            <button type="button" className="account-edit-btn" onClick={() => void dismissVerificationNotice()}>
+              Dismiss
+            </button>
+          </div>
+        )}
 
         <div className="account-layout">
           <aside className="account-sidebar">

@@ -4,6 +4,13 @@
   gap: 18px;
 }
 
+.admin-kyc-page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
 .admin-kyc-page-head h1 {
   margin: 0 0 6px;
   font-size: 28px;
@@ -17,6 +24,29 @@
   color: #6b7a8f;
   max-width: 760px;
   line-height: 1.6;
+}
+
+.admin-kyc-load-error {
+  margin-top: 10px !important;
+  color: #c2557a !important;
+  font-weight: 500;
+}
+
+.admin-kyc-refresh-btn {
+  flex-shrink: 0;
+  padding: 10px 16px;
+  border: 1px solid #d8e0ea;
+  border-radius: 10px;
+  background: #fff;
+  color: #1a2744;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-kyc-refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .admin-kyc-stat-grid {
@@ -370,6 +400,39 @@
   border: 1px solid rgba(74, 144, 226, 0.2);
   border-radius: 10px;
   cursor: pointer;
+}
+
+.admin-kyc-actions-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.admin-kyc-quick-btn {
+  padding: 8px 10px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.admin-kyc-quick-btn--approve {
+  color: #1f7a4d;
+  background: rgba(31, 122, 77, 0.1);
+  border-color: rgba(31, 122, 77, 0.2);
+}
+
+.admin-kyc-quick-btn--reject {
+  color: #c2557a;
+  background: rgba(194, 85, 122, 0.1);
+  border-color: rgba(194, 85, 122, 0.2);
+}
+
+.admin-kyc-quick-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .admin-kyc-empty {

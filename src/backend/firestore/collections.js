@@ -19,4 +19,5 @@ export const USER_SUBCOLLECTIONS = {
   orders: 'orders',
   products: 'products',
   categories: 'categories',
+  kyc: 'kyc',
 }

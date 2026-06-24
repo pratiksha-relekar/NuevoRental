@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import {
   BadgeCheck,
@@ -15,6 +15,7 @@ import {
   approveUserKyc,
   getAdminKycStats,
   getAdminKycUserByEmail,
+  loadAdminKycUserDetail,
   loadAdminKycUsers,
   rejectUserKyc,
 } from '../../data/kycStorage'
@@ -56,12 +57,36 @@ function StatCard({ icon: Icon, label, value, note, tone, delay = 0 }) {
 
 function AdminKycPage() {
   const reduceMotion = useReducedMotion()
-  const [version, setVersion] = useState(0)
+  const [users, setUsers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
   const [search, setSearch] = useState('')
   const [activeFilter, setActiveFilter] = useState('all')
   const [selectedUser, setSelectedUser] = useState(null)
+  const [reviewLoading, setReviewLoading] = useState(false)
 
-  const users = useMemo(() => loadAdminKycUsers(), [version])
+  const refresh = useCallback(async () => {
+    setLoading(true)
+    setLoadError('')
+    try {
+      const nextUsers = await loadAdminKycUsers()
+      setUsers(nextUsers)
+      if (selectedUser) {
+        const refreshed = await getAdminKycUserByEmail(selectedUser.email, nextUsers)
+        setSelectedUser(refreshed)
+      }
+    } catch (error) {
+      setUsers([])
+      setLoadError(error?.message || 'Could not load KYC records from Firestore.')
+    } finally {
+      setLoading(false)
+    }
+  }, [selectedUser])
+
+  useEffect(() => {
+    void refresh()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   const stats = useMemo(() => getAdminKycStats(users), [users])
 
   const filteredUsers = useMemo(() => {
@@ -86,33 +111,38 @@ function AdminKycPage() {
     })
   }, [users, search, activeFilter])
 
-  const refresh = () => setVersion((current) => current + 1)
-
-  const openReview = (user) => {
-    setSelectedUser(getAdminKycUserByEmail(user.email) ?? user)
+  const openReview = async (user) => {
+    setSelectedUser(user)
+    setReviewLoading(true)
+    try {
+      const fresh = await loadAdminKycUserDetail(user.email)
+      if (fresh) {
+        setSelectedUser(fresh)
+      }
+    } finally {
+      setReviewLoading(false)
+    }
   }
 
-  const handleApprove = (user) => {
+  const handleApprove = async (user) => {
     const confirmed = window.confirm(
       `Approve KYC for ${user.displayName}? This will verify their identity and confirm ${user.pendingOrderCount} pending rental order${user.pendingOrderCount === 1 ? '' : 's'}.`,
     )
     if (!confirmed) return
 
-    approveUserKyc(user.email)
-    refresh()
-    setSelectedUser(getAdminKycUserByEmail(user.email))
+    await approveUserKyc(user.email)
+    await refresh()
   }
 
-  const handleReject = (user) => {
+  const handleReject = async (user) => {
     const reason = window.prompt(
       `Reject KYC for ${user.displayName}? Enter a reason for the customer (optional):`,
       user.kyc.rejectionReason || '',
     )
     if (reason === null) return
 
-    rejectUserKyc(user.email, reason)
-    refresh()
-    setSelectedUser(getAdminKycUserByEmail(user.email))
+    await rejectUserKyc(user.email, reason)
+    await refresh()
   }
 
   return (
@@ -124,7 +154,13 @@ function AdminKycPage() {
             Review registered customers, compare Aadhaar/PAN uploads with OCR data, and approve identity
             before confirming rental orders on Nuevo Rental.
           </p>
+          {loadError && (
+            <p className="admin-kyc-load-error" role="alert">{loadError}</p>
+          )}
         </div>
+        <button type="button" className="admin-kyc-refresh-btn" onClick={() => void refresh()} disabled={loading}>
+          {loading ? 'Refreshing...' : 'Refresh queue'}
+        </button>
       </header>
 
       <div className="admin-kyc-stat-grid">
@@ -139,7 +175,11 @@ function AdminKycPage() {
         <div className="admin-kyc-panel-head">
           <div>
             <h2>Identity verification queue</h2>
-            <p>{filteredUsers.length} matching user{filteredUsers.length === 1 ? '' : 's'}</p>
+            <p>
+              {loading
+                ? 'Loading KYC records...'
+                : `${filteredUsers.length} matching user${filteredUsers.length === 1 ? '' : 's'}`}
+            </p>
           </div>
         </div>
 
@@ -246,21 +286,42 @@ function AdminKycPage() {
                   </td>
                   <td>{user.kyc.submittedLabel}</td>
                   <td>
-                    <button
-                      type="button"
-                      className="admin-kyc-review-btn"
-                      onClick={() => openReview(user)}
-                    >
-                      <Eye size={15} aria-hidden="true" />
-                      Review
-                    </button>
+                    <div className="admin-kyc-actions-cell">
+                      <button
+                        type="button"
+                        className="admin-kyc-review-btn"
+                        onClick={() => void openReview(user)}
+                      >
+                        <Eye size={15} aria-hidden="true" />
+                        Review
+                      </button>
+                      {user.canReview && (
+                        <>
+                          <button
+                            type="button"
+                            className="admin-kyc-quick-btn admin-kyc-quick-btn--approve"
+                            onClick={() => void handleApprove(user)}
+                            disabled={!user.hasDocuments}
+                          >
+                            Approve
+                          </button>
+                          <button
+                            type="button"
+                            className="admin-kyc-quick-btn admin-kyc-quick-btn--reject"
+                            onClick={() => void handleReject(user)}
+                          >
+                            Reject
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
 
-          {filteredUsers.length === 0 && (
+          {!loading && filteredUsers.length === 0 && (
             <p className="admin-kyc-empty">No users match your search or filter.</p>
           )}
         </div>
@@ -302,6 +363,7 @@ function AdminKycPage() {
 
       <KycReviewModal
         user={selectedUser}
+        loading={reviewLoading}
         onClose={() => setSelectedUser(null)}
         onApprove={handleApprove}
         onReject={handleReject}

@@ -5,6 +5,7 @@ export {
   firebaseConfig,
   getFirebaseAnalytics,
   initAnalytics,
+  storage,
 } from './firebase'
 
 export {
@@ -12,8 +13,10 @@ export {
   USER_SUBCOLLECTIONS,
   addDocument,
   fetchCollection,
+  fetchCollectionGroup,
   fetchDocument,
   fetchSubcollection,
+  fetchSubDocument,
   getCollectionRef,
   getDocRef,
   getSubDocRef,
@@ -105,3 +108,35 @@ export {
   upsertAdminCategory,
   upsertAdminProduct,
 } from './firestore/adminCatalog'
+
+export {
+  approveUserKycRecord,
+  deleteUserKyc,
+  fetchAdminKycUsersFromFirestore,
+  fetchAllKycVerificationDocs,
+  fetchKycRecordsByEmail,
+  getUserKycRecord,
+  KYC_DOC_ID,
+  KYC_MIRROR_KEY,
+  markKycNoticeRead,
+  normalizeKycRecord,
+  rejectUserKycRecord,
+  saveUserKycRecord,
+  submitUserKycForReview,
+  subscribeToUserKyc,
+} from './firestore/kyc'
+
+export {
+  compressImageToBlob,
+  deleteStoragePath,
+  ensureRemoteImageUrl,
+  isDataUrl,
+  isRemoteImageUrl,
+  resolveKycDocumentsForSave,
+  resolveProductImagesForSave,
+  uploadBlobToStorage,
+  uploadImageSource,
+  uploadKycDocumentImage,
+  uploadProductCatalogImage,
+  uploadProductDraftImage,
+} from './storage/imageStorage'

@@ -80,6 +80,8 @@ export function buildProductSnapshot(product, user = null, existing = null) {
     condition: detailed.condition ?? '',
     location: detailed.location ?? 'Pan India',
     activeDeal: detailed.activeDeal ?? null,
+    securityDeposit: Number(detailed.securityDeposit ?? product.securityDeposit) || 0,
+    projectPlans: detailed.durationPlans ?? getRentalDurationPlans(detailed),
     userAddress: buildUserAddress(user),
     addedAt: existing?.addedAt ?? now,
     updatedAt: now,
@@ -114,5 +116,6 @@ export function buildOrderItemSnapshot(cartItem, user) {
     durationLabel: cartItem.durationLabel ?? '',
     unitPrice: cartItem.unitPrice ?? snapshot.rentalPrice,
     lineTotal: (cartItem.unitPrice ?? snapshot.rentalPrice) * (cartItem.quantity ?? 1),
+    securityDeposit: Number(detailed.securityDeposit ?? cartItem.securityDeposit) || 0,
   }
 }

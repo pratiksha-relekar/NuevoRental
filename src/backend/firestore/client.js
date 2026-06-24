@@ -1,6 +1,7 @@
 import {
   addDoc,
   collection,
+  collectionGroup,
   deleteDoc,
   doc,
   getDoc,
@@ -32,6 +33,12 @@ export function getSubDocRef(parentCollection, parentId, subcollection, docId) {
   return doc(db, parentCollection, parentId, subcollection, docId)
 }
 
+export async function fetchSubDocument(parentCollection, parentId, subcollection, docId) {
+  const snapshot = await getDoc(getSubDocRef(parentCollection, parentId, subcollection, docId))
+  if (!snapshot.exists()) return null
+  return { id: snapshot.id, ...snapshot.data() }
+}
+
 export async function fetchDocument(collectionName, id) {
   const snapshot = await getDoc(getDocRef(collectionName, id))
   if (!snapshot.exists()) return null
@@ -46,6 +53,20 @@ export async function fetchCollection(collectionName, constraints = []) {
 
   const snapshot = await getDocs(collectionQuery)
   return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }))
+}
+
+export async function fetchCollectionGroup(groupName, constraints = []) {
+  const groupQuery =
+    constraints.length > 0
+      ? query(collectionGroup(db, groupName), ...constraints)
+      : collectionGroup(db, groupName)
+
+  const snapshot = await getDocs(groupQuery)
+  return snapshot.docs.map((item) => ({
+    id: item.id,
+    ...item.data(),
+    _refPath: item.ref.path,
+  }))
 }
 
 export async function fetchSubcollection(parentCollection, parentId, subcollection, constraints = []) {

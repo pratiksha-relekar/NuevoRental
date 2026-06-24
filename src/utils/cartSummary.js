@@ -12,6 +12,10 @@ export function computeCartSummary(cartItems, cartTotal) {
   const nuevoOfferDiscount = Math.round(cartTotal * 0.1)
   const bulkBonusDiscount = cartTotal >= 2500 ? Math.round(cartTotal * 0.05) : 0
   const payAmount = Math.max(0, cartTotal - nuevoOfferDiscount - bulkBonusDiscount)
+  const securityDeposit = cartItems.reduce(
+    (sum, item) => sum + (Number(item.securityDeposit) || 0) * item.quantity,
+    0,
+  )
 
   const waivedDelivery = 199
   const waivedSetup = 149
@@ -34,7 +38,7 @@ export function computeCartSummary(cartItems, cartTotal) {
     nuevoOfferDiscount,
     bulkBonusDiscount,
     payAmount,
-    securityDeposit: 0,
+    securityDeposit,
     totalSavings,
     savingsPercent,
     waivedDelivery,

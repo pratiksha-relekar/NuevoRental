@@ -67,6 +67,7 @@ function snapshotProduct(product) {
     originalPrice: product.originalPrice ?? product.rentalPrice,
     period: product.period,
     category: product.category,
+    securityDeposit: Number(product.securityDeposit) || 0,
   }
 }
 

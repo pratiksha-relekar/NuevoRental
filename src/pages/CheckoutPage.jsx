@@ -541,7 +541,12 @@ function CheckoutPage() {
 
             <ul className="checkout-summary-perks">
               <li><Truck size={14} /> Free doorstep delivery</li>
-              <li><ShieldCheck size={14} /> Zero security deposit</li>
+              <li>
+                <ShieldCheck size={14} />
+                {summary.securityDeposit > 0
+                  ? `Security deposit ${formatINR(summary.securityDeposit)}`
+                  : 'Zero security deposit'}
+              </li>
             </ul>
 
             <dl className="checkout-summary-rows">
@@ -549,6 +554,12 @@ function CheckoutPage() {
                 <dt>Items ({cartCount})</dt>
                 <dd>{formatINR(summary.totalMrp)}</dd>
               </div>
+              {summary.securityDeposit > 0 && (
+                <div>
+                  <dt>Security deposit</dt>
+                  <dd>{formatINR(summary.securityDeposit)}</dd>
+                </div>
+              )}
               {summary.rentalDiscount > 0 && (
                 <div className="is-discount">
                   <dt>Duration savings</dt>

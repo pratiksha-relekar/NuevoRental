@@ -18,6 +18,15 @@
   margin-bottom: 12px;
 }
 
+.admin-kyc-review-loading {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #4a90e2;
+  background: rgba(74, 144, 226, 0.08);
+  border-radius: 10px;
+}
+
 .admin-kyc-review-profile {
   display: flex;
   align-items: center;

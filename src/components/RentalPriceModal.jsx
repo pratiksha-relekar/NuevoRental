@@ -46,7 +46,7 @@ function RentalPriceModal({ open, plans, selectedPlanId, onSelect, onClose }) {
             transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
           >
             <header className="rental-price-modal-header">
-              <h2 id="rental-price-modal-title">Select Rental Price</h2>
+              <h2 id="rental-price-modal-title">Select Project Plan</h2>
               <button
                 type="button"
                 className="rental-price-modal-close"

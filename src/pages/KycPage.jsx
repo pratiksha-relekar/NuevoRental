@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { uploadKycDocumentImage } from '../backend/storage/imageStorage'
 import { useAuth } from '../context/AuthContext'
 import { useKyc } from '../context/KycContext'
 import { useCamera } from '../hooks/useCamera'
@@ -68,7 +69,20 @@ function StepStatusIcon({ status }) {
   return <span className="kyc-step-icon kyc-step-icon--pending" />
 }
 
-function DocumentUploadCard({ label, docType, document, onUpload }) {
+function captureVideoFrame(videoElement) {
+  if (!videoElement?.videoWidth) return null
+
+  const canvas = document.createElement('canvas')
+  canvas.width = videoElement.videoWidth
+  canvas.height = videoElement.videoHeight
+  const context = canvas.getContext('2d')
+  if (!context) return null
+
+  context.drawImage(videoElement, 0, 0, canvas.width, canvas.height)
+  return canvas.toDataURL('image/jpeg', 0.85)
+}
+
+function DocumentUploadCard({ label, docType, document, onUpload, disabled = false, uploadingDoc = null }) {
   const inputRef = useRef(null)
   const status = document ? 'uploaded' : 'empty'
 
@@ -94,15 +108,20 @@ function DocumentUploadCard({ label, docType, document, onUpload }) {
       <div className="kyc-upload-card-body">
         <h3>{label}</h3>
         <p>{document ? document.name : 'JPG, PNG or PDF up to 10 MB'}</p>
-        {document?.preview && (
-          <img src={document.preview} alt={`${label} preview`} className="kyc-upload-preview" />
-        )}
+        {document?.preview || document?.storageUrl ? (
+          <img src={document.storageUrl || document.preview} alt={`${label} preview`} className="kyc-upload-preview" />
+        ) : null}
       </div>
-      <button type="button" className="kyc-upload-btn" onClick={() => inputRef.current?.click()}>
+      <button
+        type="button"
+        className="kyc-upload-btn"
+        onClick={() => inputRef.current?.click()}
+        disabled={disabled}
+      >
         {document ? 'Replace file' : 'Upload document'}
       </button>
       <span className={`kyc-upload-status kyc-upload-status--${status}`}>
-        {status === 'uploaded' ? 'Uploaded' : 'Pending'}
+        {status === 'uploaded' ? 'Uploaded' : uploadingDoc === docType ? 'Uploading...' : 'Pending'}
       </span>
     </div>
   )
@@ -115,7 +134,11 @@ function KycPage() {
     kycState,
     progress,
     isApproved,
+    verificationNotice,
+    saveError,
+    dismissVerificationNotice,
     updateKyc,
+    submitForReview,
     setStepStatus,
     setActiveStep,
     completeStep,
@@ -125,10 +148,14 @@ function KycPage() {
   const [showWizard, setShowWizard] = useState(false)
   const [ocrMessage, setOcrMessage] = useState('')
   const [faceMatchMessage, setFaceMatchMessage] = useState('')
+  const [uploadingDoc, setUploadingDoc] = useState(null)
+  const [uploadError, setUploadError] = useState('')
+  const [submittingReview, setSubmittingReview] = useState(false)
 
   const activeStepId = kycState.activeStepId
   const cameraActive = activeStepId === 'camera'
   const { videoRef, error: cameraError, ready: cameraReady } = useCamera(cameraActive && showWizard)
+  const canEditDocuments = !isApproved && kycState.status !== 'in_review'
 
   useEffect(() => {
     if (kycState.activeStepId === 'liveness') {
@@ -137,7 +164,12 @@ function KycPage() {
   }, [kycState.activeStepId, setActiveStep])
 
   useEffect(() => {
-    if (kycState.status === 'in_progress' || kycState.status === 'in_review' || isApproved) {
+    if (
+      kycState.status === 'in_progress'
+      || kycState.status === 'in_review'
+      || kycState.status === 'rejected'
+      || isApproved
+    ) {
       setShowWizard(true)
     }
   }, [kycState.status, isApproved])
@@ -149,22 +181,35 @@ function KycPage() {
   }, [isAuthenticated, navigate])
 
   const handleDocumentUpload = useCallback(
-    (docType, file) => {
-      const preview = file.type.startsWith('image/') ? URL.createObjectURL(file) : null
+    async (docType, file) => {
+      if (!user?.email) return
 
-      updateKyc((current) => ({
-        ...current,
-        documents: {
-          ...current.documents,
-          [docType]: {
-            name: file.name,
-            preview,
-            uploadedAt: new Date().toISOString(),
+      setUploadingDoc(docType)
+      setUploadError('')
+      try {
+        const uploaded = await uploadKycDocumentImage(user.email, docType, file, file.name)
+
+        await updateKyc((current) => ({
+          ...current,
+          status: current.status === 'rejected' ? 'in_progress' : current.status,
+          documents: {
+            ...current.documents,
+            [docType]: {
+              name: file.name,
+              preview: uploaded.storageUrl,
+              storageUrl: uploaded.storageUrl,
+              storagePath: uploaded.storagePath,
+              uploadedAt: new Date().toISOString(),
+            },
           },
-        },
-      }))
+        }))
+      } catch (error) {
+        setUploadError(error?.message || `Could not upload ${docType}. Please try again.`)
+      } finally {
+        setUploadingDoc(null)
+      }
     },
-    [updateKyc],
+    [updateKyc, user?.email],
   )
 
   const runOcrVerification = useCallback(() => {
@@ -196,20 +241,19 @@ function KycPage() {
     window.setTimeout(() => {
       setFaceMatchMessage('Face match successful.')
       completeStep('face-match', 'success')
-      window.setTimeout(() => {
-        updateKyc((current) => ({
-          ...current,
-          status: 'in_review',
-          activeStepId: 'success',
-          stepStatuses: {
-            ...current.stepStatuses,
-            success: KYC_STEP_STATUS.DONE,
-          },
-          submittedAt: new Date().toISOString(),
-        }))
+      window.setTimeout(async () => {
+        setSubmittingReview(true)
+        setUploadError('')
+        try {
+          await submitForReview()
+        } catch (error) {
+          setUploadError(error?.message || 'Could not submit KYC for admin review.')
+        } finally {
+          setSubmittingReview(false)
+        }
       }, 1500)
     }, 2500)
-  }, [completeStep, setStepStatus, updateKyc])
+  }, [completeStep, setStepStatus, submitForReview])
 
   const handleContinueUpload = () => {
     if (!kycState.documents.aadhaar || !kycState.documents.pan) return
@@ -225,7 +269,30 @@ function KycPage() {
 
   useEffect(() => {
     if (activeStepId === 'camera' && cameraReady) {
-      const timer = window.setTimeout(() => {
+      const timer = window.setTimeout(async () => {
+        const selfieDataUrl = captureVideoFrame(videoRef.current)
+
+        if (selfieDataUrl && user?.email) {
+          try {
+            const uploaded = await uploadKycDocumentImage(user.email, 'selfie', selfieDataUrl, 'live-selfie.jpg')
+            await updateKyc((current) => ({
+              ...current,
+              documents: {
+                ...current.documents,
+                selfie: {
+                  name: 'live-selfie.jpg',
+                  preview: uploaded.storageUrl,
+                  storageUrl: uploaded.storageUrl,
+                  storagePath: uploaded.storagePath,
+                  uploadedAt: new Date().toISOString(),
+                },
+              },
+            }))
+          } catch {
+            // Face capture upload failed; continue with verification flow.
+          }
+        }
+
         completeStep('camera', 'face-match')
         setActiveStep('face-match')
         runFaceMatch()
@@ -233,7 +300,7 @@ function KycPage() {
       return () => window.clearTimeout(timer)
     }
     return undefined
-  }, [activeStepId, cameraReady, completeStep, setActiveStep, runFaceMatch])
+  }, [activeStepId, cameraReady, completeStep, setActiveStep, runFaceMatch, updateKyc, user?.email, videoRef])
 
   const handleBegin = () => {
     startKyc()
@@ -258,6 +325,31 @@ function KycPage() {
             <span>{progress}% complete</span>
           </div>
         </header>
+
+        {(uploadError || saveError) && (
+          <div className="kyc-notice-banner kyc-notice-banner--alert" role="alert">
+            <p>{uploadError || saveError}</p>
+          </div>
+        )}
+
+        {verificationNotice && (
+          <div className={`kyc-notice-banner${kycState.status === 'approved' ? ' kyc-notice-banner--approved' : ' kyc-notice-banner--alert'}`}>
+            <p>{verificationNotice.message}</p>
+            <button type="button" className="kyc-btn kyc-btn--ghost" onClick={() => void dismissVerificationNotice()}>
+              Dismiss
+            </button>
+          </div>
+        )}
+
+        {kycState.status === 'rejected' && (
+          <div className="kyc-notice-banner kyc-notice-banner--alert">
+            <p>
+              {kycState.rejectionReason
+                ? `Your KYC was rejected: ${kycState.rejectionReason}. Update your documents and submit again.`
+                : 'Your KYC was rejected. Update your documents and submit again.'}
+            </p>
+          </div>
+        )}
 
         {!showWizard && !isApproved && (
           <div className="kyc-intro-card">
@@ -304,30 +396,46 @@ function KycPage() {
             <div className="kyc-panel">
               {activeStepId === 'upload' && (
                 <div className="kyc-step-content">
-                  <h2>Upload Aadhaar / PAN</h2>
-                  <p>Upload clear front-side images of your Aadhaar and PAN cards.</p>
+                  <h2>{canEditDocuments ? 'Upload Aadhaar / PAN' : 'Your documents'}</h2>
+                  <p>
+                    {canEditDocuments
+                      ? 'Upload clear front-side images of your Aadhaar and PAN cards. You can replace them anytime before approval.'
+                      : 'Your verified identity documents are stored securely.'}
+                  </p>
                   <div className="kyc-upload-grid">
                     <DocumentUploadCard
                       label="Aadhaar Card"
                       docType="aadhaar"
                       document={kycState.documents.aadhaar}
                       onUpload={(file) => handleDocumentUpload('aadhaar', file)}
+                      disabled={!canEditDocuments || uploadingDoc === 'aadhaar'}
+                      uploadingDoc={uploadingDoc}
                     />
                     <DocumentUploadCard
                       label="PAN Card"
                       docType="pan"
                       document={kycState.documents.pan}
                       onUpload={(file) => handleDocumentUpload('pan', file)}
+                      disabled={!canEditDocuments || uploadingDoc === 'pan'}
+                      uploadingDoc={uploadingDoc}
                     />
                   </div>
-                  <button
-                    type="button"
-                    className="kyc-btn kyc-btn--primary"
-                    disabled={!bothDocsUploaded}
-                    onClick={handleContinueUpload}
-                  >
-                    Continue to OCR verification
-                  </button>
+                  {kycState.documents.selfie?.preview && (
+                    <div className="kyc-selfie-preview">
+                      <h3>Live selfie</h3>
+                      <img src={kycState.documents.selfie.preview} alt="Live selfie preview" />
+                    </div>
+                  )}
+                  {canEditDocuments && (
+                    <button
+                      type="button"
+                      className="kyc-btn kyc-btn--primary"
+                      disabled={!bothDocsUploaded || Boolean(uploadingDoc)}
+                      onClick={handleContinueUpload}
+                    >
+                      Continue to OCR verification
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -420,6 +528,7 @@ function KycPage() {
                     Your Aadhaar, PAN, and live face verification are complete. Our admin team will
                     review your documents and confirm your rental orders shortly.
                   </p>
+                  {submittingReview && <p>Saving your KYC submission...</p>}
                   <div className="kyc-intro-actions">
                     <Link to="/dashboard" className="kyc-btn kyc-btn--primary">View profile status</Link>
                     <Link to="/rent-products" className="kyc-btn kyc-btn--ghost">Browse rental products</Link>

@@ -49,6 +49,7 @@ import {
 import { getCatalogProducts, getCategoryLabelMap } from './catalogStorage'
 import { getProductImage } from './products'
 import { getDealById } from './featuredDeals'
+import { getRentalDurationPlans } from './projectPlans'
 
 const GALLERY_BY_CATEGORY = {
   laptops: [laptopPro, laptopAsus, laptopMacbookBack, laptopMacbookRose, laptopMacbookSilver],
@@ -170,70 +171,9 @@ const DESCRIPTION_EXTRAS = {
   keywords: 'office laptop on rent Pune, i7 laptop on rent, business laptop rental, zero deposit laptop rent, monthly laptop rental Pune',
 }
 
-export const RENTAL_DURATION_OPTIONS = [3, 6, 12, 24]
+export const RENTAL_DURATION_OPTIONS = [1, 3, 6, 12]
 
-const DURATION_PLAN_DEFS = [
-  { id: '1w', label: '1 Week', months: 0.25 },
-  { id: '1m', label: '1 Month(s)', months: 1 },
-  { id: '3m', label: '3 Month(s)', months: 3 },
-  { id: '6m', label: '6 Month(s)', months: 6 },
-  { id: '12m', label: '12 Month(s)', months: 12 },
-  { id: '24m', label: '24 Month(s)', months: 24 },
-]
-
-const MONTHLY_DISCOUNTS = {
-  0.25: 0.34,
-  1: 1,
-  3: 0.96,
-  6: 0.92,
-  12: 0.88,
-  24: 0.85,
-}
-
-export function getRentalDurationPlans(product) {
-  const base = product.rentalPrice
-  const isDaily = product.period === 'day'
-
-  return DURATION_PLAN_DEFS.map((plan) => {
-    let price
-    let periodUnit
-
-    if (isDaily) {
-      if (plan.months === 0.25) {
-        price = Math.round(base * 7 * 0.95)
-        periodUnit = 'Week'
-      } else {
-        const days = plan.months * 30
-        const discount = MONTHLY_DISCOUNTS[plan.months] ?? 1
-        price = Math.round(base * days * discount)
-        periodUnit = `${plan.months} Month(s)`
-      }
-    } else if (plan.months === 0.25) {
-      price = Math.round(base * MONTHLY_DISCOUNTS[0.25])
-      periodUnit = 'Week'
-    } else {
-      const discount = MONTHLY_DISCOUNTS[plan.months] ?? 1
-      price = Math.round(base * discount)
-      periodUnit = 'Month'
-    }
-
-    const priceSuffix = plan.months === 0.25 || periodUnit === 'Week'
-      ? '/Week'
-      : isDaily && plan.months > 0.25
-        ? ` (${plan.label})`
-        : '/Month'
-
-    return {
-      id: plan.id,
-      durationLabel: `Duration: ${plan.label}`,
-      shortLabel: plan.label,
-      months: plan.months,
-      price,
-      periodUnit,
-      priceLabel: `Price: ₹${price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}${priceSuffix}`,
-    }
-  })
-}
+export { getRentalDurationPlans, getDefaultProjectPlanId, PROJECT_PLAN_OPTIONS } from './projectPlans'
 
 function getGalleryImages(product) {
   const set = GALLERY_BY_CATEGORY[product.category]
@@ -301,7 +241,7 @@ export function getProductById(id, dealId = null) {
     images,
     reviewCount: activeDeal?.reviews ?? 120 + (product.id * 7) % 80,
     ratingValue: activeDeal?.rating ?? product.rating - 0.5,
-    deposit: 0,
+    deposit: Number(product.securityDeposit) || 0,
     stock: activeDeal?.inStock ? `Available (${activeDeal.stock} in deal)` : 'Available',
     categoryLabel: CATEGORY_LABELS[product.category] ?? 'Electronics',
     brand: BRAND_BY_CATEGORY[product.category] ?? 'Nuevo Tech',

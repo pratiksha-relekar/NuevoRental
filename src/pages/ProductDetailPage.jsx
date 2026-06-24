@@ -21,6 +21,7 @@ import {
   getRecommendedProducts,
   getRelatedProducts,
 } from '../data/productDetails'
+import { getDefaultProjectPlanId } from '../data/projectPlans'
 import '../styles/pageAnimations.css'
 import '../components/RentalProducts.css'
 import './ProductDetailPage.css'
@@ -152,10 +153,10 @@ function ProductDetailPage() {
   useEffect(() => {
     setActiveImage(0)
     setQuantity(1)
-    setSelectedPlanId('1m')
+    setSelectedPlanId(product ? getDefaultProjectPlanId(product) : '1m')
     setActiveTab('description')
     setShowDurationModal(false)
-  }, [id, dealId])
+  }, [id, dealId, product?.id, product?.period])
 
   useEffect(() => {
     if (!product || product.images.length <= 1 || galleryPaused) return undefined
@@ -399,14 +400,14 @@ function ProductDetailPage() {
                   </div>
 
                   <div className="pdp-control">
-                    <span className="pdp-control-label">Duration</span>
+                    <span className="pdp-control-label">Project plan</span>
                     <button
                       type="button"
                       className="pdp-duration-trigger"
                       onClick={() => setShowDurationModal(true)}
                       aria-haspopup="dialog"
                     >
-                      <span>{selectedPlan?.shortLabel ?? 'Select duration'}</span>
+                      <span>{selectedPlan?.durationLabel ?? selectedPlan?.shortLabel ?? 'Select project plan'}</span>
                       <ChevronDown size={18} aria-hidden="true" />
                     </button>
                   </div>
@@ -422,8 +423,12 @@ function ProductDetailPage() {
                     <span className="pdp-meta-value">{product.stock}</span>
                   </li>
                   <li>
-                    <span className="pdp-meta-label">Total Deposit</span>
-                    <span className="pdp-meta-value">₹{product.deposit.toFixed(2)}</span>
+                    <span className="pdp-meta-label">Security deposit</span>
+                    <span className="pdp-meta-value">
+                      {product.deposit > 0
+                        ? `₹${product.deposit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
+                        : 'No deposit'}
+                    </span>
                   </li>
                   <li>
                     <span className="pdp-meta-label">Category</span>
