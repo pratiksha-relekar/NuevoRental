@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { uploadKycDocumentImage } from '../backend/storage/imageStorage'
+import { compressDataUrlToKycDataUrl, compressFileToKycDataUrl } from '../backend/storage/imageStorage'
 import { useAuth } from '../context/AuthContext'
 import { useKyc } from '../context/KycContext'
 import { useCamera } from '../hooks/useCamera'
@@ -82,9 +82,15 @@ function captureVideoFrame(videoElement) {
   return canvas.toDataURL('image/jpeg', 0.85)
 }
 
+function hasDocumentPreview(document) {
+  return Boolean(document?.dataUrl || document?.preview || document?.storageUrl)
+}
+
 function DocumentUploadCard({ label, docType, document, onUpload, disabled = false, uploadingDoc = null }) {
   const inputRef = useRef(null)
-  const status = document ? 'uploaded' : 'empty'
+  const isUploaded = hasDocumentPreview(document)
+  const status = isUploaded ? 'uploaded' : 'empty'
+  const previewSrc = document?.dataUrl || document?.preview || document?.storageUrl || ''
 
   const handleChange = (event) => {
     const file = event.target.files?.[0]
@@ -108,8 +114,8 @@ function DocumentUploadCard({ label, docType, document, onUpload, disabled = fal
       <div className="kyc-upload-card-body">
         <h3>{label}</h3>
         <p>{document ? document.name : 'JPG, PNG or PDF up to 10 MB'}</p>
-        {document?.preview || document?.storageUrl ? (
-          <img src={document.storageUrl || document.preview} alt={`${label} preview`} className="kyc-upload-preview" />
+        {previewSrc ? (
+          <img src={previewSrc} alt={`${label} preview`} className="kyc-upload-preview" />
         ) : null}
       </div>
       <button
@@ -151,10 +157,19 @@ function KycPage() {
   const [uploadingDoc, setUploadingDoc] = useState(null)
   const [uploadError, setUploadError] = useState('')
   const [submittingReview, setSubmittingReview] = useState(false)
+  const [selfieDraft, setSelfieDraft] = useState(null)
+  const [showSelfieReview, setShowSelfieReview] = useState(false)
+  const [isSavingSelfie, setIsSavingSelfie] = useState(false)
 
   const activeStepId = kycState.activeStepId
-  const cameraActive = activeStepId === 'camera'
-  const { videoRef, error: cameraError, ready: cameraReady } = useCamera(cameraActive && showWizard)
+  const selfiePreviewSrc =
+    selfieDraft
+    || kycState.documents.selfie?.dataUrl
+    || kycState.documents.selfie?.preview
+    || kycState.documents.selfie?.storageUrl
+    || ''
+  const cameraActive = activeStepId === 'camera' && showWizard && !showSelfieReview
+  const { videoRef, error: cameraError, ready: cameraReady } = useCamera(cameraActive)
   const canEditDocuments = !isApproved && kycState.status !== 'in_review'
 
   useEffect(() => {
@@ -187,7 +202,7 @@ function KycPage() {
       setUploadingDoc(docType)
       setUploadError('')
       try {
-        const uploaded = await uploadKycDocumentImage(user.email, docType, file, file.name)
+        const dataUrl = await compressFileToKycDataUrl(file)
 
         await updateKyc((current) => ({
           ...current,
@@ -196,9 +211,10 @@ function KycPage() {
             ...current.documents,
             [docType]: {
               name: file.name,
-              preview: uploaded.storageUrl,
-              storageUrl: uploaded.storageUrl,
-              storagePath: uploaded.storagePath,
+              preview: dataUrl,
+              dataUrl,
+              storageUrl: '',
+              storagePath: '',
               uploadedAt: new Date().toISOString(),
             },
           },
@@ -263,44 +279,103 @@ function KycPage() {
   }
 
   const handleStartFaceCheck = () => {
+    setSelfieDraft(null)
+    setShowSelfieReview(false)
+    setUploadError('')
     completeStep('face-start', 'camera')
     setActiveStep('camera')
   }
 
-  useEffect(() => {
-    if (activeStepId === 'camera' && cameraReady) {
-      const timer = window.setTimeout(async () => {
-        const selfieDataUrl = captureVideoFrame(videoRef.current)
-
-        if (selfieDataUrl && user?.email) {
-          try {
-            const uploaded = await uploadKycDocumentImage(user.email, 'selfie', selfieDataUrl, 'live-selfie.jpg')
-            await updateKyc((current) => ({
-              ...current,
-              documents: {
-                ...current.documents,
-                selfie: {
-                  name: 'live-selfie.jpg',
-                  preview: uploaded.storageUrl,
-                  storageUrl: uploaded.storageUrl,
-                  storagePath: uploaded.storagePath,
-                  uploadedAt: new Date().toISOString(),
-                },
-              },
-            }))
-          } catch {
-            // Face capture upload failed; continue with verification flow.
-          }
-        }
-
-        completeStep('camera', 'face-match')
-        setActiveStep('face-match')
-        runFaceMatch()
-      }, 1200)
-      return () => window.clearTimeout(timer)
+  const handleCaptureSelfie = () => {
+    const selfieDataUrl = captureVideoFrame(videoRef.current)
+    if (!selfieDataUrl) {
+      setUploadError('Could not capture selfie. Please position your face in the frame and try again.')
+      return
     }
+
+    setUploadError('')
+    setSelfieDraft(selfieDataUrl)
+    setShowSelfieReview(true)
+  }
+
+  const handleRetakeSelfie = useCallback(async () => {
+    setSelfieDraft(null)
+    setShowSelfieReview(false)
+    setUploadError('')
+    setFaceMatchMessage('')
+
+    if (hasDocumentPreview(kycState.documents.selfie)) {
+      await updateKyc((current) => ({
+        ...current,
+        documents: {
+          ...current.documents,
+          selfie: null,
+        },
+        stepStatuses: {
+          ...current.stepStatuses,
+          camera: KYC_STEP_STATUS.PENDING,
+          'face-match': KYC_STEP_STATUS.PENDING,
+        },
+      }))
+    }
+
+    if (activeStepId !== 'camera') {
+      setActiveStep('camera')
+    }
+  }, [activeStepId, kycState.documents.selfie, setActiveStep, updateKyc])
+
+  const handleConfirmSelfie = useCallback(async () => {
+    if (!user?.email || !selfieDraft) return
+
+    setIsSavingSelfie(true)
+    setUploadError('')
+
+    try {
+      const dataUrl = await compressDataUrlToKycDataUrl(selfieDraft)
+
+      await updateKyc((current) => ({
+        ...current,
+        documents: {
+          ...current.documents,
+          selfie: {
+            name: 'live-selfie.jpg',
+            preview: dataUrl,
+            dataUrl,
+            storageUrl: '',
+            storagePath: '',
+            uploadedAt: new Date().toISOString(),
+          },
+        },
+      }))
+
+      completeStep('camera', 'face-match')
+      setActiveStep('face-match')
+      runFaceMatch()
+    } catch (error) {
+      setUploadError(error?.message || 'Could not save live selfie. Please retake and try again.')
+    } finally {
+      setIsSavingSelfie(false)
+    }
+  }, [completeStep, runFaceMatch, selfieDraft, setActiveStep, updateKyc, user?.email])
+
+  useEffect(() => {
+    if (activeStepId !== 'camera') return undefined
+
+    if (hasDocumentPreview(kycState.documents.selfie)) {
+      const savedPreview =
+        kycState.documents.selfie?.dataUrl
+        || kycState.documents.selfie?.preview
+        || kycState.documents.selfie?.storageUrl
+        || null
+      setSelfieDraft(savedPreview)
+      setShowSelfieReview(true)
+      return undefined
+    }
+
+    setSelfieDraft(null)
+    setShowSelfieReview(false)
     return undefined
-  }, [activeStepId, cameraReady, completeStep, setActiveStep, runFaceMatch, updateKyc, user?.email, videoRef])
+  }, [activeStepId, kycState.documents.selfie])
 
   const handleBegin = () => {
     startKyc()
@@ -309,7 +384,10 @@ function KycPage() {
 
   if (!user) return null
 
-  const bothDocsUploaded = Boolean(kycState.documents.aadhaar && kycState.documents.pan)
+  const bothDocsUploaded = Boolean(
+    hasDocumentPreview(kycState.documents.aadhaar)
+    && hasDocumentPreview(kycState.documents.pan),
+  )
 
   return (
     <section className="kyc-page" aria-labelledby="kyc-heading">
@@ -420,10 +498,10 @@ function KycPage() {
                       uploadingDoc={uploadingDoc}
                     />
                   </div>
-                  {kycState.documents.selfie?.preview && (
+                  {hasDocumentPreview(kycState.documents.selfie) && (
                     <div className="kyc-selfie-preview">
                       <h3>Live selfie</h3>
-                      <img src={kycState.documents.selfie.preview} alt="Live selfie preview" />
+                      <img src={selfiePreviewSrc} alt="Live selfie preview" />
                     </div>
                   )}
                   {canEditDocuments && (
@@ -478,34 +556,83 @@ function KycPage() {
 
               {activeStepId === 'camera' && (
                 <div className="kyc-step-content">
-                  <h2>Camera Opens</h2>
-                  <p>Allow camera access when prompted. Position your face in the oval guide.</p>
-                  <div className="kyc-camera-wrap">
-                    {cameraError ? (
-                      <div className="kyc-camera-error">
-                        <CameraIcon />
-                        <p>{cameraError}</p>
+                  <h2>Live selfie capture</h2>
+                  <p>
+                    {showSelfieReview
+                      ? 'Review your selfie below. Retake if your face is unclear, or continue to face match.'
+                      : 'Allow camera access when prompted, position your face in the oval guide, then capture your selfie.'}
+                  </p>
+
+                  {showSelfieReview && selfiePreviewSrc ? (
+                    <div className="kyc-selfie-review">
+                      <div className="kyc-selfie-review-frame">
+                        <img src={selfiePreviewSrc} alt="Captured live selfie preview" />
+                      </div>
+                      <p className="kyc-selfie-review-note">
+                        Make sure your face is clearly visible, well lit, and centered in the frame.
+                      </p>
+                      <div className="kyc-selfie-review-actions">
                         <button
                           type="button"
                           className="kyc-btn kyc-btn--ghost"
-                          onClick={() => setActiveStep('camera')}
+                          onClick={() => void handleRetakeSelfie()}
+                          disabled={isSavingSelfie || !canEditDocuments}
                         >
-                          Retry camera access
+                          Retake selfie
+                        </button>
+                        <button
+                          type="button"
+                          className="kyc-btn kyc-btn--primary"
+                          onClick={() => void handleConfirmSelfie()}
+                          disabled={isSavingSelfie || !canEditDocuments || !selfieDraft}
+                        >
+                          {isSavingSelfie ? 'Saving selfie...' : 'Continue to face match'}
                         </button>
                       </div>
-                    ) : (
-                      <>
-                        <video ref={videoRef} className="kyc-camera-video" playsInline muted autoPlay />
-                        <div className="kyc-camera-overlay" aria-hidden="true" />
-                        {!cameraReady && (
-                          <div className="kyc-camera-loading">
-                            <SpinnerIcon />
-                            <span>Opening camera...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="kyc-camera-wrap">
+                        {cameraError ? (
+                          <div className="kyc-camera-error">
+                            <CameraIcon />
+                            <p>{cameraError}</p>
+                            <button
+                              type="button"
+                              className="kyc-btn kyc-btn--ghost"
+                              onClick={() => {
+                                setShowSelfieReview(false)
+                                setActiveStep('camera')
+                              }}
+                            >
+                              Retry camera access
+                            </button>
                           </div>
+                        ) : (
+                          <>
+                            <video ref={videoRef} className="kyc-camera-video" playsInline muted autoPlay />
+                            <div className="kyc-camera-overlay" aria-hidden="true" />
+                            {!cameraReady && (
+                              <div className="kyc-camera-loading">
+                                <SpinnerIcon />
+                                <span>Opening camera...</span>
+                              </div>
+                            )}
+                          </>
                         )}
-                      </>
-                    )}
-                  </div>
+                      </div>
+                      <div className="kyc-selfie-review-actions">
+                        <button
+                          type="button"
+                          className="kyc-btn kyc-btn--primary"
+                          onClick={handleCaptureSelfie}
+                          disabled={!cameraReady || Boolean(cameraError) || !canEditDocuments}
+                        >
+                          Capture selfie
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
 
@@ -513,6 +640,25 @@ function KycPage() {
                 <div className="kyc-step-content">
                   <h2>Face Match</h2>
                   <p>{faceMatchMessage || 'Comparing your live capture with document photo...'}</p>
+
+                  {selfiePreviewSrc && (
+                    <div className="kyc-selfie-review kyc-selfie-review--compact">
+                      <div className="kyc-selfie-review-frame">
+                        <img src={selfiePreviewSrc} alt="Live selfie used for face match" />
+                      </div>
+                      {canEditDocuments && kycState.stepStatuses['face-match'] !== KYC_STEP_STATUS.DONE && (
+                        <button
+                          type="button"
+                          className="kyc-btn kyc-btn--ghost"
+                          onClick={() => void handleRetakeSelfie()}
+                          disabled={isSavingSelfie}
+                        >
+                          Retake selfie
+                        </button>
+                      )}
+                    </div>
+                  )}
+
                   <div className="kyc-processing-card">
                     <SpinnerIcon />
                     <span>Running face match</span>

@@ -67,7 +67,8 @@
   min-width: 44px;
   padding: 8px 6px;
   background: #e74c3c;
-  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 0;
   text-align: center;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
@@ -109,7 +110,7 @@
   color: #fff;
   background: transparent;
   border: 1.5px solid rgba(255, 255, 255, 0.45);
-  border-radius: 999px;
+  border-radius: 0;
   cursor: pointer;
   white-space: nowrap;
   transition:
@@ -163,18 +164,20 @@
   line-height: 1;
   color: #1a3a4a;
   background: #fff;
-  border: none;
-  border-radius: 50%;
+  border: 1px solid rgba(74, 144, 226, 0.12);
+  border-radius: 0;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 10px rgba(26, 39, 68, 0.08);
   transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+    transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.35s ease,
+    border-color 0.35s ease;
 }
 
 .featured-deals-nav:hover {
-  transform: translateY(-50%) scale(1.06);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  transform: translateY(-50%) translateY(-2px);
+  border-color: rgba(74, 144, 226, 0.28);
+  box-shadow: 0 12px 32px rgba(74, 144, 226, 0.16);
 }
 
 .featured-deals-nav--prev {
@@ -209,18 +212,21 @@
 /* Deal card */
 .deal-card {
   background: #fff;
-  border-radius: 12px;
+  border: 1px solid rgba(74, 144, 226, 0.12);
+  border-radius: 0;
   overflow: hidden;
   color: #1a1a1a;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 2px 10px rgba(26, 39, 68, 0.06);
   transition:
-    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
-    box-shadow 0.3s ease;
+    transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.35s ease,
+    border-color 0.35s ease;
 }
 
 .deal-card-glare:hover .deal-card {
   transform: translateY(-4px);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+  border-color: rgba(74, 144, 226, 0.22);
+  box-shadow: 0 12px 32px rgba(74, 144, 226, 0.16);
 }
 
 .deal-card-image-wrap {
@@ -231,6 +237,7 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  border-radius: 0;
 }
 
 .deal-card-badge {
@@ -242,7 +249,7 @@
   font-weight: 700;
   color: #fff;
   background: linear-gradient(135deg, #f5a623 0%, #e8890a 100%);
-  border-radius: 4px 0 0 4px;
+  border-radius: 0;
   box-shadow: -2px 2px 8px rgba(245, 166, 35, 0.4);
   z-index: 1;
 }
@@ -324,7 +331,7 @@
   font-weight: 700;
   color: #fff;
   background: #4a90e2;
-  border-radius: 50%;
+  border-radius: 0;
 }
 
 .deal-card-pricing {
@@ -392,24 +399,28 @@
   font-family: inherit;
   text-align: center;
   text-decoration: none;
-  border: none;
-  border-radius: 8px;
+  border: 1.5px solid #4a90e2;
+  border-radius: 0;
   cursor: pointer;
   transition:
-    background 0.25s ease,
-    transform 0.25s ease,
-    box-shadow 0.25s ease;
+    background 0.3s ease,
+    color 0.3s ease,
+    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
 }
 
 .deal-card-btn--active {
   color: #fff;
   background: #4a90e2;
+  border-color: #4a90e2;
 }
 
 .deal-card-btn--active:hover {
   background: #3a7fd4;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(74, 144, 226, 0.35);
+  border-color: #3a7fd4;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(74, 144, 226, 0.35);
 }
 
 .deal-card-btn:disabled {

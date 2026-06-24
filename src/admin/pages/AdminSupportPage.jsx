@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'motion/react'
 import {
@@ -13,10 +13,13 @@ import {
   Search,
   Ticket,
 } from 'lucide-react'
+import { hasSupportPrivilege } from '../../backend/firestore/adminCatalog'
+import { useAdminAuth } from '../../context/AdminAuthContext'
 import {
+  fetchAdminSupportRequests,
   getAdminSupportRequestById,
   getAdminSupportStats,
-  loadAdminSupportRequests,
+  subscribeToAdminSupportQueue,
   updateSupportRequestStatus,
 } from '../../data/supportStorage'
 import { SupportRequestDetailModal } from '../components/SupportRequestDetailModal'
@@ -54,13 +57,78 @@ function StatCard({ icon: Icon, label, value, note, tone, delay = 0 }) {
 
 function AdminSupportPage() {
   const reduceMotion = useReducedMotion()
-  const [version, setVersion] = useState(0)
+  const { admin } = useAdminAuth()
+  const canManageSupport = hasSupportPrivilege(admin)
+  const [requests, setRequests] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
   const [search, setSearch] = useState('')
   const [activeFilter, setActiveFilter] = useState('all')
   const [selectedRequest, setSelectedRequest] = useState(null)
   const [notesDraft, setNotesDraft] = useState('')
 
-  const requests = useMemo(() => loadAdminSupportRequests(), [version])
+  useEffect(() => {
+    if (!canManageSupport) {
+      setLoading(false)
+      return undefined
+    }
+
+    let active = true
+
+    async function loadRequests() {
+      setLoading(true)
+      setLoadError('')
+      try {
+        const nextRequests = await fetchAdminSupportRequests()
+        if (active) {
+          setRequests(nextRequests)
+        }
+      } catch (error) {
+        if (active) {
+          setRequests([])
+          setLoadError(error?.message || 'Could not load support requests from Firestore.')
+        }
+      } finally {
+        if (active) {
+          setLoading(false)
+        }
+      }
+    }
+
+    loadRequests()
+
+    const unsubscribe = subscribeToAdminSupportQueue(
+      (nextRequests) => {
+        if (active) {
+          setRequests(nextRequests)
+          setLoading(false)
+        }
+      },
+      () => {
+        if (active) {
+          setLoadError('Live support updates are unavailable. Showing the latest saved data.')
+        }
+      },
+    )
+
+    return () => {
+      active = false
+      unsubscribe()
+    }
+  }, [canManageSupport])
+
+  useEffect(() => {
+    if (!selectedRequest?.id) return undefined
+    const refreshed = getAdminSupportRequestById(selectedRequest.id, requests)
+    if (!refreshed) return undefined
+    setSelectedRequest((current) =>
+      current?.id === refreshed.id
+        ? { ...refreshed, adminNotes: current.adminNotes ?? refreshed.adminNotes }
+        : current,
+    )
+    return undefined
+  }, [requests, selectedRequest?.id])
+
   const stats = useMemo(() => getAdminSupportStats(requests), [requests])
 
   const filteredRequests = useMemo(() => {
@@ -91,27 +159,40 @@ function AdminSupportPage() {
     })
   }, [requests, search, activeFilter])
 
-  const refresh = () => setVersion((current) => current + 1)
+  const refreshSelectedRequest = (requestId) => {
+    setSelectedRequest(getAdminSupportRequestById(requestId, requests))
+  }
 
   const openRequest = (request) => {
-    const full = getAdminSupportRequestById(request.id) ?? request
+    const full = getAdminSupportRequestById(request.id, requests) ?? request
     setSelectedRequest(full)
     setNotesDraft(full.adminNotes ?? '')
   }
 
-  const handleStatusChange = (status) => {
+  const handleStatusChange = async (status) => {
     if (!selectedRequest) return
-    updateSupportRequestStatus(selectedRequest.id, status, notesDraft)
-    refresh()
-    setSelectedRequest(getAdminSupportRequestById(selectedRequest.id))
+    await updateSupportRequestStatus(selectedRequest.id, status, notesDraft)
+    refreshSelectedRequest(selectedRequest.id)
   }
 
-  const handleNotesChange = (notes) => {
+  const handleNotesChange = async (notes) => {
     setNotesDraft(notes)
     if (!selectedRequest) return
-    updateSupportRequestStatus(selectedRequest.id, selectedRequest.status, notes)
-    refresh()
+    await updateSupportRequestStatus(selectedRequest.id, selectedRequest.status, notes)
     setSelectedRequest((current) => (current ? { ...current, adminNotes: notes } : current))
+  }
+
+  if (!canManageSupport) {
+    return (
+      <div className="admin-support-page">
+        <header className="admin-support-page-head">
+          <div>
+            <h1>Support & inquiries</h1>
+            <p>You do not have permission to manage support requests. Contact a super admin to enable the manage_support privilege.</p>
+          </div>
+        </header>
+      </div>
+    )
   }
 
   return (
@@ -123,6 +204,9 @@ function AdminSupportPage() {
             Review contact form submissions, call requesting customers, and resolve rental support
             tickets from the Nuevo Rental website.
           </p>
+          {loadError && (
+            <p className="admin-support-load-error" role="alert">{loadError}</p>
+          )}
         </div>
       </header>
 
@@ -166,7 +250,11 @@ function AdminSupportPage() {
         <div className="admin-support-panel-head">
           <div>
             <h2>Customer support requests</h2>
-            <p>{filteredRequests.length} matching ticket{filteredRequests.length === 1 ? '' : 's'}</p>
+            <p>
+              {loading
+                ? 'Loading support requests...'
+                : `${filteredRequests.length} matching ticket${filteredRequests.length === 1 ? '' : 's'}`}
+            </p>
           </div>
           <Link to="/contact" target="_blank" rel="noreferrer" className="admin-support-contact-link">
             View contact page
@@ -213,7 +301,7 @@ function AdminSupportPage() {
                   <span className="admin-support-card-avatar" aria-hidden="true">
                     {request.initials}
                   </span>
-                  <div>
+                  <div className="admin-support-card-user-info">
                     <span className="admin-support-card-id">{request.id}</span>
                     <h3>{request.name}</h3>
                     <p>{request.email}</p>
@@ -264,7 +352,7 @@ function AdminSupportPage() {
             </motion.article>
           ))}
 
-          {filteredRequests.length === 0 && (
+          {!loading && filteredRequests.length === 0 && (
             <p className="admin-support-empty">No support requests match your search or filter.</p>
           )}
         </div>

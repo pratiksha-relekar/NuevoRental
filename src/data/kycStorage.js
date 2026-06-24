@@ -58,7 +58,7 @@ function documentIsUploaded(document) {
 
 export function getKycDocumentPreview(document) {
   if (!document) return ''
-  return document.storageUrl || document.preview || document.dataUrl || ''
+  return document.dataUrl || document.preview || document.storageUrl || ''
 }
 
 export function buildKycDetail(kycRecord) {

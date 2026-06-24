@@ -61,8 +61,9 @@ function hasUploadedDocument(document) {
   if (!document) return false
   return Boolean(
     document.storageUrl
-    || (isRemoteImageUrl(document.preview) ? document.preview : '')
+    || document.dataUrl
     || (isDataUrl(document.preview) ? document.preview : '')
+    || (isRemoteImageUrl(document.preview) ? document.preview : '')
     || document.name,
   )
 }
@@ -90,20 +91,23 @@ export function normalizeKycRecord(record) {
 function normalizeDocument(document) {
   if (!document) return null
 
-  const storageUrl = document.storageUrl
-    ?? (isRemoteImageUrl(document.preview) ? document.preview : '')
-    ?? (isRemoteImageUrl(document.dataUrl) ? document.dataUrl : '')
+  const dataUrl = isDataUrl(document.dataUrl)
+    ? document.dataUrl
+    : isDataUrl(document.preview)
+      ? document.preview
+      : ''
 
-  const legacyPreview = isDataUrl(document.preview) || isDataUrl(document.dataUrl)
-    ? (document.preview || document.dataUrl || '')
+  const storageUrl = document.storageUrl && isRemoteImageUrl(document.storageUrl)
+    ? document.storageUrl
     : ''
 
-  const preview = storageUrl || legacyPreview
+  const preview = dataUrl || storageUrl
 
   return {
     name: document.name ?? '',
     storageUrl,
     preview,
+    dataUrl,
     storagePath: document.storagePath ?? '',
     uploadedAt: document.uploadedAt ?? null,
   }

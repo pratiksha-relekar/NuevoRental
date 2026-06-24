@@ -21,4 +21,5 @@ export const USER_SUBCOLLECTIONS = {
   categories: 'categories',
   kyc: 'kyc',
   kycReviews: 'kyc-reviews',
+  support: 'support',
 }

@@ -75,6 +75,7 @@
   min-height: 420px;
   background: #000;
   border: 1px solid rgba(74, 144, 226, 0.12);
+  box-shadow: 0 2px 10px rgba(26, 39, 68, 0.06);
   isolation: isolate;
 }
 
@@ -157,7 +158,7 @@
   border: 1px solid rgba(74, 144, 226, 0.25);
   padding: 5px 12px;
   margin-bottom: 16px;
-  border-radius: 2px;
+  border-radius: 0;
 }
 
 .hero-main .hero-eyebrow {
@@ -270,6 +271,8 @@
   grid-template-columns: 1fr 1fr;
   align-items: center;
   min-height: 0;
+  border: 1px solid rgba(74, 144, 226, 0.12);
+  box-shadow: 0 2px 10px rgba(26, 39, 68, 0.05);
 }
 
 .hero-side-card--blue {
@@ -278,6 +281,7 @@
 
 .hero-side-card--pink {
   background: linear-gradient(205deg, #f5eaf0 0%, #efe2ec 45%, #f0e4ee 100%);
+  border-color: rgba(194, 85, 122, 0.15);
 }
 
 .hero-side-card::before {
@@ -293,6 +297,14 @@
 
 .hero-side-card:hover::before {
   opacity: 1;
+}
+
+.hero-side-card:hover {
+  border-color: rgba(74, 144, 226, 0.24);
+}
+
+.hero-side-card--pink:hover {
+  border-color: rgba(194, 85, 122, 0.28);
 }
 
 .hero-side-visual {
@@ -323,7 +335,8 @@
   height: 160px;
   padding: 8px;
   background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.6) 55%, transparent 75%);
-  border-radius: 50%;
+  border: 1px solid rgba(74, 144, 226, 0.1);
+  border-radius: 0;
   transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 

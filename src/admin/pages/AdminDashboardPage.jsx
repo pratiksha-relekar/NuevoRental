@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import { getCatalogProducts } from '../../data/catalogStorage'
 import { getPendingKycReviewCount, fetchPendingKycReviewCount } from '../../data/kycStorage'
-import { getOpenSupportCount } from '../../data/supportStorage'
+import { fetchOpenSupportCount, getOpenSupportCount } from '../../data/supportStorage'
 import { fetchAdminUsers } from '../../data/userStorage'
 import { getAdminOrderStats, loadAdminOrders } from '../../data/orderStorage'
 import { formatINR } from '../../utils/cartSummary'
@@ -129,7 +129,7 @@ function AdminDashboardPage() {
           kyc: await fetchPendingKycReviewCount(),
           revenue: orderStats.revenue,
           website: 12,
-          support: loadOpenSupportCount(),
+          support: await fetchOpenSupportCount(),
         })
       } catch {
         if (active) {

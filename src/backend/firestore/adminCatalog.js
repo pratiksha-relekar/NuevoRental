@@ -20,6 +20,7 @@ const CATEGORIES_MIRROR_KEY = 'nuevo-rental-firestore-categories'
 export const ADMIN_PRIVILEGES = {
   MANAGE_PRODUCTS: 'manage_products',
   MANAGE_CATEGORIES: 'manage_categories',
+  MANAGE_SUPPORT: 'manage_support',
 }
 
 const DEFAULT_ADMIN_PRIVILEGES = [
@@ -57,6 +58,12 @@ export function hasCatalogPrivilege(admin) {
     admin.privileges?.includes(ADMIN_PRIVILEGES.MANAGE_PRODUCTS)
     || admin.privileges?.includes(ADMIN_PRIVILEGES.MANAGE_CATEGORIES)
   )
+}
+
+export function hasSupportPrivilege(admin) {
+  if (!admin) return false
+  if (admin.role === 'super_admin' || admin.role === 'admin') return true
+  return admin.privileges?.includes(ADMIN_PRIVILEGES.MANAGE_SUPPORT)
 }
 
 export function assertCatalogPrivilege(admin, privilege) {

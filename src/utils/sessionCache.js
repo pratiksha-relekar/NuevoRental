@@ -4,6 +4,7 @@ const CART_KEY = 'nuevo-rental-cart'
 const WISHLIST_KEY = 'nuevo-rental-wishlist'
 const ORDERS_KEY = 'nuevo-rental-orders'
 const KYC_KEY = 'nuevo-rental-kyc-records'
+const SUPPORT_KEY = 'nuevo-rental-support-requests'
 const ADMIN_SESSION_KEY = 'nuevo-rental-admin-session'
 
 export const SESSION_CACHE_KEYS = {
@@ -13,6 +14,7 @@ export const SESSION_CACHE_KEYS = {
   WISHLIST: WISHLIST_KEY,
   ORDERS: ORDERS_KEY,
   KYC: KYC_KEY,
+  SUPPORT: SUPPORT_KEY,
   ADMIN_SESSION: ADMIN_SESSION_KEY,
 }
 
@@ -64,6 +66,7 @@ export function clearAdminDataCaches() {
   saveJson(AUTH_USERS_KEY, {})
   saveJson(ORDERS_KEY, {})
   saveJson(KYC_KEY, {})
+  saveJson(SUPPORT_KEY, [])
 }
 
 export function clearAdminSessionCache() {

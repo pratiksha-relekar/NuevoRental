@@ -15,7 +15,7 @@
   justify-content: space-between;
   margin-bottom: 28px;
   padding-bottom: 12px;
-  border-bottom: 1px solid #e8e8e8;
+  border-bottom: 1px solid rgba(74, 144, 226, 0.12);
 }
 
 .rental-products-title-wrap {
@@ -49,18 +49,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #ddd;
+  border: 1px solid rgba(74, 144, 226, 0.12);
   background: #fff;
   color: #555;
   font-size: 20px;
   line-height: 1;
   cursor: pointer;
-  transition: border-color 0.2s, color 0.2s;
+  box-shadow: 0 2px 10px rgba(26, 39, 68, 0.05);
+  transition:
+    border-color 0.35s ease,
+    color 0.35s ease,
+    box-shadow 0.35s ease,
+    transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .rental-nav-btn:hover:not(:disabled) {
-  border-color: #4a90e2;
+  border-color: rgba(74, 144, 226, 0.28);
   color: #4a90e2;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(74, 144, 226, 0.16);
 }
 
 .rental-nav-btn:disabled {
@@ -86,11 +93,12 @@
 /* Product card */
 .product-card {
   background: #fff;
-  border: 1px solid #eee;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(74, 144, 226, 0.12);
+  border-radius: 0;
+  box-shadow: 0 2px 10px rgba(26, 39, 68, 0.06);
   transition:
     box-shadow 0.35s ease,
+    border-color 0.35s ease,
     transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
   min-width: 0;
   overflow: hidden;
@@ -109,7 +117,8 @@
 }
 
 .product-card:hover {
-  box-shadow: 0 12px 32px rgba(74, 144, 226, 0.14);
+  border-color: rgba(74, 144, 226, 0.22);
+  box-shadow: 0 12px 32px rgba(74, 144, 226, 0.16);
   transform: translateY(-4px);
 }
 
@@ -121,6 +130,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 0;
 }
 
 .product-card-image::before {
@@ -235,7 +245,7 @@
 .product-action-btn {
   width: 36px;
   height: 36px;
-  border-radius: 50%;
+  border-radius: 0;
   border: none;
   background: #4a90e2;
   color: #fff;
@@ -303,7 +313,7 @@
   font-weight: 700;
   letter-spacing: 0.5px;
   padding: 4px 8px;
-  border-radius: 2px;
+  border-radius: 0;
   z-index: 1;
 }
 
@@ -369,8 +379,8 @@
 .product-cart-btn {
   width: 36px;
   height: 36px;
-  border-radius: 50%;
-  border: none;
+  border-radius: 0;
+  border: 1.5px solid #4a90e2;
   background: #4a90e2;
   color: #fff;
   display: flex;
@@ -378,17 +388,19 @@
   justify-content: center;
   cursor: pointer;
   transition:
-    background 0.25s ease,
+    background 0.3s ease,
+    border-color 0.3s ease,
     transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
-    box-shadow 0.25s ease;
+    box-shadow 0.3s ease;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(74, 144, 226, 0.25);
+  box-shadow: 0 2px 8px rgba(74, 144, 226, 0.2);
 }
 
 .product-cart-btn:hover {
   background: #3a7fd4;
-  transform: scale(1.1);
-  box-shadow: 0 4px 14px rgba(74, 144, 226, 0.4);
+  border-color: #3a7fd4;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(74, 144, 226, 0.35);
 }
 
 .product-cart-btn:active {
@@ -419,7 +431,7 @@
   font-size: 14px;
   font-weight: 600;
   padding: 12px 20px;
-  border-radius: 50px;
+  border-radius: 0;
   box-shadow: 0 4px 16px rgba(37, 211, 102, 0.4);
   z-index: 100;
   transition: transform 0.2s, box-shadow 0.2s;
@@ -461,7 +473,7 @@
   .rental-products-grid .product-card {
     min-width: 0;
     width: 100%;
-    border-radius: 10px;
+    border-radius: 0;
   }
 
   .product-card-body {

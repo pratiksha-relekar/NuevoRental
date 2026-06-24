@@ -912,7 +912,7 @@
   }
 
   .pdp-carousel-item .product-card {
-    border-radius: 10px;
+    border-radius: 0;
   }
 
   .pdp-carousel-item .product-card-body {

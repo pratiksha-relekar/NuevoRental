@@ -103,6 +103,7 @@ export {
   getAdminCatalogUserId,
   getAdminCatalogEmail,
   hasCatalogPrivilege,
+  hasSupportPrivilege,
   mirrorCatalogToLocalStorage,
   seedAdminCatalogIfEmpty,
   subscribeToAdminCatalog,
@@ -131,6 +132,21 @@ export {
 } from './firestore/kyc'
 
 export {
+  buildSupportRequestRecord,
+  fetchAdminSupportRequestsFromFirestore,
+  fetchOpenSupportCountFromFirestore,
+  generateSupportRequestId,
+  getOpenSupportCountFromMirror,
+  submitSupportRequestToFirestore,
+  subscribeToAdminSupportRequests,
+  SUPPORT_MIRROR_KEY,
+  updateSupportRequestInFirestore,
+} from './firestore/support'
+
+export {
+  compressDataUrl,
+  compressDataUrlToKycDataUrl,
+  compressFileToKycDataUrl,
   compressImageToBlob,
   deleteStoragePath,
   ensureRemoteImageUrl,

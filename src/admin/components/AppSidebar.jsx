@@ -15,7 +15,7 @@ import {
 import { useAdminAuth } from '../../context/AdminAuthContext'
 import { useCatalog } from '../../context/CatalogContext'
 import { getPendingKycReviewCount, fetchPendingKycReviewCount } from '../../data/kycStorage'
-import { getOpenSupportCount } from '../../data/supportStorage'
+import { fetchOpenSupportCount, getOpenSupportCount } from '../../data/supportStorage'
 import { fetchAdminUsers } from '../../data/userStorage'
 import { loadAdminOrders } from '../../data/orderStorage'
 import { cn } from '../../lib/utils'
@@ -78,7 +78,7 @@ export function AppSidebar({ onLogout }) {
           users: users.length,
           orders: orders.length,
           kyc: await fetchPendingKycReviewCount(),
-          support: loadSupportCount(),
+          support: await fetchOpenSupportCount(),
         })
       } catch {
         if (active) {

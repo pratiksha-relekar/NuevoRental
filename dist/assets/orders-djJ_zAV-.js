@@ -1,0 +1,1 @@
+import{n as e}from"./orders-CY43Hs3_.js";export{e as deleteUserOrders};

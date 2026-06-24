@@ -86,6 +86,7 @@ export {
   getAdminCatalogUserId,
   getAdminCatalogEmail,
   hasCatalogPrivilege,
+  hasSupportPrivilege,
   mirrorCatalogToLocalStorage,
   seedAdminCatalogIfEmpty,
   subscribeToAdminCatalog,
@@ -111,3 +112,14 @@ export {
   submitUserKycForReview,
   subscribeToUserKyc,
 } from './kyc'
+export {
+  buildSupportRequestRecord,
+  fetchAdminSupportRequestsFromFirestore,
+  fetchOpenSupportCountFromFirestore,
+  generateSupportRequestId,
+  getOpenSupportCountFromMirror,
+  submitSupportRequestToFirestore,
+  subscribeToAdminSupportRequests,
+  SUPPORT_MIRROR_KEY,
+  updateSupportRequestInFirestore,
+} from './support'

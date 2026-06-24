@@ -119,8 +119,10 @@ function ContactPage() {
   const handleSubmit = async (event) => {
     event.preventDefault()
     setError('')
+    setSubmittedId(null)
 
-    const formData = new FormData(event.currentTarget)
+    const form = event.currentTarget
+    const formData = new FormData(form)
     const name = String(formData.get('name') ?? '').trim()
     const phone = String(formData.get('phone') ?? '').trim()
     const email = String(formData.get('email') ?? '').trim()
@@ -144,20 +146,24 @@ function ContactPage() {
     }
 
     setIsSubmitting(true)
-    await new Promise((resolve) => window.setTimeout(resolve, 800))
 
-    const request = submitSupportRequest({
-      name,
-      phone: phoneDigits.slice(-10),
-      email,
-      topic,
-      message,
-      source: 'contact',
-    })
+    try {
+      const request = await submitSupportRequest({
+        name,
+        phone: phoneDigits.slice(-10),
+        email,
+        topic,
+        message,
+        source: 'contact',
+      })
 
-    setSubmittedId(request.id)
-    event.currentTarget.reset()
-    setIsSubmitting(false)
+      setSubmittedId(request.id)
+      form.reset()
+    } catch {
+      setError('Could not submit your inquiry right now. Please try again or call 8080808964.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (

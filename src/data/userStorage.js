@@ -122,7 +122,9 @@ export async function fetchAdminUsers() {
 export async function refreshAdminCaches() {
   const users = await fetchAdminUsers()
   const { fetchAdminOrders } = await import('./orderStorage')
+  const { fetchAdminSupportRequests } = await import('./supportStorage')
   await fetchAdminOrders(users)
+  await fetchAdminSupportRequests()
   return users
 }
 

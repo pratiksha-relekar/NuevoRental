@@ -52,7 +52,7 @@ function DealCard({ deal }) {
       width="100%"
       height="100%"
       background="transparent"
-      borderRadius="12px"
+      borderRadius="0"
       borderColor="transparent"
       glareColor="#ffffff"
       glareOpacity={0.4}

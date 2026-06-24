@@ -54,6 +54,53 @@
   border: 1px solid #e2e8f0;
 }
 
+.kyc-selfie-review {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 8px;
+}
+
+.kyc-selfie-review--compact {
+  margin-bottom: 16px;
+}
+
+.kyc-selfie-review-frame {
+  width: min(100%, 320px);
+  aspect-ratio: 4 / 3;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 2px solid #e8edf2;
+  background: #0f1724;
+  box-shadow: 0 12px 28px rgba(26, 39, 68, 0.12);
+}
+
+.kyc-selfie-review-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+.kyc-selfie-review-note {
+  margin: 0;
+  max-width: 420px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #6b7a8f;
+  text-align: center;
+}
+
+.kyc-selfie-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  width: 100%;
+  margin-top: 4px;
+}
+
 .kyc-page-header {
   display: grid;
   grid-template-columns: auto 1fr auto;

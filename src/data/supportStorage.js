@@ -1,6 +1,19 @@
-import { COLLECTIONS, saveDocument } from '../backend/firestore'
+import {
+  fetchAdminSupportRequestsFromFirestore,
+  fetchOpenSupportCountFromFirestore,
+  getOpenSupportCountFromMirror,
+  submitSupportRequestToFirestore,
+  subscribeToAdminSupportRequests,
+  SUPPORT_MIRROR_KEY,
+  updateSupportRequestInFirestore,
+} from '../backend/firestore/support'
+import { SESSION_CACHE_KEYS } from '../utils/sessionCache'
 
-const SUPPORT_KEY = 'nuevo-rental-support-requests'
+const SUPPORT_KEY = SUPPORT_MIRROR_KEY
+const AUTH_USERS_KEY = SESSION_CACHE_KEYS.AUTH_USERS
+const ORDERS_KEY = SESSION_CACHE_KEYS.ORDERS
+
+export { SUPPORT_MIRROR_KEY }
 
 export const SUPPORT_TOPIC_LABELS = {
   rental: 'Product Rental',
@@ -20,64 +33,6 @@ export const SUPPORT_STATUS_LABELS = {
 
 export const SUPPORT_STATUS_OPTIONS = ['open', 'in_progress', 'resolved', 'closed']
 
-const DEMO_REQUESTS = [
-  {
-    id: 'SR-DEMO-001',
-    name: 'Aarav Mehta',
-    phone: '9876543210',
-    email: 'aarav.mehta@example.com',
-    topic: 'rental',
-    message:
-      'I need 3 MacBook Pro units for a 2-week project in Pune. Can you confirm availability and delivery timeline?',
-    status: 'open',
-    source: 'contact',
-    createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-    updatedAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-    adminNotes: '',
-  },
-  {
-    id: 'SR-DEMO-002',
-    name: 'Priya Sharma',
-    phone: '9123456780',
-    email: 'priya.sharma@startup.io',
-    topic: 'corporate',
-    message:
-      'Looking for 25 laptops and 10 printers for our Bengaluru office with GST billing and monthly renewal.',
-    status: 'in_progress',
-    source: 'contact',
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-    adminNotes: 'Shared corporate pricing deck. Follow-up call scheduled.',
-  },
-  {
-    id: 'SR-DEMO-003',
-    name: 'Rohan Kapoor',
-    phone: '9988776655',
-    email: 'rohan.k@design.co',
-    topic: 'support',
-    message:
-      'Rented Dell monitor is flickering after 3 days. Need replacement or troubleshooting before client presentation.',
-    status: 'open',
-    source: 'contact',
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 18).toISOString(),
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 18).toISOString(),
-    adminNotes: '',
-  },
-  {
-    id: 'SR-DEMO-004',
-    name: 'Neha Desai',
-    phone: '9090909090',
-    email: 'neha.desai@gmail.com',
-    topic: 'billing',
-    message: 'Please resend GST invoice for order NR-2025-0142 and confirm security deposit refund timeline.',
-    status: 'resolved',
-    source: 'contact',
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 30).toISOString(),
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
-    adminNotes: 'Invoice emailed. Refund initiated.',
-  },
-]
-
 function loadJson(key, fallback) {
   try {
     const raw = window.localStorage.getItem(key)
@@ -85,20 +40,6 @@ function loadJson(key, fallback) {
   } catch {
     return fallback
   }
-}
-
-function saveJson(key, value) {
-  try {
-    window.localStorage.setItem(key, JSON.stringify(value))
-  } catch {
-    // Ignore storage errors
-  }
-}
-
-function generateRequestId() {
-  const stamp = Date.now().toString(36).toUpperCase()
-  const random = Math.random().toString(36).slice(2, 5).toUpperCase()
-  return `SR-${stamp}-${random}`
 }
 
 function formatPhoneTel(phone) {
@@ -171,52 +112,39 @@ function enrichRequest(request, authUsers, orders) {
   }
 }
 
-function ensureDemoRequests() {
-  const existing = loadJson(SUPPORT_KEY, [])
-  if (existing.length > 0) return existing
-  saveJson(SUPPORT_KEY, DEMO_REQUESTS)
-  return DEMO_REQUESTS
-}
-
-export function submitSupportRequest(payload) {
-  const requests = loadJson(SUPPORT_KEY, [])
-  const now = new Date().toISOString()
-
-  const request = {
-    id: generateRequestId(),
-    name: payload.name?.trim() ?? '',
-    phone: payload.phone?.trim() ?? '',
-    email: payload.email?.trim().toLowerCase() ?? '',
-    topic: payload.topic ?? 'other',
-    message: payload.message?.trim() ?? '',
-    status: 'open',
-    source: payload.source ?? 'contact',
-    createdAt: now,
-    updatedAt: now,
-    adminNotes: '',
-  }
-
-  saveJson(SUPPORT_KEY, [request, ...requests])
-
-  void saveDocument(COLLECTIONS.supportRequests, request.id, request).catch(() => {
-    // Keep localStorage flow working if Firestore is unavailable.
-  })
-
-  return request
-}
-
-export function loadAdminSupportRequests() {
-  const requests = ensureDemoRequests()
-  const authUsers = loadJson('nuevo-rental-auth-users', {})
-  const orders = loadJson('nuevo-rental-orders', {})
+function enrichRequests(requests) {
+  const authUsers = loadJson(AUTH_USERS_KEY, {})
+  const orders = loadJson(ORDERS_KEY, {})
 
   return requests
     .map((request) => enrichRequest(request, authUsers, orders))
     .sort((a, b) => new Date(b.createdAt ?? 0) - new Date(a.createdAt ?? 0))
 }
 
-export function getAdminSupportRequestById(id) {
-  return loadAdminSupportRequests().find((request) => request.id === id) ?? null
+export async function submitSupportRequest(payload) {
+  const request = await submitSupportRequestToFirestore(payload)
+  return request
+}
+
+export function loadAdminSupportRequests() {
+  const requests = loadJson(SUPPORT_KEY, [])
+  return enrichRequests(requests)
+}
+
+export async function fetchAdminSupportRequests() {
+  const requests = await fetchAdminSupportRequestsFromFirestore()
+  return enrichRequests(requests)
+}
+
+export function subscribeToAdminSupportQueue(onData, onError) {
+  return subscribeToAdminSupportRequests(
+    (requests) => onData(enrichRequests(requests)),
+    onError,
+  )
+}
+
+export function getAdminSupportRequestById(id, requests = loadAdminSupportRequests()) {
+  return requests.find((request) => request.id === id) ?? null
 }
 
 export function getAdminSupportStats(requests) {
@@ -244,29 +172,14 @@ export function getAdminSupportStats(requests) {
   }
 }
 
-export function updateSupportRequestStatus(id, status, adminNotes) {
-  const requests = loadJson(SUPPORT_KEY, [])
-  const now = new Date().toISOString()
-
-  saveJson(
-    SUPPORT_KEY,
-    requests.map((request) =>
-      request.id === id
-        ? {
-            ...request,
-            status,
-            adminNotes: adminNotes ?? request.adminNotes ?? '',
-            updatedAt: now,
-          }
-        : request,
-    ),
-  )
+export async function updateSupportRequestStatus(id, status, adminNotes) {
+  await updateSupportRequestInFirestore(id, { status, adminNotes })
 }
 
 export function getOpenSupportCount() {
-  const requests = loadJson(SUPPORT_KEY, [])
-  if (requests.length === 0) {
-    return DEMO_REQUESTS.filter((request) => request.status === 'open').length
-  }
-  return requests.filter((request) => request.status === 'open').length
+  return getOpenSupportCountFromMirror()
+}
+
+export async function fetchOpenSupportCount() {
+  return fetchOpenSupportCountFromFirestore()
 }
