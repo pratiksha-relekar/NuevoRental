@@ -32,6 +32,7 @@ export {
   subscribeToCollection,
   subscribeToDocument,
   subscribeToSubcollection,
+  subscribeToSubDocument,
   where,
 } from './firestore'
 
@@ -114,8 +115,11 @@ export {
   deleteUserKyc,
   fetchAdminKycUsersFromFirestore,
   fetchAllKycVerificationDocs,
+  fetchAdminKycReviewRecords,
   fetchKycRecordsByEmail,
+  getAdminKycReviewRecord,
   getUserKycRecord,
+  loadKycMirrorForUser,
   KYC_DOC_ID,
   KYC_MIRROR_KEY,
   markKycNoticeRead,

@@ -3,6 +3,7 @@ import {
   approveUserKycRecord,
   fetchAdminKycUsersFromFirestore,
   fetchKycRecordsByEmail,
+  getAdminKycReviewRecord,
   getUserKycRecord,
   KYC_MIRROR_KEY,
   normalizeKycRecord,
@@ -223,7 +224,8 @@ export async function loadAdminKycUserDetail(email) {
   if (!profile) return null
 
   const [kycRecord, userOrders] = await Promise.all([
-    getUserKycRecord(normalizedEmail).catch(() => null),
+    getAdminKycReviewRecord(normalizedEmail).catch(() => null)
+      .then((record) => record ?? getUserKycRecord(normalizedEmail).catch(() => null)),
     fetchUserOrders(normalizedEmail).catch(() => []),
   ])
 

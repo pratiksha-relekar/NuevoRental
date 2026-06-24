@@ -20,4 +20,5 @@ export const USER_SUBCOLLECTIONS = {
   products: 'products',
   categories: 'categories',
   kyc: 'kyc',
+  kycReviews: 'kyc-reviews',
 }

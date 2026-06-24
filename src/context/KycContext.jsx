@@ -9,6 +9,7 @@ import {
 } from 'react'
 import {
   deleteUserKyc,
+  loadKycMirrorForUser,
   markKycNoticeRead,
   saveUserKycRecord,
   submitUserKycForReview,
@@ -46,12 +47,20 @@ export function KycProvider({ children }) {
     let active = true
     setKycReady(false)
 
+    const cached = loadKycMirrorForUser(userEmail)
+    if (cached && cached.status !== 'not_started') {
+      setKycState(cached)
+      kycStateRef.current = cached
+    }
+
     const unsubscribe = subscribeToUserKyc(
       userEmail,
       (record) => {
         if (active) {
-          setKycState(record)
-          kycStateRef.current = record
+          if (record) {
+            setKycState(record)
+            kycStateRef.current = record
+          }
           setKycReady(true)
         }
       },

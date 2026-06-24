@@ -5,12 +5,14 @@ import {
 import { COLLECTIONS, USER_SUBCOLLECTIONS } from './collections'
 import {
   fetchCollectionGroup,
+  fetchDocument,
   fetchSubDocument,
+  fetchSubcollection,
   orderBy,
   removeSubDocument,
   saveDocument,
   saveSubDocument,
-  subscribeToSubcollection,
+  subscribeToSubDocument,
 } from './client'
 import { confirmUserOrdersAfterKyc } from './orders'
 import { fetchAllUsers, getUserDocumentId, normalizeUserEmail } from './users'
@@ -21,6 +23,7 @@ import {
 } from '../storage/imageStorage'
 
 const KYC_DOC_ID = 'verification'
+const ADMIN_USER_ID = 'admin'
 const KYC_MIRROR_KEY = 'nuevo-rental-kyc-records'
 
 function saveMirror(records) {
@@ -126,6 +129,73 @@ async function updateUserKycIndex(userEmail, record) {
   }, true)
 }
 
+async function ensureAdminUserDoc() {
+  await saveDocument(COLLECTIONS.users, ADMIN_USER_ID, {
+    username: ADMIN_USER_ID,
+    displayName: 'Administrator',
+    provider: 'admin',
+    isAdmin: true,
+    role: 'admin',
+    updatedAt: new Date().toISOString(),
+  }, true)
+}
+
+async function syncAdminKycReview(userEmail, record, profile = null) {
+  await ensureAdminUserDoc()
+  const userId = getUserDocumentId(userEmail)
+  const userDoc = profile ?? await fetchDocument(COLLECTIONS.users, userId)
+
+  const reviewDoc = {
+    ...record,
+    userEmail,
+    email: userEmail,
+    displayName: userDoc?.displayName ?? userEmail.split('@')[0],
+    phone: userDoc?.phone ?? '',
+    location: userDoc?.location ?? '',
+    provider: userDoc?.provider ?? 'email',
+    memberSince: userDoc?.memberSince ?? null,
+    aboutMe: userDoc?.aboutMe ?? '',
+    syncedAt: new Date().toISOString(),
+  }
+
+  await saveSubDocument(
+    COLLECTIONS.users,
+    ADMIN_USER_ID,
+    USER_SUBCOLLECTIONS.kycReviews,
+    userId,
+    reviewDoc,
+    false,
+  )
+}
+
+export async function fetchAdminKycReviewRecords() {
+  try {
+    return await fetchSubcollection(
+      COLLECTIONS.users,
+      ADMIN_USER_ID,
+      USER_SUBCOLLECTIONS.kycReviews,
+      [orderBy('updatedAt', 'desc')],
+    )
+  } catch {
+    return fetchSubcollection(
+      COLLECTIONS.users,
+      ADMIN_USER_ID,
+      USER_SUBCOLLECTIONS.kycReviews,
+    )
+  }
+}
+
+export async function getAdminKycReviewRecord(userEmail) {
+  const userId = getUserDocumentId(userEmail)
+  const record = await fetchSubDocument(
+    COLLECTIONS.users,
+    ADMIN_USER_ID,
+    USER_SUBCOLLECTIONS.kycReviews,
+    userId,
+  )
+  return record ? normalizeKycRecord(record) : null
+}
+
 export async function getUserKycRecord(userEmail) {
   const userId = getUserDocumentId(userEmail)
   const record = await fetchSubDocument(
@@ -136,7 +206,8 @@ export async function getUserKycRecord(userEmail) {
   )
 
   if (!record) {
-    return null
+    const adminRecord = await getAdminKycReviewRecord(userEmail)
+    return adminRecord
   }
 
   const normalized = normalizeKycRecord(record)
@@ -166,6 +237,7 @@ export async function saveUserKycRecord(userEmail, record) {
     false,
   )
   await updateUserKycIndex(userEmail, normalized)
+  await syncAdminKycReview(userEmail, normalized)
   mirrorUserKyc(userEmail, normalized)
   return normalized
 }
@@ -194,15 +266,19 @@ export async function submitUserKycForReview(userEmail, record) {
 export function subscribeToUserKyc(userEmail, onData, onError) {
   const userId = getUserDocumentId(userEmail)
 
-  return subscribeToSubcollection(
+  return subscribeToSubDocument(
     COLLECTIONS.users,
     userId,
     USER_SUBCOLLECTIONS.kyc,
-    [],
-    (items) => {
-      const record = normalizeKycRecord(items.find((item) => item.id === KYC_DOC_ID) ?? items[0] ?? null)
-      mirrorUserKyc(userEmail, record)
-      onData(record)
+    KYC_DOC_ID,
+    (record) => {
+      if (!record) {
+        onData(null)
+        return
+      }
+      const normalized = normalizeKycRecord(record)
+      mirrorUserKyc(userEmail, normalized)
+      onData(normalized)
     },
     onError,
   )
@@ -219,6 +295,7 @@ export async function fetchAllKycVerificationDocs() {
 export async function deleteUserKyc(userEmail) {
   const userId = getUserDocumentId(userEmail)
   await removeSubDocument(COLLECTIONS.users, userId, USER_SUBCOLLECTIONS.kyc, KYC_DOC_ID)
+  await removeSubDocument(COLLECTIONS.users, ADMIN_USER_ID, USER_SUBCOLLECTIONS.kycReviews, userId)
 
   const records = loadMirror()
   delete records[userEmail]
@@ -304,18 +381,40 @@ function isCustomerUser(user) {
 }
 
 export async function fetchAdminKycUsersFromFirestore() {
-  const users = await fetchAllUsers()
+  const [users, adminReviews] = await Promise.all([
+    fetchAllUsers(),
+    fetchAdminKycReviewRecords().catch(() => []),
+  ])
+
+  const reviewByEmail = new Map()
+  adminReviews.forEach((review) => {
+    const email = normalizeUserEmail(review.userEmail ?? review.email ?? review.id)
+    if (email) {
+      reviewByEmail.set(email, normalizeKycRecord(review))
+    }
+  })
+
   const customerUsers = users.filter(isCustomerUser)
 
   return Promise.all(
     customerUsers.map(async (profile) => {
       const email = normalizeUserEmail(profile.email ?? profile.id)
+      let kycRecord = reviewByEmail.get(email) ?? null
 
-      let kycRecord = null
-      try {
-        kycRecord = await getUserKycRecord(email)
-      } catch {
-        kycRecord = null
+      if (!kycRecord) {
+        try {
+          kycRecord = await getUserKycRecord(email)
+        } catch {
+          kycRecord = null
+        }
+      }
+
+      if (kycRecord && !reviewByEmail.has(email)) {
+        try {
+          await syncAdminKycReview(email, kycRecord, profile)
+        } catch {
+          // Best-effort backfill for admin queue.
+        }
       }
 
       return {
@@ -341,6 +440,12 @@ export async function fetchKycRecordsByEmail() {
   })
 
   return kycByEmail
+}
+
+export function loadKycMirrorForUser(userEmail) {
+  const records = loadMirror()
+  const record = records[userEmail]
+  return record ? normalizeKycRecord(record) : null
 }
 
 export { KYC_DOC_ID, KYC_MIRROR_KEY }

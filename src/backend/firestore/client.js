@@ -84,8 +84,9 @@ export async function saveDocument(collectionName, id, data, merge = true) {
 }
 
 export async function saveSubDocument(parentCollection, parentId, subcollection, docId, data, merge = true) {
-  await setDoc(getSubDocRef(parentCollection, parentId, subcollection, docId), data, { merge })
-  return { id: docId, ...data }
+  const payload = JSON.parse(JSON.stringify(data))
+  await setDoc(getSubDocRef(parentCollection, parentId, subcollection, docId), payload, { merge })
+  return { id: docId, ...payload }
 }
 
 export async function addDocument(collectionName, data) {
@@ -143,6 +144,20 @@ export function subscribeToCollection(collectionName, constraints, onData, onErr
     (snapshot) => {
       const items = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }))
       onData(items)
+    },
+    onError,
+  )
+}
+
+export function subscribeToSubDocument(parentCollection, parentId, subcollection, docId, onData, onError) {
+  return onSnapshot(
+    getSubDocRef(parentCollection, parentId, subcollection, docId),
+    (snapshot) => {
+      if (!snapshot.exists()) {
+        onData(null)
+        return
+      }
+      onData({ id: snapshot.id, ...snapshot.data() })
     },
     onError,
   )

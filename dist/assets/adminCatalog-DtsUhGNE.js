@@ -1,1 +1,0 @@
-import{a as e}from"./adminCatalog-BBbyCVFz.js";export{e as deleteAdminCatalog};
