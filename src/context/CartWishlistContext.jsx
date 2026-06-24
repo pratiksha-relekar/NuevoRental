@@ -4,10 +4,27 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react'
 import { getProductImage } from '../data/products'
 import { getRentalDurationPlans } from '../data/productDetails'
+import {
+  addToUserCart,
+  clearUserCart,
+  mergeGuestCart,
+  removeFromUserCart,
+  subscribeToUserCart,
+  updateUserCartItem,
+} from '../backend/firestore/cart'
+import {
+  addToUserWishlist,
+  clearUserWishlist,
+  mergeGuestWishlist,
+  removeFromUserWishlist,
+  subscribeToUserWishlist,
+} from '../backend/firestore/wishlist'
+import { useAuth } from './AuthContext'
 
 const CART_STORAGE_KEY = 'nuevo-rental-cart'
 const WISHLIST_STORAGE_KEY = 'nuevo-rental-wishlist'
@@ -54,16 +71,129 @@ function snapshotProduct(product) {
 }
 
 export function CartWishlistProvider({ children }) {
+  const { user, isAuthenticated } = useAuth()
   const [cartItems, setCartItems] = useState(() => loadFromStorage(CART_STORAGE_KEY, []))
   const [wishlistItems, setWishlistItems] = useState(() => loadFromStorage(WISHLIST_STORAGE_KEY, []))
+  const [wishlistReady, setWishlistReady] = useState(!isAuthenticated)
+  const [cartReady, setCartReady] = useState(!isAuthenticated)
+  const mergedGuestWishlistRef = useRef(false)
+  const mergedGuestCartRef = useRef(false)
 
   useEffect(() => {
-    saveToStorage(CART_STORAGE_KEY, cartItems)
-  }, [cartItems])
+    if (!isAuthenticated) {
+      saveToStorage(CART_STORAGE_KEY, cartItems)
+    }
+  }, [cartItems, isAuthenticated])
 
   useEffect(() => {
-    saveToStorage(WISHLIST_STORAGE_KEY, wishlistItems)
-  }, [wishlistItems])
+    if (!isAuthenticated) {
+      saveToStorage(WISHLIST_STORAGE_KEY, wishlistItems)
+    }
+  }, [wishlistItems, isAuthenticated])
+
+  useEffect(() => {
+    if (!user?.email) {
+      mergedGuestWishlistRef.current = false
+      setWishlistReady(true)
+      return undefined
+    }
+
+    let active = true
+    setWishlistReady(false)
+
+    async function hydrateWishlist() {
+      try {
+        if (!mergedGuestWishlistRef.current) {
+          const localItems = loadFromStorage(WISHLIST_STORAGE_KEY, [])
+          if (localItems.length > 0) {
+            await mergeGuestWishlist(user.email, localItems, user)
+            saveToStorage(WISHLIST_STORAGE_KEY, [])
+          }
+          mergedGuestWishlistRef.current = true
+        }
+      } catch {
+        mergedGuestWishlistRef.current = true
+      } finally {
+        if (active) {
+          setWishlistReady(true)
+        }
+      }
+    }
+
+    hydrateWishlist()
+
+    const unsubscribe = subscribeToUserWishlist(
+      user.email,
+      (items) => {
+        if (active) {
+          setWishlistItems(items)
+          setWishlistReady(true)
+        }
+      },
+      () => {
+        if (active) {
+          setWishlistReady(true)
+        }
+      },
+    )
+
+    return () => {
+      active = false
+      unsubscribe()
+    }
+  }, [user])
+
+  useEffect(() => {
+    if (!user?.email) {
+      mergedGuestCartRef.current = false
+      setCartReady(true)
+      return undefined
+    }
+
+    let active = true
+    setCartReady(false)
+
+    async function hydrateCart() {
+      try {
+        if (!mergedGuestCartRef.current) {
+          const localItems = loadFromStorage(CART_STORAGE_KEY, [])
+          if (localItems.length > 0) {
+            await mergeGuestCart(user.email, localItems, user)
+            saveToStorage(CART_STORAGE_KEY, [])
+          }
+          mergedGuestCartRef.current = true
+        }
+      } catch {
+        mergedGuestCartRef.current = true
+      } finally {
+        if (active) {
+          setCartReady(true)
+        }
+      }
+    }
+
+    hydrateCart()
+
+    const unsubscribe = subscribeToUserCart(
+      user.email,
+      (items) => {
+        if (active) {
+          setCartItems(items)
+          setCartReady(true)
+        }
+      },
+      () => {
+        if (active) {
+          setCartReady(true)
+        }
+      },
+    )
+
+    return () => {
+      active = false
+      unsubscribe()
+    }
+  }, [user])
 
   const cartCount = useMemo(
     () => cartItems.reduce((total, item) => total + item.quantity, 0),
@@ -78,7 +208,7 @@ export function CartWishlistProvider({ children }) {
   )
 
   const isInWishlist = useCallback(
-    (productId) => wishlistItems.some((item) => item.productId === productId),
+    (productId) => wishlistItems.some((item) => String(item.productId) === String(productId)),
     [wishlistItems],
   )
 
@@ -88,7 +218,7 @@ export function CartWishlistProvider({ children }) {
     [cartItems],
   )
 
-  const addToCart = useCallback((product, options = {}) => {
+  const addToCart = useCallback(async (product, options = {}) => {
     const productId = product.id ?? product.productId
     const quantity = Math.max(1, options.quantity ?? 1)
     const plan = options.durationPlan
@@ -97,8 +227,23 @@ export function CartWishlistProvider({ children }) {
 
     const durationPlanId = plan.id
     const key = buildCartKey(productId, durationPlanId)
-    const snapshot = snapshotProduct(product)
 
+    if (user?.email) {
+      try {
+        await addToUserCart(user.email, product, user, {
+          quantity,
+          durationPlanId,
+          durationLabel: plan.shortLabel,
+          unitPrice: options.unitPrice ?? plan.price,
+          key,
+        })
+      } catch {
+        // Fall back to local state if Firestore sync fails.
+      }
+      return
+    }
+
+    const snapshot = snapshotProduct(product)
     setCartItems((prev) => {
       const existing = prev.find((item) => item.key === key)
 
@@ -122,13 +267,35 @@ export function CartWishlistProvider({ children }) {
         },
       ]
     })
-  }, [])
+  }, [user])
 
-  const removeFromCart = useCallback((key) => {
+  const removeFromCart = useCallback(async (key) => {
+    if (user?.email) {
+      try {
+        await removeFromUserCart(user.email, key)
+      } catch {
+        // Ignore Firestore errors; subscription updates state.
+      }
+      return
+    }
+
     setCartItems((prev) => prev.filter((item) => item.key !== key))
-  }, [])
+  }, [user?.email])
 
-  const updateCartQuantity = useCallback((key, quantity) => {
+  const updateCartQuantity = useCallback(async (key, quantity) => {
+    if (user?.email) {
+      try {
+        if (quantity < 1) {
+          await removeFromUserCart(user.email, key)
+        } else {
+          await updateUserCartItem(user.email, key, { quantity }, user)
+        }
+      } catch {
+        // Ignore Firestore errors.
+      }
+      return
+    }
+
     if (quantity < 1) {
       setCartItems((prev) => prev.filter((item) => item.key !== key))
       return
@@ -137,33 +304,75 @@ export function CartWishlistProvider({ children }) {
     setCartItems((prev) =>
       prev.map((item) => (item.key === key ? { ...item, quantity } : item)),
     )
-  }, [])
+  }, [user])
 
-  const clearCart = useCallback(() => {
+  const clearCart = useCallback(async () => {
+    if (user?.email) {
+      try {
+        await clearUserCart(user.email)
+      } catch {
+        // Ignore Firestore errors.
+      }
+      return
+    }
+
     setCartItems([])
-  }, [])
+  }, [user?.email])
 
-  const toggleWishlist = useCallback((product) => {
+  const toggleWishlist = useCallback(async (product) => {
     const productId = product.id ?? product.productId
 
+    if (user?.email) {
+      const exists = wishlistItems.some((item) => String(item.productId) === String(productId))
+
+      try {
+        if (exists) {
+          await removeFromUserWishlist(user.email, productId)
+        } else {
+          await addToUserWishlist(user.email, product, user)
+        }
+      } catch {
+        // Keep UI responsive if Firestore sync fails.
+      }
+      return
+    }
+
     setWishlistItems((prev) => {
-      const exists = prev.some((item) => item.productId === productId)
+      const exists = prev.some((item) => String(item.productId) === String(productId))
 
       if (exists) {
-        return prev.filter((item) => item.productId !== productId)
+        return prev.filter((item) => String(item.productId) !== String(productId))
       }
 
       return [...prev, { ...snapshotProduct(product), addedAt: Date.now() }]
     })
-  }, [])
+  }, [user, wishlistItems])
 
-  const removeFromWishlist = useCallback((productId) => {
-    setWishlistItems((prev) => prev.filter((item) => item.productId !== productId))
-  }, [])
+  const removeFromWishlist = useCallback(async (productId) => {
+    if (user?.email) {
+      try {
+        await removeFromUserWishlist(user.email, productId)
+      } catch {
+        // Ignore Firestore errors; local state updates via subscription.
+      }
+      return
+    }
 
-  const clearWishlist = useCallback(() => {
+    setWishlistItems((prev) => prev.filter((item) => String(item.productId) !== String(productId)))
+  }, [user?.email])
+
+  const clearWishlist = useCallback(async () => {
+    if (user?.email) {
+      try {
+        await clearUserWishlist(user.email)
+      } catch {
+        // Ignore Firestore errors.
+      }
+      return
+    }
+
     setWishlistItems([])
-  }, [])
+  }, [user?.email])
 
   const value = useMemo(
     () => ({
@@ -172,6 +381,8 @@ export function CartWishlistProvider({ children }) {
       cartCount,
       wishlistCount,
       cartTotal,
+      wishlistReady,
+      cartReady,
       isInWishlist,
       isInCart,
       addToCart,
@@ -188,6 +399,8 @@ export function CartWishlistProvider({ children }) {
       cartCount,
       wishlistCount,
       cartTotal,
+      wishlistReady,
+      cartReady,
       isInWishlist,
       isInCart,
       addToCart,

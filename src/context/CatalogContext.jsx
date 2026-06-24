@@ -7,6 +7,16 @@ import {
   useState,
 } from 'react'
 import {
+  deleteAdminCategory,
+  deleteAdminProduct,
+  getAdminCatalogUserId,
+  hasCatalogPrivilege,
+  seedAdminCatalogIfEmpty,
+  subscribeToAdminCatalog,
+  upsertAdminCategory,
+  upsertAdminProduct,
+} from '../backend/firestore/adminCatalog'
+import {
   deleteCatalogCategory,
   deleteCatalogProduct,
   getCatalogCategories,
@@ -14,63 +24,154 @@ import {
   upsertCategory,
   upsertProduct,
 } from '../data/catalogStorage'
+import { useAdminAuth } from './AdminAuthContext'
 
 const CatalogContext = createContext(null)
 
 export function CatalogProvider({ children }) {
-  const [version, setVersion] = useState(0)
+  const { admin, isAdminAuthenticated } = useAdminAuth()
+  const [products, setProducts] = useState(() => getCatalogProducts())
+  const [categories, setCategories] = useState(() => getCatalogCategories())
+  const [catalogReady, setCatalogReady] = useState(false)
+  const [catalogError, setCatalogError] = useState(null)
 
   const refresh = useCallback(() => {
-    setVersion((current) => current + 1)
+    setProducts(getCatalogProducts())
+    setCategories(getCatalogCategories())
   }, [])
 
   useEffect(() => {
-    const handleStorage = (event) => {
-      if (event.key === 'nuevo-rental-admin-catalog') refresh()
+    const adminUserId = getAdminCatalogUserId()
+    let active = true
+
+    async function initCatalog() {
+      try {
+        await seedAdminCatalogIfEmpty(adminUserId)
+      } catch {
+        // Fall back to local catalog if seeding fails.
+      }
     }
-    window.addEventListener('storage', handleStorage)
-    return () => window.removeEventListener('storage', handleStorage)
+
+    initCatalog()
+
+    const unsubscribe = subscribeToAdminCatalog(
+      adminUserId,
+      (nextProducts, nextCategories) => {
+        if (!active) return
+        setProducts(nextProducts)
+        setCategories(nextCategories)
+        setCatalogReady(true)
+        setCatalogError(null)
+      },
+      () => {
+        if (active) {
+          setCatalogReady(true)
+          refresh()
+        }
+      },
+    )
+
+    return () => {
+      active = false
+      unsubscribe()
+    }
   }, [refresh])
 
-  const products = useMemo(() => getCatalogProducts(), [version])
-  const categories = useMemo(() => getCatalogCategories(), [version])
-
   const addOrUpdateProduct = useCallback(
-    (product) => {
+    async (product) => {
+      if (isAdminAuthenticated && hasCatalogPrivilege(admin)) {
+        try {
+          const adminUserId = getAdminCatalogUserId(admin)
+          await upsertAdminProduct(adminUserId, product, admin)
+          return { ok: true }
+        } catch (error) {
+          return {
+            ok: false,
+            error: error instanceof Error ? error.message : 'Unable to save product.',
+          }
+        }
+      }
+
       upsertProduct(product)
       refresh()
+      return { ok: true }
     },
-    [refresh],
+    [admin, isAdminAuthenticated, refresh],
   )
 
   const removeProduct = useCallback(
-    (id) => {
+    async (id) => {
+      if (isAdminAuthenticated && hasCatalogPrivilege(admin)) {
+        try {
+          const adminUserId = getAdminCatalogUserId(admin)
+          await deleteAdminProduct(adminUserId, id, admin)
+          return { ok: true }
+        } catch (error) {
+          return {
+            ok: false,
+            error: error instanceof Error ? error.message : 'Unable to delete product.',
+          }
+        }
+      }
+
       deleteCatalogProduct(id)
       refresh()
+      return { ok: true }
     },
-    [refresh],
+    [admin, isAdminAuthenticated, refresh],
   )
 
   const addOrUpdateCategory = useCallback(
-    (category) => {
+    async (category) => {
+      if (isAdminAuthenticated && hasCatalogPrivilege(admin)) {
+        try {
+          const adminUserId = getAdminCatalogUserId(admin)
+          await upsertAdminCategory(adminUserId, category, admin)
+          return { ok: true }
+        } catch (error) {
+          return {
+            ok: false,
+            error: error instanceof Error ? error.message : 'Unable to save category.',
+          }
+        }
+      }
+
       upsertCategory(category)
       refresh()
+      return { ok: true }
     },
-    [refresh],
+    [admin, isAdminAuthenticated, refresh],
   )
 
   const removeCategory = useCallback(
-    (id) => {
+    async (id) => {
+      if (isAdminAuthenticated && hasCatalogPrivilege(admin)) {
+        try {
+          const adminUserId = getAdminCatalogUserId(admin)
+          await deleteAdminCategory(adminUserId, id, admin)
+          return { ok: true }
+        } catch (error) {
+          return {
+            ok: false,
+            error: error instanceof Error ? error.message : 'Unable to delete category.',
+          }
+        }
+      }
+
       deleteCatalogCategory(id)
       refresh()
+      return { ok: true }
     },
-    [refresh],
+    [admin, isAdminAuthenticated, refresh],
   )
 
   const value = useMemo(
     () => ({
       products,
       categories,
+      catalogReady,
+      catalogError,
+      canManageCatalog: isAdminAuthenticated && hasCatalogPrivilege(admin),
       addOrUpdateProduct,
       removeProduct,
       addOrUpdateCategory,
@@ -80,6 +181,10 @@ export function CatalogProvider({ children }) {
     [
       products,
       categories,
+      catalogReady,
+      catalogError,
+      isAdminAuthenticated,
+      admin,
       addOrUpdateProduct,
       removeProduct,
       addOrUpdateCategory,

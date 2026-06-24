@@ -1,5 +1,9 @@
 import { CATEGORIES } from './categories'
 import { RENTAL_PRODUCTS } from './products'
+import {
+  CATEGORIES_MIRROR_KEY,
+  PRODUCTS_MIRROR_KEY,
+} from '../backend/firestore/adminCatalog'
 
 const STORAGE_KEY = 'nuevo-rental-admin-catalog'
 
@@ -31,6 +35,15 @@ function saveState(state) {
   }
 }
 
+function loadMirror(key) {
+  try {
+    const raw = window.localStorage.getItem(key)
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
 function enrichProduct(product) {
   return {
     location: 'Pan India',
@@ -48,6 +61,11 @@ function enrichProduct(product) {
 }
 
 export function getCatalogProducts() {
+  const firestoreProducts = loadMirror(PRODUCTS_MIRROR_KEY)
+  if (Array.isArray(firestoreProducts) && firestoreProducts.length > 0) {
+    return firestoreProducts.map((product) => enrichProduct(product))
+  }
+
   const state = loadState()
   const deleted = new Set(state.deletedProductIds)
 
@@ -60,6 +78,16 @@ export function getCatalogProducts() {
 }
 
 export function getCatalogCategories() {
+  const firestoreCategories = loadMirror(CATEGORIES_MIRROR_KEY)
+  if (Array.isArray(firestoreCategories) && firestoreCategories.length > 0) {
+    const seen = new Set()
+    return firestoreCategories.filter((category) => {
+      if (seen.has(category.id)) return false
+      seen.add(category.id)
+      return true
+    })
+  }
+
   const state = loadState()
   const deleted = new Set(state.deletedCategoryIds)
 

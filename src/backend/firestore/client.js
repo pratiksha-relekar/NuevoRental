@@ -6,10 +6,12 @@ import {
   getDoc,
   getDocs,
   onSnapshot,
+  orderBy,
   query,
   setDoc,
   updateDoc,
   where,
+  writeBatch,
 } from 'firebase/firestore'
 import { db } from '../firebase/firestore'
 import { COLLECTIONS } from './collections'
@@ -20,6 +22,14 @@ export function getCollectionRef(name) {
 
 export function getDocRef(collectionName, id) {
   return doc(db, collectionName, id)
+}
+
+export function getSubcollectionRef(parentCollection, parentId, subcollection) {
+  return collection(db, parentCollection, parentId, subcollection)
+}
+
+export function getSubDocRef(parentCollection, parentId, subcollection, docId) {
+  return doc(db, parentCollection, parentId, subcollection, docId)
 }
 
 export async function fetchDocument(collectionName, id) {
@@ -38,9 +48,23 @@ export async function fetchCollection(collectionName, constraints = []) {
   return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }))
 }
 
+export async function fetchSubcollection(parentCollection, parentId, subcollection, constraints = []) {
+  const subRef = getSubcollectionRef(parentCollection, parentId, subcollection)
+  const collectionQuery =
+    constraints.length > 0 ? query(subRef, ...constraints) : subRef
+
+  const snapshot = await getDocs(collectionQuery)
+  return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }))
+}
+
 export async function saveDocument(collectionName, id, data, merge = true) {
   await setDoc(getDocRef(collectionName, id), data, { merge })
   return { id, ...data }
+}
+
+export async function saveSubDocument(parentCollection, parentId, subcollection, docId, data, merge = true) {
+  await setDoc(getSubDocRef(parentCollection, parentId, subcollection, docId), data, { merge })
+  return { id: docId, ...data }
 }
 
 export async function addDocument(collectionName, data) {
@@ -60,8 +84,31 @@ export async function patchDocument(collectionName, id, data) {
   return { id, ...data }
 }
 
+export async function patchSubDocument(parentCollection, parentId, subcollection, docId, data) {
+  await updateDoc(getSubDocRef(parentCollection, parentId, subcollection, docId), {
+    ...data,
+    updatedAt: new Date().toISOString(),
+  })
+  return { id: docId, ...data }
+}
+
 export async function removeDocument(collectionName, id) {
   await deleteDoc(getDocRef(collectionName, id))
+}
+
+export async function removeSubDocument(parentCollection, parentId, subcollection, docId) {
+  await deleteDoc(getSubDocRef(parentCollection, parentId, subcollection, docId))
+}
+
+export async function removeSubcollection(parentCollection, parentId, subcollection) {
+  const items = await fetchSubcollection(parentCollection, parentId, subcollection)
+  if (items.length === 0) return
+
+  const batch = writeBatch(db)
+  items.forEach((item) => {
+    batch.delete(getSubDocRef(parentCollection, parentId, subcollection, item.id))
+  })
+  await batch.commit()
 }
 
 export function subscribeToCollection(collectionName, constraints, onData, onError) {
@@ -69,6 +116,21 @@ export function subscribeToCollection(collectionName, constraints, onData, onErr
     constraints.length > 0
       ? query(getCollectionRef(collectionName), ...constraints)
       : getCollectionRef(collectionName)
+
+  return onSnapshot(
+    collectionQuery,
+    (snapshot) => {
+      const items = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }))
+      onData(items)
+    },
+    onError,
+  )
+}
+
+export function subscribeToSubcollection(parentCollection, parentId, subcollection, constraints, onData, onError) {
+  const subRef = getSubcollectionRef(parentCollection, parentId, subcollection)
+  const collectionQuery =
+    constraints.length > 0 ? query(subRef, ...constraints) : subRef
 
   return onSnapshot(
     collectionQuery,
@@ -94,4 +156,4 @@ export function subscribeToDocument(collectionName, id, onData, onError) {
   )
 }
 
-export { COLLECTIONS, where }
+export { COLLECTIONS, orderBy, where }

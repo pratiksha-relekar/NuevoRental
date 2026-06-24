@@ -1,15 +1,24 @@
-export { COLLECTIONS } from './collections'
+export { COLLECTIONS, USER_SUBCOLLECTIONS } from './collections'
 export {
   addDocument,
   fetchCollection,
   fetchDocument,
+  fetchSubcollection,
   getCollectionRef,
   getDocRef,
+  getSubDocRef,
+  getSubcollectionRef,
+  orderBy,
   patchDocument,
+  patchSubDocument,
   removeDocument,
+  removeSubDocument,
+  removeSubcollection,
   saveDocument,
+  saveSubDocument,
   subscribeToCollection,
   subscribeToDocument,
+  subscribeToSubcollection,
   where,
 } from './client'
 export {
@@ -26,3 +35,57 @@ export {
   upsertGoogleUser,
   deleteUserByEmail,
 } from './users'
+export {
+  addToUserWishlist,
+  buildWishlistProductSnapshot,
+  clearUserWishlist,
+  deleteUserWishlist,
+  fetchUserWishlist,
+  mergeGuestWishlist,
+  refreshWishlistAddresses,
+  removeFromUserWishlist,
+  subscribeToUserWishlist,
+  toWishlistContextItem,
+} from './wishlist'
+export {
+  addToUserCart,
+  clearUserCart,
+  deleteUserCart,
+  fetchUserCart,
+  mergeGuestCart,
+  refreshCartAddresses,
+  removeFromUserCart,
+  subscribeToUserCart,
+  updateUserCartItem,
+} from './cart'
+export {
+  confirmUserOrdersAfterKyc,
+  deleteUserOrder,
+  deleteUserOrders,
+  fetchUserOrders,
+  placeUserOrder,
+  subscribeToUserOrders,
+  updateUserOrder,
+} from './orders'
+export {
+  buildCartItemSnapshot,
+  buildOrderItemSnapshot,
+  buildProductSnapshot,
+  buildUserAddress,
+} from './productSnapshots'
+export {
+  ADMIN_PRIVILEGES,
+  deleteAdminCatalog,
+  deleteAdminCategory,
+  deleteAdminProduct,
+  ensureAdminCatalogUser,
+  fetchAdminCatalog,
+  getAdminCatalogUserId,
+  getAdminCatalogEmail,
+  hasCatalogPrivilege,
+  mirrorCatalogToLocalStorage,
+  seedAdminCatalogIfEmpty,
+  subscribeToAdminCatalog,
+  upsertAdminCategory,
+  upsertAdminProduct,
+} from './adminCatalog'

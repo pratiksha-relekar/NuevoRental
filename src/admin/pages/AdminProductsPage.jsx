@@ -83,16 +83,22 @@ function AdminProductsPage() {
     )
   }, [categories, search])
 
-  const handleDeleteProduct = (product) => {
+  const handleDeleteProduct = async (product) => {
     const confirmed = window.confirm(`Delete "${product.title}" from the catalog?`)
     if (!confirmed) return
-    removeProduct(product.id)
+    const result = await removeProduct(product.id)
+    if (result?.ok === false) {
+      window.alert(result.error)
+    }
   }
 
-  const handleDeleteCategory = (category) => {
+  const handleDeleteCategory = async (category) => {
     const confirmed = window.confirm(`Delete category "${category.label}"?`)
     if (!confirmed) return
-    removeCategory(category.id)
+    const result = await removeCategory(category.id)
+    if (result?.ok === false) {
+      window.alert(result.error)
+    }
   }
 
   return (
@@ -323,8 +329,12 @@ function AdminProductsPage() {
         product={productModal?.mode === 'edit' ? productModal.product : null}
         categories={categories}
         onClose={() => setProductModal(null)}
-        onSave={(payload) => {
-          addOrUpdateProduct(payload)
+        onSave={async (payload) => {
+          const result = await addOrUpdateProduct(payload)
+          if (result?.ok === false) {
+            window.alert(result.error)
+            return
+          }
           setProductModal(null)
         }}
       />
@@ -333,8 +343,12 @@ function AdminProductsPage() {
         open={Boolean(categoryModal)}
         category={categoryModal?.mode === 'edit' ? categoryModal.category : null}
         onClose={() => setCategoryModal(null)}
-        onSave={(payload) => {
-          addOrUpdateCategory(payload)
+        onSave={async (payload) => {
+          const result = await addOrUpdateCategory(payload)
+          if (result?.ok === false) {
+            window.alert(result.error)
+            return
+          }
           setCategoryModal(null)
         }}
       />

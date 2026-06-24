@@ -17,6 +17,8 @@ import {
   updateUserProfile as updateFirestoreUserProfile,
   upsertGoogleUser,
 } from '../backend/firestore/users'
+import { refreshWishlistAddresses } from '../backend/firestore/wishlist'
+import { refreshCartAddresses } from '../backend/firestore/cart'
 
 const AUTH_USER_KEY = 'nuevo-rental-auth-user'
 const AUTH_USERS_KEY = 'nuevo-rental-auth-users'
@@ -126,6 +128,12 @@ export function AuthProvider({ children }) {
     }
 
     setUser(result.user)
+    try {
+      await refreshWishlistAddresses(user.email, result.user)
+      await refreshCartAddresses(user.email, result.user)
+    } catch {
+      // Wishlist/cart address sync is best-effort.
+    }
     return result
   }, [user?.email])
 

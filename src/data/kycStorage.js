@@ -4,6 +4,7 @@ import {
   createDefaultKycState,
 } from './kycSteps'
 import { formatKycStatus } from './userStorage'
+import { confirmUserOrdersAfterKyc } from '../backend/firestore/orders'
 
 const AUTH_USER_KEY = 'nuevo-rental-auth-user'
 const AUTH_USERS_KEY = 'nuevo-rental-auth-users'
@@ -190,7 +191,7 @@ export function getAdminKycUserByEmail(email) {
   return loadAdminKycUsers().find((user) => user.email === email) ?? null
 }
 
-export function approveUserKyc(email, adminNote = '') {
+export async function approveUserKyc(email, adminNote = '') {
   const kycRecords = loadJson(KYC_KEY, {})
   const record = kycRecords[email] ?? createDefaultKycState()
   const now = new Date().toISOString()
@@ -212,22 +213,26 @@ export function approveUserKyc(email, adminNote = '') {
   }
   saveJson(KYC_KEY, kycRecords)
 
-  const orders = loadJson(ORDERS_KEY, {})
-  const userOrders = orders[email] ?? []
+  try {
+    await confirmUserOrdersAfterKyc(email)
+  } catch {
+    const orders = loadJson(ORDERS_KEY, {})
+    const userOrders = orders[email] ?? []
 
-  orders[email] = userOrders.map((order) => {
-    if (order.status === 'canceled') return order
-    if (!order.awaitingKyc && order.status !== 'placed') return order
+    orders[email] = userOrders.map((order) => {
+      if (order.status === 'canceled') return order
+      if (!order.awaitingKyc && order.status !== 'placed') return order
 
-    return {
-      ...order,
-      awaitingKyc: false,
-      status: 'confirmed',
-      kycApprovedAt: now,
-      updatedAt: now,
-    }
-  })
-  saveJson(ORDERS_KEY, orders)
+      return {
+        ...order,
+        awaitingKyc: false,
+        status: 'confirmed',
+        kycApprovedAt: now,
+        updatedAt: now,
+      }
+    })
+    saveJson(ORDERS_KEY, orders)
+  }
 }
 
 export function rejectUserKyc(email, reason = '') {

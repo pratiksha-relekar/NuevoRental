@@ -12,3 +12,11 @@ export const COLLECTIONS = {
   carts: 'carts',
   wishlists: 'wishlists',
 }
+
+export const USER_SUBCOLLECTIONS = {
+  wishlist: 'wishlist',
+  cart: 'cart',
+  orders: 'orders',
+  products: 'products',
+  categories: 'categories',
+}

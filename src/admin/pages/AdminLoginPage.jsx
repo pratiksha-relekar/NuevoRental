@@ -31,7 +31,7 @@ function AdminLoginPage() {
     }
   }, [isAdminAuthenticated, navigate])
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
     setError('')
 
@@ -40,7 +40,7 @@ function AdminLoginPage() {
       return
     }
 
-    const result = login({ username, password })
+    const result = await login({ username, password })
     if (!result.ok) {
       setError(result.error)
       return

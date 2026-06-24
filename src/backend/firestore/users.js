@@ -225,5 +225,14 @@ export async function updateUserProfile(email, updates) {
 }
 
 export async function deleteUserByEmail(email) {
-  await removeDocument(COLLECTIONS.users, getUserDocumentId(email))
+  const userId = getUserDocumentId(email)
+  const { deleteUserWishlist } = await import('./wishlist.js')
+  const { deleteUserCart } = await import('./cart.js')
+  const { deleteUserOrders } = await import('./orders.js')
+  const { deleteAdminCatalog } = await import('./adminCatalog.js')
+  await deleteUserWishlist(email)
+  await deleteUserCart(email)
+  await deleteUserOrders(email)
+  await deleteAdminCatalog(email)
+  await removeDocument(COLLECTIONS.users, userId)
 }

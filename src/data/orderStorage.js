@@ -1,3 +1,4 @@
+import { deleteUserOrder, updateUserOrder } from '../backend/firestore/orders'
 import { KYC_STEPS } from './kycSteps'
 import { formatKycStatus } from './userStorage'
 
@@ -255,10 +256,14 @@ export function updateAdminOrderStatus(userEmail, orderId, status) {
   )
 
   saveJson(ORDERS_KEY, records)
+
+  updateUserOrder(userEmail, orderId, { status }).catch(() => {})
 }
 
 export function deleteAdminOrder(userEmail, orderId) {
   const records = loadJson(ORDERS_KEY, {})
   records[userEmail] = (records[userEmail] ?? []).filter((order) => order.id !== orderId)
   saveJson(ORDERS_KEY, records)
+
+  deleteUserOrder(userEmail, orderId).catch(() => {})
 }

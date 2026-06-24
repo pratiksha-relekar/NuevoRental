@@ -11,6 +11,7 @@ import {
   loadAdminSettings,
   updateAdminProfile,
 } from '../data/adminStorage'
+import { ensureAdminCatalogUser } from '../backend/firestore/adminCatalog'
 
 const ADMIN_SESSION_KEY = 'nuevo-rental-admin-session'
 
@@ -47,6 +48,15 @@ function hydrateSession(session) {
     displayName: session.displayName ?? settings.displayName,
     email: settings.email,
     role: settings.role,
+    privileges: session.privileges ?? [
+      'manage_products',
+      'manage_categories',
+      'manage_orders',
+      'manage_users',
+      'manage_kyc',
+      'manage_content',
+      'manage_support',
+    ],
   }
 }
 
@@ -57,7 +67,7 @@ export function AdminAuthProvider({ children }) {
     saveSession(admin)
   }, [admin])
 
-  const login = useCallback(({ username, password }) => {
+  const login = useCallback(async ({ username, password }) => {
     const settings = loadAdminSettings()
     const normalizedUsername = username.trim().toLowerCase()
     const normalizedPassword = password.trim()
@@ -69,10 +79,25 @@ export function AdminAuthProvider({ children }) {
       const session = {
         username: settings.username,
         displayName: settings.displayName,
-        email: settings.email,
         role: settings.role,
+        privileges: [
+          'manage_products',
+          'manage_categories',
+          'manage_orders',
+          'manage_users',
+          'manage_kyc',
+          'manage_content',
+          'manage_support',
+        ],
         loggedInAt: new Date().toISOString(),
       }
+
+      try {
+        await ensureAdminCatalogUser(session)
+      } catch {
+        // Allow admin login even if Firestore sync fails.
+      }
+
       setAdmin(session)
       return { ok: true, admin: session }
     }

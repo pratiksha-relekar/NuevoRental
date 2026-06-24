@@ -176,29 +176,31 @@ function CheckoutPage() {
 
     setIsPlacing(true)
 
-    await new Promise((resolve) => window.setTimeout(resolve, 1200))
+    try {
+      const order = await placeOrder({
+        items: cartItems,
+        delivery: {
+          ...address,
+          phone: address.phone.replace(/\D/g, '').slice(-10),
+        },
+        payment: {
+          method: paymentMethod,
+          status: paymentMethod === 'cod' ? 'pay_on_delivery' : 'paid',
+        },
+        summary,
+      })
 
-    const order = placeOrder({
-      items: cartItems,
-      delivery: {
-        ...address,
-        phone: address.phone.replace(/\D/g, '').slice(-10),
-      },
-      payment: {
-        method: paymentMethod,
-        status: paymentMethod === 'cod' ? 'pay_on_delivery' : 'paid',
-      },
-      summary,
-    })
-
-    if (order) {
-      clearCart()
-      setOrderPlaced(order)
-    } else {
-      setError('Unable to place order. Please sign in and try again.')
+      if (order) {
+        await clearCart()
+        setOrderPlaced(order)
+      } else {
+        setError('Unable to place order. Please sign in and try again.')
+      }
+    } catch {
+      setError('Unable to place order. Please try again.')
+    } finally {
+      setIsPlacing(false)
     }
-
-    setIsPlacing(false)
   }
 
   if (!user) return null

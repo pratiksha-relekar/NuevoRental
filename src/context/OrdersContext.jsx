@@ -6,6 +6,7 @@ import {
   useMemo,
   useState,
 } from 'react'
+import { placeUserOrder, subscribeToUserOrders } from '../backend/firestore/orders'
 import { useAuth } from './AuthContext'
 
 const ORDERS_STORAGE_KEY = 'nuevo-rental-orders'
@@ -22,84 +23,86 @@ function isKycApproved(email) {
 
 const OrdersContext = createContext(null)
 
-function loadAllOrders() {
+function loadUserOrdersFromStorage(email) {
   try {
     const raw = window.localStorage.getItem(ORDERS_STORAGE_KEY)
-    return raw ? JSON.parse(raw) : {}
+    const records = raw ? JSON.parse(raw) : {}
+    return records[email] ?? []
   } catch {
-    return {}
+    return []
   }
-}
-
-function saveAllOrders(records) {
-  try {
-    window.localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(records))
-  } catch {
-    // Ignore storage errors
-  }
-}
-
-function generateOrderId() {
-  const stamp = Date.now().toString(36).toUpperCase()
-  const random = Math.random().toString(36).slice(2, 6).toUpperCase()
-  return `NR-${stamp}-${random}`
 }
 
 export function OrdersProvider({ children }) {
   const { user } = useAuth()
-  const [records, setRecords] = useState(loadAllOrders)
-
-  useEffect(() => {
-    saveAllOrders(records)
-  }, [records])
+  const [orders, setOrders] = useState([])
+  const [ordersReady, setOrdersReady] = useState(false)
 
   const userEmail = user?.email ?? null
 
-  const orders = useMemo(() => {
-    if (!userEmail) return []
-    return records[userEmail] ?? []
-  }, [records, userEmail])
+  useEffect(() => {
+    if (!userEmail) {
+      setOrders([])
+      setOrdersReady(true)
+      return undefined
+    }
+
+    let active = true
+    setOrdersReady(false)
+    setOrders(loadUserOrdersFromStorage(userEmail))
+
+    const unsubscribe = subscribeToUserOrders(
+      userEmail,
+      (nextOrders) => {
+        if (active) {
+          setOrders(nextOrders)
+          setOrdersReady(true)
+        }
+      },
+      () => {
+        if (active) {
+          setOrdersReady(true)
+        }
+      },
+    )
+
+    return () => {
+      active = false
+      unsubscribe()
+    }
+  }, [userEmail])
 
   const orderCount = orders.length
 
   const placeOrder = useCallback(
-    ({ items, delivery, payment, summary }) => {
-      if (!userEmail) return null
+    async ({ items, delivery, payment, summary }) => {
+      if (!userEmail || !user) return null
 
       const kycApproved = isKycApproved(userEmail)
 
-      const order = {
-        id: generateOrderId(),
-        status: kycApproved ? 'confirmed' : 'placed',
-        awaitingKyc: !kycApproved,
-        placedAt: new Date().toISOString(),
-        estimatedDelivery: '2–3 business days',
-        items: items.map((item) => ({ ...item })),
-        delivery,
-        payment,
-        summary: { ...summary },
+      try {
+        return await placeUserOrder(userEmail, user, {
+          items,
+          delivery,
+          payment,
+          summary,
+          awaitingKyc: !kycApproved,
+        })
+      } catch {
+        return null
       }
-
-      setRecords((prev) => {
-        const current = prev[userEmail] ?? []
-        return {
-          ...prev,
-          [userEmail]: [order, ...current],
-        }
-      })
-
-      return order
     },
-    [userEmail],
+    [userEmail, user],
   )
 
   const value = useMemo(
     () => ({
       orders,
       orderCount,
+      ordersReady,
       placeOrder,
     }),
-    [orders, orderCount, placeOrder],
+    [orders, orderCount, ordersReady, placeOrder],
   )
 
   return <OrdersContext.Provider value={value}>{children}</OrdersContext.Provider>
