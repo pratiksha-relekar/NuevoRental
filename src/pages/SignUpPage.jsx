@@ -1,27 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { getAuthErrorMessage } from '../backend/firebase/auth'
 import GoogleAuthButton from '../components/GoogleAuthButton'
-import { getFirebaseAuthErrorMessage } from '../backend/firebase/authErrors'
 import '../styles/pageAnimations.css'
 import './AuthPage.css'
 
-const GOOGLE_AUTH_ERROR_KEY = 'nuevo-rental-google-auth-error'
-
-function readStoredGoogleAuthError() {
-  try {
-    const raw = window.localStorage.getItem(GOOGLE_AUTH_ERROR_KEY)
-    if (!raw) return ''
-    const parsed = JSON.parse(raw)
-    return typeof parsed === 'string' ? parsed : ''
-  } catch {
-    return ''
-  }
-}
-
 function SignUpPage() {
   const navigate = useNavigate()
-  const { signUp, loginWithGoogle, isAuthenticated, authReady } = useAuth()
+  const { signUp, loginWithGoogle, isAuthenticated, authReady, pendingRedirect, consumeRedirect } = useAuth()
   const [form, setForm] = useState({
     firstName: '',
     lastName: '',
@@ -33,18 +20,11 @@ function SignUpPage() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    const storedError = readStoredGoogleAuthError()
-    if (storedError) {
-      setError(storedError)
-      window.localStorage.removeItem(GOOGLE_AUTH_ERROR_KEY)
-    }
-  }, [])
+    if (!authReady || !isAuthenticated) return
 
-  useEffect(() => {
-    if (authReady && isAuthenticated) {
-      navigate('/dashboard', { replace: true })
-    }
-  }, [authReady, isAuthenticated, navigate])
+    const destination = pendingRedirect ? consumeRedirect() : '/dashboard'
+    navigate(destination, { replace: true })
+  }, [authReady, isAuthenticated, pendingRedirect, consumeRedirect, navigate])
 
   const updateField = (field) => (event) => {
     setForm((prev) => ({ ...prev, [field]: event.target.value }))
@@ -78,9 +58,9 @@ function SignUpPage() {
         setError(result.error)
         return
       }
-      navigate('/dashboard')
-    } catch {
-      setError('Unable to create your account right now. Please try again.')
+      navigate('/dashboard', { replace: true })
+    } catch (err) {
+      setError(getAuthErrorMessage(err))
     } finally {
       setLoading(false)
     }
@@ -90,13 +70,13 @@ function SignUpPage() {
     setError('')
     setLoading(true)
     try {
-      const result = await loginWithGoogle()
-      if (result?.redirecting) {
+      const sessionUser = await loginWithGoogle('/dashboard')
+      if (!sessionUser) {
         return
       }
-      navigate('/dashboard')
+      navigate('/dashboard', { replace: true })
     } catch (err) {
-      setError(getFirebaseAuthErrorMessage(err))
+      setError(getAuthErrorMessage(err))
     } finally {
       setLoading(false)
     }

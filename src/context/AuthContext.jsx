@@ -4,19 +4,23 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react'
 import {
   completeGoogleRedirectSignIn,
+  consumeAuthRedirectPath,
+  isGoogleProviderUser,
   onAuthStateChanged,
+  saveAuthRedirectPath,
   signInWithGoogle,
   signOutFirebase,
 } from '../backend/firebase/auth'
-import { getFirebaseAuthErrorMessage } from '../backend/firebase/authErrors'
 import {
   loginEmailUser,
   registerEmailUser,
   updateUserProfile as updateFirestoreUserProfile,
+  upsertEmailFirebaseUser,
   upsertGoogleUser,
 } from '../backend/firestore/users'
 import { refreshWishlistAddresses } from '../backend/firestore/wishlist'
@@ -29,7 +33,6 @@ import {
 
 const AUTH_USER_KEY = SESSION_CACHE_KEYS.AUTH_USER
 const AUTH_USERS_KEY = SESSION_CACHE_KEYS.AUTH_USERS
-const GOOGLE_AUTH_ERROR_KEY = 'nuevo-rental-google-auth-error'
 
 const AuthContext = createContext(null)
 
@@ -73,9 +76,18 @@ function mirrorUserToLocalRegistry(user) {
   saveToStorage(AUTH_USERS_KEY, users)
 }
 
+async function syncFirebaseUser(firebaseUser) {
+  if (isGoogleProviderUser(firebaseUser)) {
+    return upsertGoogleUser(firebaseUser)
+  }
+  return upsertEmailFirebaseUser(firebaseUser)
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => loadFromStorage(AUTH_USER_KEY, null))
   const [authReady, setAuthReady] = useState(false)
+  const [pendingRedirect, setPendingRedirect] = useState(false)
+  const manualAuthRef = useRef(false)
 
   useEffect(() => {
     saveToStorage(AUTH_USER_KEY, user)
@@ -87,52 +99,57 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let active = true
 
-    async function bootstrapGoogleRedirect() {
+    async function bootstrapAuth() {
       try {
         const redirectUser = await completeGoogleRedirectSignIn()
-        if (!active || !redirectUser?.email) return
+        if (!active) return
 
-        const sessionUser = await upsertGoogleUser(redirectUser)
-        if (active) {
+        if (redirectUser) {
+          manualAuthRef.current = true
+          const sessionUser = await syncFirebaseUser(redirectUser)
           setUser(sessionUser)
-          saveToStorage(GOOGLE_AUTH_ERROR_KEY, null)
+          setPendingRedirect(true)
         }
       } catch (error) {
         if (active) {
-          saveToStorage(
-            GOOGLE_AUTH_ERROR_KEY,
-            getFirebaseAuthErrorMessage(error),
-          )
+          console.error('Google redirect sign-in failed:', error)
         }
       }
+
+      const unsubscribe = onAuthStateChanged(async (firebaseUser) => {
+        if (!active) return
+
+        if (firebaseUser?.email) {
+          if (manualAuthRef.current) {
+            manualAuthRef.current = false
+            setAuthReady(true)
+            return
+          }
+
+          try {
+            const sessionUser = await syncFirebaseUser(firebaseUser)
+            setUser(sessionUser)
+          } catch (error) {
+            console.error('Failed to sync Firebase user profile:', error)
+          }
+        } else {
+          setUser((current) => {
+            if (!current) return null
+            if (current.provider === 'google' || current.uid) return null
+            return current
+          })
+        }
+
+        setAuthReady(true)
+      })
+
+      return unsubscribe
     }
 
-    bootstrapGoogleRedirect()
-
-    const unsubscribe = onAuthStateChanged(async (firebaseUser) => {
-      if (firebaseUser?.email) {
-        try {
-          const sessionUser = await upsertGoogleUser(firebaseUser)
-          if (active) {
-            setUser(sessionUser)
-            saveToStorage(GOOGLE_AUTH_ERROR_KEY, null)
-          }
-        } catch (error) {
-          if (active) {
-            saveToStorage(
-              GOOGLE_AUTH_ERROR_KEY,
-              getFirebaseAuthErrorMessage(
-                error,
-                'Signed in with Google, but we could not load your account. Please try again.',
-              ),
-            )
-          }
-        }
-      } else {
-        setUser((current) => (current?.provider === 'google' ? null : current))
-      }
-      if (active) {
-        setAuthReady(true)
+    let unsubscribe = () => {}
+    bootstrapAuth().then((unsub) => {
+      if (typeof unsub === 'function') {
+        unsubscribe = unsub
       }
     })
 
@@ -143,8 +160,10 @@ export function AuthProvider({ children }) {
   }, [])
 
   const login = useCallback(async ({ email, password }) => {
+    manualAuthRef.current = true
     const result = await loginEmailUser({ email, password })
     if (!result.ok) {
+      manualAuthRef.current = false
       return result
     }
 
@@ -153,8 +172,10 @@ export function AuthProvider({ children }) {
   }, [])
 
   const signUp = useCallback(async ({ firstName, lastName, email, password }) => {
+    manualAuthRef.current = true
     const result = await registerEmailUser({ firstName, lastName, email, password })
     if (!result.ok) {
+      manualAuthRef.current = false
       return result
     }
 
@@ -162,16 +183,23 @@ export function AuthProvider({ children }) {
     return result
   }, [])
 
-  const loginWithGoogle = useCallback(async () => {
-    const result = await signInWithGoogle()
-    if (result.redirecting) {
-      return { redirecting: true }
-    }
+  const loginWithGoogle = useCallback(async (redirectPath = '/dashboard') => {
+    saveAuthRedirectPath(redirectPath)
+    manualAuthRef.current = true
 
-    const sessionUser = await upsertGoogleUser(result.user)
-    setUser(sessionUser)
-    saveToStorage(GOOGLE_AUTH_ERROR_KEY, null)
-    return { redirecting: false, user: sessionUser }
+    try {
+      const firebaseUser = await signInWithGoogle()
+      if (!firebaseUser) {
+        return null
+      }
+
+      const sessionUser = await syncFirebaseUser(firebaseUser)
+      setUser(sessionUser)
+      return sessionUser
+    } catch (error) {
+      manualAuthRef.current = false
+      throw error
+    }
   }, [])
 
   const updateProfile = useCallback(async (updates) => {
@@ -197,7 +225,7 @@ export function AuthProvider({ children }) {
   const logout = useCallback(async () => {
     const email = user?.email ?? null
 
-    if (user?.provider === 'google') {
+    if (user?.provider === 'google' || user?.uid) {
       try {
         await signOutFirebase()
       } catch {
@@ -208,20 +236,28 @@ export function AuthProvider({ children }) {
     clearCustomerSessionCache(email)
     emitCustomerLogout()
     setUser(null)
-  }, [user?.email, user?.provider])
+    setPendingRedirect(false)
+  }, [user?.email, user?.provider, user?.uid])
+
+  const consumeRedirect = useCallback(() => {
+    setPendingRedirect(false)
+    return consumeAuthRedirectPath('/dashboard')
+  }, [])
 
   const value = useMemo(
     () => ({
       user,
       isAuthenticated: Boolean(user),
       authReady,
+      pendingRedirect,
+      consumeRedirect,
       login,
       signUp,
       loginWithGoogle,
       logout,
       updateProfile,
     }),
-    [user, authReady, login, signUp, loginWithGoogle, logout, updateProfile],
+    [user, authReady, pendingRedirect, consumeRedirect, login, signUp, loginWithGoogle, logout, updateProfile],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

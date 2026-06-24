@@ -8,8 +8,13 @@ export {
   googleProvider,
   onAuthStateChanged,
   signInWithGoogle,
-  completeGoogleRedirectSignIn,
   signInWithGooglePopup,
+  signInWithGoogleRedirect,
+  completeGoogleRedirectSignIn,
+  registerWithEmailPassword,
+  signInWithEmailPassword,
+  getAuthErrorMessage,
+  saveAuthRedirectPath,
+  consumeAuthRedirectPath,
   signOutFirebase,
 } from './auth'
-export { getFirebaseAuthErrorMessage, isGoogleRedirectPreferred } from './authErrors'

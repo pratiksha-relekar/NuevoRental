@@ -1,43 +1,23 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { getAuthErrorMessage } from '../backend/firebase/auth'
 import GoogleAuthButton from '../components/GoogleAuthButton'
-import { getFirebaseAuthErrorMessage } from '../backend/firebase/authErrors'
 import '../styles/pageAnimations.css'
 import './AuthPage.css'
-
-const GOOGLE_AUTH_ERROR_KEY = 'nuevo-rental-google-auth-error'
-
-function readStoredGoogleAuthError() {
-  try {
-    const raw = window.localStorage.getItem(GOOGLE_AUTH_ERROR_KEY)
-    if (!raw) return ''
-    const parsed = JSON.parse(raw)
-    return typeof parsed === 'string' ? parsed : ''
-  } catch {
-    return ''
-  }
-}
 
 function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { login, loginWithGoogle, isAuthenticated, authReady } = useAuth()
+  const { login, loginWithGoogle, isAuthenticated, authReady, pendingRedirect, consumeRedirect } = useAuth()
   const redirectTo = location.state?.from ?? '/dashboard'
 
   useEffect(() => {
-    const storedError = readStoredGoogleAuthError()
-    if (storedError) {
-      setError(storedError)
-      window.localStorage.removeItem(GOOGLE_AUTH_ERROR_KEY)
-    }
-  }, [])
+    if (!authReady || !isAuthenticated) return
 
-  useEffect(() => {
-    if (authReady && isAuthenticated) {
-      navigate(redirectTo, { replace: true })
-    }
-  }, [authReady, isAuthenticated, navigate, redirectTo])
+    const destination = pendingRedirect ? consumeRedirect() : redirectTo
+    navigate(destination, { replace: true })
+  }, [authReady, isAuthenticated, pendingRedirect, consumeRedirect, navigate, redirectTo])
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -60,9 +40,9 @@ function LoginPage() {
         setError(result.error)
         return
       }
-      navigate(redirectTo)
-    } catch {
-      setError('Unable to log in right now. Please try again.')
+      navigate(redirectTo, { replace: true })
+    } catch (err) {
+      setError(getAuthErrorMessage(err))
     } finally {
       setLoading(false)
     }
@@ -72,13 +52,13 @@ function LoginPage() {
     setError('')
     setLoading(true)
     try {
-      const result = await loginWithGoogle()
-      if (result?.redirecting) {
+      const sessionUser = await loginWithGoogle(redirectTo)
+      if (!sessionUser) {
         return
       }
-      navigate(redirectTo)
+      navigate(redirectTo, { replace: true })
     } catch (err) {
-      setError(getFirebaseAuthErrorMessage(err))
+      setError(getAuthErrorMessage(err))
     } finally {
       setLoading(false)
     }

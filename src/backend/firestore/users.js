@@ -6,6 +6,11 @@ import {
   removeDocument,
   saveDocument,
 } from './client'
+import {
+  getAuthErrorMessage,
+  registerWithEmailPassword,
+  signInWithEmailPassword,
+} from '../firebase/auth'
 
 export function normalizeUserEmail(email) {
   return email.trim().toLowerCase()
@@ -120,46 +125,133 @@ export async function registerEmailUser({ firstName, lastName, email, password }
     return { ok: false, error: 'An account with this email already exists. Please log in.' }
   }
 
-  const record = buildUserRecord({
-    firstName,
-    lastName,
-    email: normalizedEmail,
-    password,
-    provider: 'email',
-  })
+  try {
+    const displayName = [firstName, lastName].filter(Boolean).join(' ').trim()
+    const firebaseUser = await registerWithEmailPassword({
+      email: normalizedEmail,
+      password,
+      displayName,
+    })
 
-  const saved = await saveUserRecord(record)
-  return { ok: true, user: toSessionUser(saved) }
+    const record = buildUserRecord({
+      firstName,
+      lastName,
+      email: normalizedEmail,
+      provider: 'email',
+      uid: firebaseUser.uid,
+    })
+
+    const saved = await saveUserRecord(record)
+    return { ok: true, user: toSessionUser(saved) }
+  } catch (error) {
+    return { ok: false, error: getAuthErrorMessage(error) }
+  }
 }
 
 export async function loginEmailUser({ email, password }) {
   const normalizedEmail = normalizeUserEmail(email)
   const existing = await getUserByEmail(normalizedEmail)
 
-  if (!existing) {
-    return { ok: false, error: 'No account found with this email. Please sign up first.' }
-  }
-
-  if (existing.provider === 'google') {
+  if (existing?.provider === 'google') {
     return {
       ok: false,
       error: 'This email uses Google sign-in. Continue with Google to log in.',
     }
   }
 
-  if (existing.password !== password) {
-    return { ok: false, error: 'Incorrect password. Please try again.' }
+  try {
+    const firebaseUser = await signInWithEmailPassword({
+      email: normalizedEmail,
+      password,
+    })
+
+    const now = new Date().toISOString()
+    const record = buildUserRecord({
+      email: normalizedEmail,
+      firstName: existing?.firstName ?? '',
+      lastName: existing?.lastName ?? '',
+      displayName: existing?.displayName ?? firebaseUser.displayName ?? '',
+      provider: 'email',
+      phone: existing?.phone ?? '',
+      location: existing?.location ?? '',
+      aboutMe: existing?.aboutMe ?? '',
+      photoURL: existing?.photoURL ?? '',
+      uid: firebaseUser.uid,
+      memberSince: existing?.memberSince ?? existing?.createdAt ?? now,
+      createdAt: existing?.createdAt ?? now,
+      lastLoginAt: now,
+    })
+
+    const saved = await saveUserRecord(record)
+    return { ok: true, user: toSessionUser(saved) }
+  } catch (error) {
+    if (existing?.provider === 'email' && existing.password === password) {
+      try {
+        const displayName = existing.displayName ?? displayNameFromEmail(normalizedEmail)
+        const firebaseUser = await registerWithEmailPassword({
+          email: normalizedEmail,
+          password,
+          displayName,
+        })
+
+        const now = new Date().toISOString()
+        const record = buildUserRecord({
+          ...existing,
+          email: normalizedEmail,
+          provider: 'email',
+          uid: firebaseUser.uid,
+          lastLoginAt: now,
+        })
+        const saved = await saveUserRecord(record)
+        return { ok: true, user: toSessionUser(saved) }
+      } catch (migrationError) {
+        if (migrationError?.code === 'auth/email-already-in-use') {
+          return {
+            ok: false,
+            error: 'This account needs a password reset. Please contact support.',
+          }
+        }
+        return { ok: false, error: getAuthErrorMessage(migrationError) }
+      }
+    }
+
+    if (!existing) {
+      return { ok: false, error: 'No account found with this email. Please sign up first.' }
+    }
+
+    return { ok: false, error: getAuthErrorMessage(error) }
+  }
+}
+
+export async function upsertEmailFirebaseUser(firebaseUser) {
+  const email = normalizeUserEmail(firebaseUser.email ?? '')
+  if (!email) {
+    throw new Error('Email account did not return an email address.')
   }
 
+  const existing = await getUserByEmail(email)
+  const displayName = firebaseUser.displayName ?? existing?.displayName ?? ''
+  const nameParts = displayName.split(/\s+/).filter(Boolean)
   const now = new Date().toISOString()
-  await patchDocument(COLLECTIONS.users, getUserDocumentId(normalizedEmail), {
+
+  const record = buildUserRecord({
+    email,
+    firstName: existing?.firstName || nameParts[0] || displayNameFromEmail(email),
+    lastName: existing?.lastName || nameParts.slice(1).join(' ') || '',
+    displayName: existing?.displayName || displayName,
+    provider: 'email',
+    phone: existing?.phone ?? '',
+    location: existing?.location ?? '',
+    aboutMe: existing?.aboutMe ?? '',
+    photoURL: existing?.photoURL ?? '',
+    uid: firebaseUser.uid,
+    memberSince: existing?.memberSince ?? existing?.createdAt ?? now,
+    createdAt: existing?.createdAt ?? now,
     lastLoginAt: now,
   })
 
-  return {
-    ok: true,
-    user: toSessionUser({ ...existing, lastLoginAt: now }),
-  }
+  const saved = await saveUserRecord(record)
+  return toSessionUser(saved)
 }
 
 export async function upsertGoogleUser(firebaseUser) {
