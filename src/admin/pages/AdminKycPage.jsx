@@ -233,15 +233,15 @@ function AdminKycPage() {
                         {user.initials}
                         {user.isOnline && <span className="admin-kyc-online-dot" />}
                       </span>
-                      <div>
+                      <div className="admin-kyc-user-info">
                         <strong>
                           {user.displayName}
                           {user.kycStatus === 'approved' && (
                             <BadgeCheck className="admin-kyc-verified-icon" size={14} aria-label="Verified" />
                           )}
                         </strong>
-                        <span>{user.email}</span>
-                        {user.phone && <em>{user.phone}</em>}
+                        <span className="admin-kyc-user-email">{user.email}</span>
+                        {user.phone && <em className="admin-kyc-user-phone">{user.phone}</em>}
                       </div>
                     </div>
                   </td>
@@ -338,9 +338,9 @@ function AdminKycPage() {
               <div className="admin-kyc-card-top">
                 <div className="admin-kyc-user-cell">
                   <span className="admin-kyc-avatar" aria-hidden="true">{user.initials}</span>
-                  <div>
+                  <div className="admin-kyc-user-info">
                     <strong>{user.displayName}</strong>
-                    <span>{user.email}</span>
+                    <span className="admin-kyc-user-email">{user.email}</span>
                   </div>
                 </div>
                 <span className={`admin-kyc-status admin-kyc-status--${user.kycStatus}`}>

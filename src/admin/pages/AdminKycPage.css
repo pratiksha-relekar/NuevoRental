@@ -218,14 +218,20 @@
 .admin-kyc-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: auto;
+}
+
+.admin-kyc-table th:first-child,
+.admin-kyc-table td:first-child {
+  min-width: 240px;
 }
 
 .admin-kyc-table th,
 .admin-kyc-table td {
-  padding: 12px 10px;
+  padding: 14px 12px;
   text-align: left;
   border-bottom: 1px solid #edf1f5;
-  vertical-align: top;
+  vertical-align: middle;
 }
 
 .admin-kyc-table th {
@@ -242,54 +248,69 @@
 
 .admin-kyc-user-cell {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
 }
 
 .admin-kyc-avatar {
   position: relative;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
-  color: #4a90e2;
-  background: rgba(74, 144, 226, 0.12);
-  border-radius: 10px;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: #fff;
+  background: linear-gradient(135deg, #4a90e2 0%, #7b6fd6 100%);
+  border-radius: 50%;
 }
 
 .admin-kyc-online-dot {
   position: absolute;
-  right: -2px;
-  bottom: -2px;
-  width: 9px;
-  height: 9px;
+  right: 0;
+  bottom: 0;
+  width: 10px;
+  height: 10px;
   background: #1f8f55;
   border: 2px solid #fff;
   border-radius: 50%;
 }
 
-.admin-kyc-user-cell strong {
-  display: flex;
+.admin-kyc-user-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.admin-kyc-user-info strong {
+  display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
   color: #1a2744;
 }
 
-.admin-kyc-user-cell span,
-.admin-kyc-user-cell em {
+.admin-kyc-user-email,
+.admin-kyc-user-phone {
   display: block;
+  margin-top: 2px;
   font-size: 12px;
   font-style: normal;
+  line-height: 1.4;
   color: #8a96a8;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .admin-kyc-verified-icon {
   color: #1f8f55;
+  flex-shrink: 0;
 }
 
 .admin-kyc-docs-cell {

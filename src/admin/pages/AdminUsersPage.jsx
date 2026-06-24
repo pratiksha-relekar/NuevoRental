@@ -209,14 +209,14 @@ function AdminUsersPage() {
                         {user.initials}
                         {user.isOnline && <span className="admin-users-online-dot" title="Logged in now" />}
                       </span>
-                      <div>
+                      <div className="admin-users-user-info">
                         <strong>
                           {user.displayName}
                           {user.kycStatus === 'approved' && (
                             <BadgeCheck className="admin-users-verified-icon" size={14} aria-label="KYC verified" />
                           )}
                         </strong>
-                        <span>{user.email}</span>
+                        <span className="admin-users-user-email">{user.email}</span>
                         {user.isOnline && <em className="admin-users-online-label">Active session</em>}
                       </div>
                     </div>

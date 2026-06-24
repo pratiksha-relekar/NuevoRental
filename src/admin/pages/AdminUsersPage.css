@@ -165,6 +165,12 @@
 .admin-users-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: auto;
+}
+
+.admin-users-table th:first-child,
+.admin-users-table td:first-child {
+  min-width: 260px;
 }
 
 .admin-users-table th,
@@ -195,13 +201,13 @@
 .admin-users-user-cell {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   min-width: 240px;
 }
 
 .admin-users-avatar {
   position: relative;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
@@ -209,6 +215,8 @@
   height: 42px;
   font-size: 13px;
   font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
   color: #fff;
   background: linear-gradient(135deg, #4a90e2 0%, #7b6fd6 100%);
   border-radius: 50%;
@@ -225,23 +233,34 @@
   border-radius: 50%;
 }
 
-.admin-users-user-cell strong {
+.admin-users-user-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.admin-users-user-info strong {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
   color: #1a2744;
 }
 
 .admin-users-verified-icon {
   color: #4a90e2;
+  flex-shrink: 0;
 }
 
-.admin-users-user-cell span {
+.admin-users-user-email {
   display: block;
   margin-top: 2px;
   font-size: 12px;
+  line-height: 1.4;
   color: #8a96a8;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .admin-users-online-label {

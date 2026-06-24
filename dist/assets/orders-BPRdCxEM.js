@@ -1,0 +1,1 @@
+import{n as e}from"./orders-CoW6QLO8.js";export{e as deleteUserOrders};
