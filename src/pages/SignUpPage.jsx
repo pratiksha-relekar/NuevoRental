@@ -2,12 +2,26 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import GoogleAuthButton from '../components/GoogleAuthButton'
+import { getFirebaseAuthErrorMessage } from '../backend/firebase/authErrors'
 import '../styles/pageAnimations.css'
 import './AuthPage.css'
 
+const GOOGLE_AUTH_ERROR_KEY = 'nuevo-rental-google-auth-error'
+
+function readStoredGoogleAuthError() {
+  try {
+    const raw = window.localStorage.getItem(GOOGLE_AUTH_ERROR_KEY)
+    if (!raw) return ''
+    const parsed = JSON.parse(raw)
+    return typeof parsed === 'string' ? parsed : ''
+  } catch {
+    return ''
+  }
+}
+
 function SignUpPage() {
   const navigate = useNavigate()
-  const { signUp, loginWithGoogle, isAuthenticated } = useAuth()
+  const { signUp, loginWithGoogle, isAuthenticated, authReady } = useAuth()
   const [form, setForm] = useState({
     firstName: '',
     lastName: '',
@@ -19,10 +33,18 @@ function SignUpPage() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (isAuthenticated) {
+    const storedError = readStoredGoogleAuthError()
+    if (storedError) {
+      setError(storedError)
+      window.localStorage.removeItem(GOOGLE_AUTH_ERROR_KEY)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (authReady && isAuthenticated) {
       navigate('/dashboard', { replace: true })
     }
-  }, [isAuthenticated, navigate])
+  }, [authReady, isAuthenticated, navigate])
 
   const updateField = (field) => (event) => {
     setForm((prev) => ({ ...prev, [field]: event.target.value }))
@@ -68,10 +90,13 @@ function SignUpPage() {
     setError('')
     setLoading(true)
     try {
-      await loginWithGoogle()
+      const result = await loginWithGoogle()
+      if (result?.redirecting) {
+        return
+      }
       navigate('/dashboard')
-    } catch {
-      setError('Google sign-in failed. Please try again.')
+    } catch (err) {
+      setError(getFirebaseAuthErrorMessage(err))
     } finally {
       setLoading(false)
     }

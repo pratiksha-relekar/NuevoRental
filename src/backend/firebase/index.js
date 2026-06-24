@@ -7,6 +7,9 @@ export {
   auth,
   googleProvider,
   onAuthStateChanged,
+  signInWithGoogle,
+  completeGoogleRedirectSignIn,
   signInWithGooglePopup,
   signOutFirebase,
 } from './auth'
+export { getFirebaseAuthErrorMessage, isGoogleRedirectPreferred } from './authErrors'

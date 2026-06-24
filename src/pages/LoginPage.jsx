@@ -2,20 +2,42 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import GoogleAuthButton from '../components/GoogleAuthButton'
+import { getFirebaseAuthErrorMessage } from '../backend/firebase/authErrors'
 import '../styles/pageAnimations.css'
 import './AuthPage.css'
+
+const GOOGLE_AUTH_ERROR_KEY = 'nuevo-rental-google-auth-error'
+
+function readStoredGoogleAuthError() {
+  try {
+    const raw = window.localStorage.getItem(GOOGLE_AUTH_ERROR_KEY)
+    if (!raw) return ''
+    const parsed = JSON.parse(raw)
+    return typeof parsed === 'string' ? parsed : ''
+  } catch {
+    return ''
+  }
+}
 
 function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { login, loginWithGoogle, isAuthenticated } = useAuth()
+  const { login, loginWithGoogle, isAuthenticated, authReady } = useAuth()
   const redirectTo = location.state?.from ?? '/dashboard'
 
   useEffect(() => {
-    if (isAuthenticated) {
+    const storedError = readStoredGoogleAuthError()
+    if (storedError) {
+      setError(storedError)
+      window.localStorage.removeItem(GOOGLE_AUTH_ERROR_KEY)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (authReady && isAuthenticated) {
       navigate(redirectTo, { replace: true })
     }
-  }, [isAuthenticated, navigate, redirectTo])
+  }, [authReady, isAuthenticated, navigate, redirectTo])
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -50,10 +72,13 @@ function LoginPage() {
     setError('')
     setLoading(true)
     try {
-      await loginWithGoogle()
+      const result = await loginWithGoogle()
+      if (result?.redirecting) {
+        return
+      }
       navigate(redirectTo)
-    } catch {
-      setError('Google sign-in failed. Please try again.')
+    } catch (err) {
+      setError(getFirebaseAuthErrorMessage(err))
     } finally {
       setLoading(false)
     }

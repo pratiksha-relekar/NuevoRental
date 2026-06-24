@@ -7,10 +7,12 @@ import {
   useState,
 } from 'react'
 import {
+  completeGoogleRedirectSignIn,
   onAuthStateChanged,
-  signInWithGooglePopup,
+  signInWithGoogle,
   signOutFirebase,
 } from '../backend/firebase/auth'
+import { getFirebaseAuthErrorMessage } from '../backend/firebase/authErrors'
 import {
   loginEmailUser,
   registerEmailUser,
@@ -27,6 +29,7 @@ import {
 
 const AUTH_USER_KEY = SESSION_CACHE_KEYS.AUTH_USER
 const AUTH_USERS_KEY = SESSION_CACHE_KEYS.AUTH_USERS
+const GOOGLE_AUTH_ERROR_KEY = 'nuevo-rental-google-auth-error'
 
 const AuthContext = createContext(null)
 
@@ -82,21 +85,61 @@ export function AuthProvider({ children }) {
   }, [user])
 
   useEffect(() => {
+    let active = true
+
+    async function bootstrapGoogleRedirect() {
+      try {
+        const redirectUser = await completeGoogleRedirectSignIn()
+        if (!active || !redirectUser?.email) return
+
+        const sessionUser = await upsertGoogleUser(redirectUser)
+        if (active) {
+          setUser(sessionUser)
+          saveToStorage(GOOGLE_AUTH_ERROR_KEY, null)
+        }
+      } catch (error) {
+        if (active) {
+          saveToStorage(
+            GOOGLE_AUTH_ERROR_KEY,
+            getFirebaseAuthErrorMessage(error),
+          )
+        }
+      }
+    }
+
+    bootstrapGoogleRedirect()
+
     const unsubscribe = onAuthStateChanged(async (firebaseUser) => {
       if (firebaseUser?.email) {
         try {
           const sessionUser = await upsertGoogleUser(firebaseUser)
-          setUser(sessionUser)
-        } catch {
-          // Keep existing local session if Firestore sync fails.
+          if (active) {
+            setUser(sessionUser)
+            saveToStorage(GOOGLE_AUTH_ERROR_KEY, null)
+          }
+        } catch (error) {
+          if (active) {
+            saveToStorage(
+              GOOGLE_AUTH_ERROR_KEY,
+              getFirebaseAuthErrorMessage(
+                error,
+                'Signed in with Google, but we could not load your account. Please try again.',
+              ),
+            )
+          }
         }
       } else {
         setUser((current) => (current?.provider === 'google' ? null : current))
       }
-      setAuthReady(true)
+      if (active) {
+        setAuthReady(true)
+      }
     })
 
-    return unsubscribe
+    return () => {
+      active = false
+      unsubscribe()
+    }
   }, [])
 
   const login = useCallback(async ({ email, password }) => {
@@ -120,10 +163,15 @@ export function AuthProvider({ children }) {
   }, [])
 
   const loginWithGoogle = useCallback(async () => {
-    const firebaseUser = await signInWithGooglePopup()
-    const sessionUser = await upsertGoogleUser(firebaseUser)
+    const result = await signInWithGoogle()
+    if (result.redirecting) {
+      return { redirecting: true }
+    }
+
+    const sessionUser = await upsertGoogleUser(result.user)
     setUser(sessionUser)
-    return sessionUser
+    saveToStorage(GOOGLE_AUTH_ERROR_KEY, null)
+    return { redirecting: false, user: sessionUser }
   }, [])
 
   const updateProfile = useCallback(async (updates) => {
