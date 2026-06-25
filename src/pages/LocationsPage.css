@@ -111,6 +111,10 @@
   color: #9aa3b2;
 }
 
+.locations-pincode-input.is-error {
+  box-shadow: inset 0 0 0 2px #e57373;
+}
+
 .locations-pincode-btn {
   padding: 12px 22px;
   font-size: 13px;

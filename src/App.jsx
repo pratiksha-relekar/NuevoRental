@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { FirebaseProvider } from './context/FirebaseContext'
 import { AdminAuthProvider } from './context/AdminAuthContext'
 import { CatalogProvider } from './context/CatalogContext'
+import { WeeklyOffersProvider } from './context/WeeklyOffersContext'
 import { AuthProvider } from './context/AuthContext'
 import { CartWishlistProvider } from './context/CartWishlistContext'
 import { KycProvider } from './context/KycContext'
@@ -35,6 +36,7 @@ function App() {
       <AuthProvider>
         <AdminAuthProvider>
         <CatalogProvider>
+        <WeeklyOffersProvider>
         <KycProvider>
         <OrdersProvider>
         <CartWishlistProvider>
@@ -65,6 +67,7 @@ function App() {
         </CartWishlistProvider>
         </OrdersProvider>
         </KycProvider>
+        </WeeklyOffersProvider>
         </CatalogProvider>
         </AdminAuthProvider>
       </AuthProvider>

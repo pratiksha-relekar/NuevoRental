@@ -1,5 +1,5 @@
 import { getCatalogProducts, getCategoryLabelMap } from '../data/catalogStorage'
-import { FEATURED_DEALS } from '../data/featuredDeals'
+import { loadWeeklyOffersDeals } from '../data/weeklyOffersStorage'
 
 const CATEGORY_LABELS = getCategoryLabelMap()
 
@@ -36,7 +36,7 @@ function expandTokens(tokens) {
 }
 
 function getDealHints(productId) {
-  return FEATURED_DEALS
+  return loadWeeklyOffersDeals()
     .filter((deal) => deal.productId === productId)
     .map((deal) => `${deal.title} ${deal.discountPercent}% off`)
     .join(' ')

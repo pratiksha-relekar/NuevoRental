@@ -60,10 +60,12 @@
   padding: 4px 0;
 }
 
-.sidebar--desktop[data-state='collapsed'] .sidebar-brand-logo {
-  width: 32px;
-  height: 32px;
-  font-size: 11px;
+.sidebar--desktop[data-state='collapsed'] .sidebar-brand-logo-image {
+  width: 36px;
+  height: 36px;
+  max-width: 36px;
+  object-fit: cover;
+  object-position: left center;
   border-radius: 8px;
 }
 
@@ -330,18 +332,8 @@
   padding: 6px 8px;
 }
 
-.sidebar-brand-logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
+.sidebar-brand-logo-image {
   flex-shrink: 0;
-  font-size: 13px;
-  font-weight: 800;
-  color: #fff;
-  background: linear-gradient(135deg, #4a90e2 0%, #2b8fe8 100%);
-  border-radius: 10px;
 }
 
 .sidebar-brand-text {

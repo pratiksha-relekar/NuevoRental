@@ -1,24 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { DEAL_FILTERS, FEATURED_DEALS, filterFeaturedDeals } from '../data/featuredDeals'
+import { DEAL_FILTERS, filterFeaturedDeals, getTimeLeft } from '../data/weeklyOffersStorage'
+import { useWeeklyOffers } from '../context/WeeklyOffersContext'
 import GlareHover from './GlareHover'
 import './FeaturedDealsSection.css'
-
-function getCountdownTarget() {
-  const target = new Date()
-  target.setDate(target.getDate() + 3)
-  target.setHours(23, 59, 59, 0)
-  return target
-}
-
-function getTimeLeft(target) {
-  const diff = Math.max(0, target.getTime() - Date.now())
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24)
-  const minutes = Math.floor((diff / (1000 * 60)) % 60)
-  const seconds = Math.floor((diff / 1000) % 60)
-  return { days, hours, minutes, seconds }
-}
 
 function pad(value) {
   return String(value).padStart(2, '0')
@@ -114,19 +99,20 @@ function DealCard({ deal }) {
 }
 
 function FeaturedDealsSection() {
+  const { deals, config } = useWeeklyOffers()
   const [activeFilter, setActiveFilter] = useState('all')
-  const [timeLeft, setTimeLeft] = useState(() => getTimeLeft(getCountdownTarget()))
+  const [timeLeft, setTimeLeft] = useState(() => getTimeLeft(config.endsAt))
   const scrollRef = useRef(null)
-  const countdownRef = useRef(getCountdownTarget())
+  const countdownEndsAt = config.endsAt
 
-  const filteredDeals = filterFeaturedDeals(FEATURED_DEALS, activeFilter)
+  const filteredDeals = filterFeaturedDeals(deals, activeFilter)
 
   useEffect(() => {
-    const tick = () => setTimeLeft(getTimeLeft(countdownRef.current))
+    const tick = () => setTimeLeft(getTimeLeft(countdownEndsAt))
     tick()
     const id = window.setInterval(tick, 1000)
     return () => window.clearInterval(id)
-  }, [])
+  }, [countdownEndsAt])
 
   const scroll = (direction) => {
     scrollRef.current?.scrollBy({ left: direction * 300, behavior: 'smooth' })
@@ -138,9 +124,9 @@ function FeaturedDealsSection() {
         <div className="featured-deals-header">
           <div className="featured-deals-title-wrap">
             <h2 id="featured-deals-heading" className="featured-deals-title">
-              Weekly Best Deals
+              {config.sectionTitle || 'Weekly Best Deals'}
             </h2>
-            <Link to="/pricing" className="featured-deals-view-all">
+            <Link to={config.viewAllPath || '/pricing'} className="featured-deals-view-all">
               View all offers →
             </Link>
           </div>

@@ -16,6 +16,7 @@ import {
 export const DEAL_FILTERS = [
   { id: 'all', label: 'All Deals' },
   { id: '40', label: '40% Off' },
+  { id: '10', label: '10% Off' },
   { id: '20', label: '20% Off' },
   { id: 'laptops', label: 'Laptops' },
   { id: 'desktops', label: 'Desktops' },
@@ -190,6 +191,8 @@ export function filterFeaturedDeals(deals, filterId) {
   switch (filterId) {
     case '40':
       return deals.filter((d) => d.discountPercent === 40)
+    case '10':
+      return deals.filter((d) => d.discountPercent === 10)
     case '20':
       return deals.filter((d) => d.discountPercent === 20)
     case 'laptops':
@@ -203,16 +206,12 @@ export function filterFeaturedDeals(deals, filterId) {
   }
 }
 
-export function getDealById(dealId) {
-  return FEATURED_DEALS.find((deal) => deal.id === dealId) ?? null
-}
-
-export function getBestDealForProduct(productId) {
-  return FEATURED_DEALS
-    .filter((deal) => deal.productId === Number(productId) && deal.inStock)
-    .sort((a, b) => b.discountPercent - a.discountPercent)[0] ?? null
-}
-
-export function getDealsForProduct(productId) {
-  return FEATURED_DEALS.filter((deal) => deal.productId === Number(productId))
-}
+export {
+  getDealById,
+  getBestDealForProduct,
+  getDealsForProduct,
+  loadWeeklyOffersDeals,
+  getWeeklyOffersConfig,
+  getWeeklyOffersCountdownEndsAt,
+  getTimeLeft,
+} from './weeklyOffersStorage'

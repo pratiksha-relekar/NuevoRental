@@ -22,4 +22,5 @@ export const USER_SUBCOLLECTIONS = {
   kyc: 'kyc',
   kycReviews: 'kyc-reviews',
   support: 'support',
+  weeklyOffers: 'weekly-offers',
 }

@@ -84,6 +84,10 @@ export async function compressDataUrl(dataUrl, maxWidth = 720, quality = 0.72) {
   return canvas.toDataURL('image/jpeg', quality)
 }
 
+export async function compressFileToWeeklyOfferDataUrl(file) {
+  return compressFileToKycDataUrl(file)
+}
+
 export async function compressFileToKycDataUrl(file) {
   if (file.type === 'application/pdf') {
     if (file.size > MAX_KYC_PDF_BYTES) {
@@ -238,6 +242,16 @@ export async function uploadProductCatalogImage(productId, source, { kind = 'pri
   const suffix = kind === 'gallery' ? `gallery-${index}` : 'primary'
   const fileLabel = buildFileName(suffix, blob.type)
   const storagePath = `catalog/products/${productSegment}/${fileLabel}`
+
+  return uploadBlobToStorage(storagePath, blob, blob.type || 'image/jpeg')
+}
+
+export async function uploadWeeklyOfferImage(offerId, source, { kind = 'primary', index = 0 } = {}) {
+  const offerSegment = sanitizeStorageSegment(offerId)
+  const blob = await toUploadBlob(source)
+  const suffix = kind === 'gallery' ? `gallery-${index}` : 'primary'
+  const fileLabel = buildFileName(suffix, blob.type)
+  const storagePath = `catalog/weekly-offers/${offerSegment}/${fileLabel}`
 
   return uploadBlobToStorage(storagePath, blob, blob.type || 'image/jpeg')
 }

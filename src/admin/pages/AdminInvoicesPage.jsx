@@ -47,9 +47,8 @@ function AdminInvoicesPage() {
   const [sortBy, setSortBy] = useState('newest')
   const [pageSize, setPageSize] = useState(15)
   const [page, setPage] = useState(1)
-  const [selectedIds, setSelectedIds] = useState([])
   const [selectedInvoice, setSelectedInvoice] = useState(null)
-  const [openMenuId, setOpenMenuId] = useState(null)
+  const [actionMenu, setActionMenu] = useState(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [pdfInvoice, setPdfInvoice] = useState(null)
   const [isPdfDownloading, setIsPdfDownloading] = useState(false)
@@ -145,8 +144,27 @@ function AdminInvoicesPage() {
   }, [pdfInvoice])
 
   const handleQuickDownload = (invoice) => {
-    setOpenMenuId(null)
+    setActionMenu(null)
     setPdfInvoice(invoice)
+  }
+
+  const handleOpenActionMenu = (invoice, event) => {
+    event.stopPropagation()
+
+    if (actionMenu?.invoice.id === invoice.id) {
+      setActionMenu(null)
+      return
+    }
+
+    const rect = event.currentTarget.getBoundingClientRect()
+    const menuHeight = 92
+    const openUp = rect.bottom + menuHeight > window.innerHeight - 16
+
+    setActionMenu({
+      invoice,
+      top: openUp ? rect.top - menuHeight - 8 : rect.bottom + 8,
+      left: Math.max(16, rect.right - 188),
+    })
   }
 
   useEffect(() => {
@@ -154,33 +172,28 @@ function AdminInvoicesPage() {
   }, [search, activeTab, sortBy, pageSize])
 
   useEffect(() => {
-    if (!openMenuId) return undefined
+    if (!actionMenu) return undefined
 
     const handlePointerDown = (event) => {
-      if (!event.target.closest('.admin-invoices-action-wrap')) {
-        setOpenMenuId(null)
+      if (
+        !event.target.closest('.admin-invoices-action-menu')
+        && !event.target.closest('.admin-invoices-action-btn')
+      ) {
+        setActionMenu(null)
       }
     }
 
-    document.addEventListener('pointerdown', handlePointerDown)
-    return () => document.removeEventListener('pointerdown', handlePointerDown)
-  }, [openMenuId])
-
-  const toggleSelectAll = () => {
-    if (selectedIds.length === paginatedInvoices.length) {
-      setSelectedIds([])
-      return
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') setActionMenu(null)
     }
-    setSelectedIds(paginatedInvoices.map((invoice) => invoice.id))
-  }
 
-  const toggleSelect = (invoiceId) => {
-    setSelectedIds((current) =>
-      current.includes(invoiceId)
-        ? current.filter((id) => id !== invoiceId)
-        : [...current, invoiceId],
-    )
-  }
+    document.addEventListener('pointerdown', handlePointerDown)
+    document.addEventListener('keydown', handleEscape)
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown)
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [actionMenu])
 
   const handleRefresh = async () => {
     setIsRefreshing(true)
@@ -285,14 +298,6 @@ function AdminInvoicesPage() {
           <table className="admin-invoices-table">
             <thead>
               <tr>
-                <th scope="col" className="admin-invoices-col-check">
-                  <input
-                    type="checkbox"
-                    aria-label="Select all invoices on this page"
-                    checked={paginatedInvoices.length > 0 && selectedIds.length === paginatedInvoices.length}
-                    onChange={toggleSelectAll}
-                  />
-                </th>
                 <th scope="col">Invoice</th>
                 <th scope="col">Client / Customer</th>
                 <th scope="col">Total Amount</th>
@@ -304,25 +309,21 @@ function AdminInvoicesPage() {
               </tr>
             </thead>
             <tbody>
-              {paginatedInvoices.map((invoice, index) => {
-                const isLastRow = index === paginatedInvoices.length - 1
-                const isMenuOpen = openMenuId === invoice.id
-
-                return (
-                <tr key={invoice.id} className={isMenuOpen && isLastRow ? 'has-open-menu' : ''}>
-                  <td className="admin-invoices-col-check">
-                    <input
-                      type="checkbox"
-                      aria-label={`Select ${invoice.id}`}
-                      checked={selectedIds.includes(invoice.id)}
-                      onChange={() => toggleSelect(invoice.id)}
-                    />
-                  </td>
+              {paginatedInvoices.map((invoice) => (
+                <tr key={invoice.id}>
                   <td>
-                    <div className="admin-invoices-cell-invoice">
-                      <strong>{invoice.id}</strong>
-                      <span>Created on: {invoice.createdLabel}</span>
-                    </div>
+                    <button
+                      type="button"
+                      className="admin-invoices-invoice-link"
+                      onClick={() => handleQuickDownload(invoice)}
+                      disabled={isPdfDownloading && pdfInvoice?.id === invoice.id}
+                      aria-label={`Open PDF for ${invoice.id}`}
+                    >
+                      <div className="admin-invoices-cell-invoice">
+                        <strong>{invoice.id}</strong>
+                        <span>Created on: {invoice.createdLabel}</span>
+                      </div>
+                    </button>
                   </td>
                   <td>
                     <div className="admin-invoices-cell-client">
@@ -345,39 +346,15 @@ function AdminInvoicesPage() {
                         type="button"
                         className="admin-invoices-action-btn"
                         aria-label={`Actions for ${invoice.id}`}
-                        onClick={() => setOpenMenuId((current) => (current === invoice.id ? null : invoice.id))}
+                        aria-expanded={actionMenu?.invoice.id === invoice.id}
+                        onClick={(event) => handleOpenActionMenu(invoice, event)}
                       >
                         <MoreVertical size={16} />
                       </button>
-                      {isMenuOpen && (
-                        <div
-                          className={`admin-invoices-action-menu${isLastRow ? ' is-up' : ''}`}
-                        >
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedInvoice(invoice)
-                              setOpenMenuId(null)
-                            }}
-                          >
-                            <Eye size={14} aria-hidden="true" />
-                            View invoice
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleQuickDownload(invoice)}
-                            disabled={isPdfDownloading}
-                          >
-                            <FileText size={14} aria-hidden="true" />
-                            {isPdfDownloading && pdfInvoice?.id === invoice.id ? 'Downloading…' : 'Download PDF'}
-                          </button>
-                        </div>
-                      )}
                     </div>
                   </td>
                 </tr>
-                )
-              })}
+              ))}
             </tbody>
           </table>
 
@@ -435,6 +412,35 @@ function AdminInvoicesPage() {
       </section>
 
       <InvoiceDetailModal invoice={selectedInvoice} onClose={() => setSelectedInvoice(null)} />
+
+      {actionMenu && (
+        <div
+          className="admin-invoices-action-menu"
+          style={{ top: `${actionMenu.top}px`, left: `${actionMenu.left}px` }}
+          role="menu"
+        >
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              setSelectedInvoice(actionMenu.invoice)
+              setActionMenu(null)
+            }}
+          >
+            <Eye size={14} aria-hidden="true" />
+            View invoice
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => handleQuickDownload(actionMenu.invoice)}
+            disabled={isPdfDownloading}
+          >
+            <FileText size={14} aria-hidden="true" />
+            {isPdfDownloading && pdfInvoice?.id === actionMenu.invoice.id ? 'Downloading…' : 'Download PDF'}
+          </button>
+        </div>
+      )}
 
       {pdfInvoice && (
         <div className="admin-invoices-pdf-render" aria-hidden="true">

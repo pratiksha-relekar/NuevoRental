@@ -18,6 +18,10 @@
   max-width: 320px;
 }
 
+.site-footer-logo-image {
+  margin-bottom: 12px;
+}
+
 .site-footer-logo {
   display: inline-block;
   margin-bottom: 12px;

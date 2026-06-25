@@ -215,17 +215,34 @@
 
 .admin-invoices-table-wrap {
   overflow-x: auto;
-  overflow-y: visible;
-  padding-bottom: 4px;
+  padding-bottom: 8px;
 }
 
-.admin-invoices-table tbody tr.has-open-menu td {
-  position: relative;
-  z-index: 2;
+.admin-invoices-invoice-link {
+  display: block;
+  width: 100%;
+  padding: 0;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
 
-.admin-invoices-table tbody tr:last-child td {
-  border-bottom: none;
+.admin-invoices-invoice-link:hover:not(:disabled) {
+  background: rgba(74, 144, 226, 0.08);
+}
+
+.admin-invoices-invoice-link:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.admin-invoices-invoice-link .admin-invoices-cell-invoice strong {
+  color: #2b8fe8;
 }
 
 .admin-invoices-table {
@@ -252,10 +269,6 @@
 
 .admin-invoices-table tbody tr:hover {
   background: #fbfcfe;
-}
-
-.admin-invoices-col-check {
-  width: 44px;
 }
 
 .admin-invoices-col-action {
@@ -322,10 +335,8 @@
 }
 
 .admin-invoices-action-wrap {
-  position: relative;
   display: inline-flex;
   justify-content: flex-end;
-  z-index: 3;
 }
 
 .admin-invoices-action-btn {
@@ -342,21 +353,14 @@
 }
 
 .admin-invoices-action-menu {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  z-index: 40;
-  min-width: 180px;
+  position: fixed;
+  z-index: 1200;
+  min-width: 188px;
   padding: 6px;
   background: #fff;
   border: 1px solid #e8edf2;
   border-radius: 12px;
-  box-shadow: 0 12px 28px rgba(26, 39, 68, 0.12);
-}
-
-.admin-invoices-action-menu.is-up {
-  top: auto;
-  bottom: calc(100% + 6px);
+  box-shadow: 0 16px 36px rgba(26, 39, 68, 0.16);
 }
 
 .admin-invoices-action-menu button {

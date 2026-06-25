@@ -1,22 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAdminAuth } from '../../context/AdminAuthContext'
+import BrandLogo from '../../components/BrandLogo'
 import '../../styles/pageAnimations.css'
 import './AdminAuthPage.css'
-
-function ShieldIcon() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M12 3l7 4v6c0 4.5-3.2 8.2-7 9-3.8-.8-7-4.5-7-9V7l7-4z"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
-      <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
 
 function AdminLoginPage() {
   const navigate = useNavigate()
@@ -53,10 +40,7 @@ function AdminLoginPage() {
     <section className="admin-auth-page" aria-labelledby="admin-login-heading">
       <div className="admin-auth-shell">
         <div className="admin-auth-brand">
-          <span className="admin-auth-brand-icon" aria-hidden="true">
-            <ShieldIcon />
-          </span>
-          <h1>Nuevo Rental</h1>
+          <BrandLogo variant="admin-auth" to="/" />
           <p>Admin Control Panel</p>
         </div>
 

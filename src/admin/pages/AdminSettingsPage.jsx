@@ -13,6 +13,7 @@ import {
   User,
 } from 'lucide-react'
 import { useAdminAuth } from '../../context/AdminAuthContext'
+import BrandLogo from '../../components/BrandLogo'
 import {
   DEFAULT_ADMIN_SETTINGS,
   formatAdminRole,
@@ -199,7 +200,7 @@ function AdminSettingsPage() {
               </span>
             </div>
           </div>
-          <span className="admin-settings-brand-logo" aria-hidden="true">NR</span>
+          <BrandLogo variant="settings" asLink={false} className="admin-settings-brand-logo-image" />
         </div>
 
         {profileMessage && <p className="admin-settings-success">{profileMessage}</p>}

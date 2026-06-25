@@ -124,19 +124,8 @@
   border-radius: 999px;
 }
 
-.admin-settings-brand-logo {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 52px;
-  height: 52px;
-  font-size: 16px;
-  font-weight: 800;
-  color: #4a90e2;
-  background: #fff;
-  border: 1px solid #e8edf2;
-  border-radius: 14px;
-  box-shadow: 0 6px 16px rgba(26, 39, 68, 0.06);
+.admin-settings-brand-logo-image {
+  flex-shrink: 0;
 }
 
 .admin-settings-details-grid {

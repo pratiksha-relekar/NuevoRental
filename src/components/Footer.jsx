@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import BrandLogo from './BrandLogo'
 import './Footer.css'
 
 const FOOTER_LINKS = [
@@ -7,8 +8,8 @@ const FOOTER_LINKS = [
   { label: 'Corporate Rentals', to: '/corporate' },
   { label: 'Locations', to: '/locations' },
   { label: 'Support', to: '/support' },
-  { label: 'Terms & Conditions', to: '/#terms', isHash: true },
-  { label: 'Privacy Policy', to: '/#privacy', isHash: true },
+  { label: 'Contact Us', to: '/contact' },
+  { label: 'Pricing', to: '/pricing' },
 ]
 
 function Footer() {
@@ -18,9 +19,7 @@ function Footer() {
     <footer className="site-footer" aria-label="Site footer">
       <div className="site-footer-inner">
         <div className="site-footer-brand">
-          <Link to="/" className="site-footer-logo" aria-label="Nuevo Rental home">
-            NUEVO RENTAL
-          </Link>
+          <BrandLogo variant="footer" className="site-footer-logo-image" />
           <p className="site-footer-tagline">
             Trusted IT &amp; electronics rental across India&apos;s major metro cities.
           </p>
@@ -30,15 +29,9 @@ function Footer() {
           <ul className="site-footer-links">
             {FOOTER_LINKS.map((link) => (
               <li key={link.label}>
-                {link.isHash ? (
-                  <a href={link.to} className="site-footer-link">
-                    {link.label}
-                  </a>
-                ) : (
-                  <Link to={link.to} className="site-footer-link">
-                    {link.label}
-                  </Link>
-                )}
+                <Link to={link.to} className="site-footer-link">
+                  {link.label}
+                </Link>
               </li>
             ))}
           </ul>

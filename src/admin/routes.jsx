@@ -8,6 +8,7 @@ import AdminOrdersPage from './pages/AdminOrdersPage'
 import AdminInvoicesPage from './pages/AdminInvoicesPage'
 import AdminKycPage from './pages/AdminKycPage'
 import AdminContentPage from './pages/AdminContentPage'
+import AdminWeeklyOffersPage from './pages/AdminWeeklyOffersPage'
 import AdminSupportPage from './pages/AdminSupportPage'
 import AdminSettingsPage from './pages/AdminSettingsPage'
 
@@ -23,6 +24,7 @@ export const adminRoutes = (
       <Route path="invoices" element={<AdminInvoicesPage />} />
       <Route path="kyc" element={<AdminKycPage />} />
       <Route path="content" element={<AdminContentPage />} />
+      <Route path="weekly-offers" element={<AdminWeeklyOffersPage />} />
       <Route path="support" element={<AdminSupportPage />} />
       <Route path="settings" element={<AdminSettingsPage />} />
     </Route>

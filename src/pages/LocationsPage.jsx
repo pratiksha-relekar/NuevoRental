@@ -1,18 +1,7 @@
 import { useState } from 'react'
+import { checkPincodeAvailability, SERVICEABLE_CITIES } from '../data/serviceablePincodes'
 import '../styles/pageAnimations.css'
 import './LocationsPage.css'
-
-const ACTIVE_CITIES = [
-  'Pune',
-  'Mumbai',
-  'Delhi NCR',
-  'Bengaluru',
-  'Hyderabad',
-  'Chennai',
-  'Kolkata',
-  'Ahmedabad',
-  'Jaipur',
-]
 
 function LocationsPage() {
   const [pinCode, setPinCode] = useState('')
@@ -20,16 +9,12 @@ function LocationsPage() {
 
   const handleCheck = (event) => {
     event.preventDefault()
-    const cleaned = pinCode.trim()
-
-    if (!/^\d{6}$/.test(cleaned)) {
-      setStatus({ type: 'error', message: 'Please enter a valid 6-digit pin code.' })
-      return
-    }
+    const result = checkPincodeAvailability(pinCode)
 
     setStatus({
-      type: 'success',
-      message: 'Great news! We deliver to your area. Contact us to confirm availability.',
+      type: result.available ? 'success' : 'error',
+      message: result.message,
+      city: result.city,
     })
   }
 
@@ -50,7 +35,7 @@ function LocationsPage() {
           <div className="locations-cities page-animate-item">
             <h2 className="locations-subtitle">Active Cities</h2>
             <ul className="locations-city-list">
-              {ACTIVE_CITIES.map((city) => (
+              {SERVICEABLE_CITIES.map((city) => (
                 <li key={city}>
                   <span className="locations-city-check" aria-hidden="true">✓</span>
                   {city}
@@ -63,7 +48,7 @@ function LocationsPage() {
             <h2 className="locations-subtitle">Check Availability</h2>
             <p className="locations-pincode-text">Enter your pin code to check availability.</p>
 
-            <form className="locations-pincode-form" onSubmit={handleCheck}>
+            <form className="locations-pincode-form" onSubmit={handleCheck} noValidate>
               <input
                 type="text"
                 inputMode="numeric"
@@ -74,8 +59,10 @@ function LocationsPage() {
                   setStatus(null)
                 }}
                 placeholder="Enter pin code"
-                className="locations-pincode-input"
+                className={`locations-pincode-input${status?.type === 'error' ? ' is-error' : ''}`}
                 aria-label="Enter your pin code"
+                aria-invalid={status?.type === 'error' ? 'true' : 'false'}
+                aria-describedby={status ? 'pincode-status' : undefined}
               />
               <button type="submit" className="locations-pincode-btn">
                 Check
@@ -83,7 +70,12 @@ function LocationsPage() {
             </form>
 
             {status && (
-              <p className={`locations-pincode-status locations-pincode-status--${status.type}`}>
+              <p
+                id="pincode-status"
+                className={`locations-pincode-status locations-pincode-status--${status.type}`}
+                role={status.type === 'error' ? 'alert' : 'status'}
+                aria-live="polite"
+              >
                 {status.message}
               </p>
             )}

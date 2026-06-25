@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   LogOut,
   Package,
+  Percent,
   Settings,
   ShieldCheck,
   ShoppingBag,
@@ -15,12 +16,14 @@ import {
 } from 'lucide-react'
 import { useAdminAuth } from '../../context/AdminAuthContext'
 import { useCatalog } from '../../context/CatalogContext'
+import { useWeeklyOffers } from '../../context/WeeklyOffersContext'
 import { getPendingKycReviewCount, fetchPendingKycReviewCount } from '../../data/kycStorage'
 import { fetchOpenSupportCount, getOpenSupportCount } from '../../data/supportStorage'
 import { fetchAdminUsers } from '../../data/userStorage'
 import { loadAdminOrders } from '../../data/orderStorage'
 import { loadAdminInvoices } from '../../data/invoiceStorage'
 import { cn } from '../../lib/utils'
+import BrandLogo from '../../components/BrandLogo'
 import {
   Sidebar,
   SidebarContent,
@@ -54,6 +57,7 @@ function getInitials(name) {
 export function AppSidebar({ onLogout }) {
   const { admin } = useAdminAuth()
   const { products } = useCatalog()
+  const { deals: weeklyOffers } = useWeeklyOffers()
   const { setOpenMobile, isMobile } = useSidebar()
   const [stats, setStats] = useState({
     products: products.length,
@@ -110,7 +114,7 @@ export function AppSidebar({ onLogout }) {
     <Sidebar collapsible="icon" variant="sidebar">
       <SidebarHeader>
         <div className="sidebar-brand">
-          <span className="sidebar-brand-logo" aria-hidden="true">NR</span>
+          <BrandLogo variant="sidebar" to="/admin/dashboard" className="sidebar-brand-logo-image" />
           <div className="sidebar-brand-text">
             <strong>Nuevo Admin</strong>
             <span>Control Panel</span>
@@ -225,6 +229,19 @@ export function AppSidebar({ onLogout }) {
                   <Globe />
                   <span>Content</span>
                 </NavLink>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <NavLink
+                  to="/admin/weekly-offers"
+                  title="Weekly Offers"
+                  onClick={closeMobile}
+                  className={({ isActive }) => cn('sidebar-menu-button', isActive && 'is-active')}
+                >
+                  <Percent />
+                  <span>Weekly Offers</span>
+                </NavLink>
+                <SidebarMenuBadge>{weeklyOffers.length}</SidebarMenuBadge>
               </SidebarMenuItem>
 
               <SidebarMenuItem>

@@ -1,0 +1,1 @@
+import{n as e}from"./orders-CPJFTyTy.js";export{e as deleteUserOrders};

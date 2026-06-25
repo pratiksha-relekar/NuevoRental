@@ -1,4 +1,5 @@
 import { forwardRef } from 'react'
+import BrandLogo from '../BrandLogo'
 import { formatINR } from '../../utils/cartSummary'
 import { INVOICE_STATUS_LABELS } from '../../data/invoiceStorage'
 import './InvoiceDocument.css'
@@ -26,11 +27,7 @@ export const InvoiceDocument = forwardRef(function InvoiceDocument({ invoice }, 
     <article ref={ref} className="rental-invoice-doc" aria-label={`Invoice ${invoice.id}`}>
       <header className="rental-invoice-doc__header">
         <div className="rental-invoice-doc__brand">
-          <span className="rental-invoice-doc__logo" aria-hidden="true">NR</span>
-          <div>
-            <strong>{invoice.from?.name ?? 'Nuevo Rental'}</strong>
-            <span>IT Equipment Rental</span>
-          </div>
+          <BrandLogo variant="invoice" asLink={false} />
         </div>
 
         <div className="rental-invoice-doc__title-block">
