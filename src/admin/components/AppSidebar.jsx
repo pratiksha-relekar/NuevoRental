@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import {
   ExternalLink,
+  FileText,
   Globe,
   Headphones,
   LayoutDashboard,
@@ -18,6 +19,7 @@ import { getPendingKycReviewCount, fetchPendingKycReviewCount } from '../../data
 import { fetchOpenSupportCount, getOpenSupportCount } from '../../data/supportStorage'
 import { fetchAdminUsers } from '../../data/userStorage'
 import { loadAdminOrders } from '../../data/orderStorage'
+import { loadAdminInvoices } from '../../data/invoiceStorage'
 import { cn } from '../../lib/utils'
 import {
   Sidebar,
@@ -57,6 +59,7 @@ export function AppSidebar({ onLogout }) {
     products: products.length,
     users: 0,
     orders: 0,
+    invoices: 0,
     kyc: getPendingKycReviewCount(),
     support: loadSupportCount(),
   })
@@ -77,6 +80,7 @@ export function AppSidebar({ onLogout }) {
           products: products.length,
           users: users.length,
           orders: orders.length,
+          invoices: loadAdminInvoices().length,
           kyc: await fetchPendingKycReviewCount(),
           support: await fetchOpenSupportCount(),
         })
@@ -176,6 +180,19 @@ export function AppSidebar({ onLogout }) {
                   <span>Orders</span>
                 </NavLink>
                 <SidebarMenuBadge>{stats.orders}</SidebarMenuBadge>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <NavLink
+                  to="/admin/invoices"
+                  title="Invoices"
+                  onClick={closeMobile}
+                  className={({ isActive }) => cn('sidebar-menu-button', isActive && 'is-active')}
+                >
+                  <FileText />
+                  <span>Invoices</span>
+                </NavLink>
+                <SidebarMenuBadge>{stats.invoices}</SidebarMenuBadge>
               </SidebarMenuItem>
 
               <SidebarMenuItem>

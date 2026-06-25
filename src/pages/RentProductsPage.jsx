@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { ProductCard } from '../components/RentalProducts'
 import { useCatalog } from '../context/CatalogContext'
+import { getProductPlanPricing, RENTAL_DURATION_FILTERS } from '../data/projectPlans'
 import '../styles/pageAnimations.css'
 import '../components/RentalProducts.css'
 import './RentProductsPage.css'
@@ -28,11 +29,7 @@ const CITIES = [
   'Jaipur',
 ]
 
-const DURATIONS = [
-  { label: 'All Durations', value: 'all' },
-  { label: 'Daily', value: 'day' },
-  { label: 'Monthly', value: 'month' },
-]
+const DURATIONS = RENTAL_DURATION_FILTERS
 
 const PRICE_RANGES = [
   { label: 'All Prices', value: 'all', min: 0, max: Infinity },
@@ -77,8 +74,10 @@ function RentProductsPage() {
     return products.filter((product) => {
       if (product.status === 'inactive' || product.status === 'draft') return false
       if (filters.category !== 'all' && product.category !== filters.category) return false
-      if (filters.duration !== 'all' && product.period !== filters.duration) return false
-      if (product.rentalPrice < priceRange.min || product.rentalPrice > priceRange.max) return false
+
+      const planPricing = getProductPlanPricing(product, filters.duration)
+      if (planPricing.price < priceRange.min || planPricing.price > priceRange.max) return false
+
       if (filters.brand !== 'All Brands' && !product.title.includes(filters.brand)) return false
       if (filters.specs !== 'All Specs' && !product.title.includes(filters.specs)) return false
       return true
@@ -219,12 +218,19 @@ function RentProductsPage() {
             <p className="rent-products-count page-animate-item">
               Showing <strong>{filteredProducts.length}</strong> devices
               {filters.city !== 'All Cities' ? ` in ${filters.city}` : ''}
+              {filters.duration !== 'all'
+                ? ` · ${DURATIONS.find((item) => item.value === filters.duration)?.label ?? filters.duration} plans`
+                : ''}
             </p>
 
             <div className="rent-products-grid-page">
               {filteredProducts.length > 0 ? (
                 filteredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    durationFilter={filters.duration}
+                  />
                 ))
               ) : (
                 <div className="rent-products-empty page-animate-item">

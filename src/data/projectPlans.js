@@ -103,3 +103,40 @@ export function getRentalDurationPlans(product) {
 export function getProjectPlanLabel(period) {
   return PROJECT_PLAN_OPTIONS.find((option) => option.value === period)?.label ?? period
 }
+
+export const RENTAL_DURATION_FILTERS = [
+  { label: 'All Durations', value: 'all', planId: null },
+  ...PROJECT_PLAN_OPTIONS.map((option) => ({
+    label: option.label.replace(' plan', ''),
+    value: option.value,
+    planId: option.id,
+  })),
+]
+
+export function getProductPlanPricing(product, durationValue = 'all') {
+  const fallback = {
+    price: Number(product?.rentalPrice) || 0,
+    period: product?.period || 'month',
+    durationPlanId: getDefaultProjectPlanId(product),
+  }
+
+  if (!product || !durationValue || durationValue === 'all') {
+    return fallback
+  }
+
+  const planId = DEFAULT_PLAN_ID_BY_PERIOD[durationValue]
+  if (!planId) {
+    return fallback
+  }
+
+  const plan = getRentalDurationPlans(product).find((item) => item.id === planId)
+  if (!plan) {
+    return fallback
+  }
+
+  return {
+    price: plan.price,
+    period: durationValue,
+    durationPlanId: plan.id,
+  }
+}

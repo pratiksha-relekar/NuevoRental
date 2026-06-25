@@ -66,7 +66,6 @@ function CheckoutPage() {
   const [locationMessage, setLocationMessage] = useState('')
   const [error, setError] = useState('')
   const [isPlacing, setIsPlacing] = useState(false)
-  const [orderPlaced, setOrderPlaced] = useState(null)
 
   const summary = useMemo(
     () => computeCartSummary(cartItems, cartTotal),
@@ -78,10 +77,10 @@ function CheckoutPage() {
       navigate('/login', { replace: true, state: { from: '/checkout' } })
       return
     }
-    if (cartItems.length === 0 && !orderPlaced) {
+    if (cartItems.length === 0) {
       navigate('/cart', { replace: true })
     }
-  }, [isAuthenticated, cartItems.length, navigate, orderPlaced])
+  }, [isAuthenticated, cartItems.length, navigate])
 
   useEffect(() => {
     if (user) {
@@ -192,7 +191,7 @@ function CheckoutPage() {
 
       if (order) {
         await clearCart()
-        setOrderPlaced(order)
+        navigate('/orders', { replace: true, state: { orderPlaced: order } })
       } else {
         setError('Unable to place order. Please sign in and try again.')
       }
@@ -204,56 +203,6 @@ function CheckoutPage() {
   }
 
   if (!user) return null
-
-  if (orderPlaced) {
-    return (
-      <section className="checkout-page" aria-labelledby="checkout-success-heading">
-        <div className="checkout-page-inner checkout-page-inner--narrow">
-          <div className="checkout-success-card page-animate-item">
-            <div className="checkout-success-icon" aria-hidden="true">
-              <Package size={40} />
-            </div>
-            <h1 id="checkout-success-heading">Order Placed Successfully!</h1>
-            <p>
-              Thank you, {user.displayName}. Your rental order <strong>{orderPlaced.id}</strong>{' '}
-              {orderPlaced.awaitingKyc
-                ? 'is saved and will be confirmed once admin approves your KYC verification.'
-                : 'has been confirmed.'}
-            </p>
-            <dl className="checkout-success-details">
-              <div>
-                <dt>Delivery to</dt>
-                <dd>
-                  {orderPlaced.delivery.fullName}, {orderPlaced.delivery.addressLine1},{' '}
-                  {orderPlaced.delivery.city} – {orderPlaced.delivery.pincode}
-                </dd>
-              </div>
-              <div>
-                <dt>Estimated delivery</dt>
-                <dd>{orderPlaced.estimatedDelivery}</dd>
-              </div>
-              <div>
-                <dt>Amount paid</dt>
-                <dd>{formatINR(orderPlaced.summary.payAmount)}</dd>
-              </div>
-            </dl>
-            <div className="checkout-success-actions">
-              <Link
-                to="/dashboard"
-                state={{ activeView: 'orders' }}
-                className="checkout-btn checkout-btn--primary"
-              >
-                View My Orders
-              </Link>
-              <Link to="/rent-products" className="checkout-btn checkout-btn--ghost">
-                Continue Shopping
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-    )
-  }
 
   return (
     <section className="checkout-page" aria-labelledby="checkout-heading">

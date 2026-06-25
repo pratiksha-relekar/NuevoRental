@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import {
   ChevronDown,
@@ -131,6 +131,7 @@ function ProductCarousel({ title, products, viewMoreHref = '/rent-products' }) {
 
 function ProductDetailPage() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const dealId = searchParams.get('deal')
   const product = useMemo(() => getProductById(id, dealId), [id, dealId])
@@ -144,7 +145,6 @@ function ProductDetailPage() {
   const [showDurationModal, setShowDurationModal] = useState(false)
   const [activeTab, setActiveTab] = useState('description')
   const [showScrollTop, setShowScrollTop] = useState(false)
-  const [cartPulse, setCartPulse] = useState(false)
   const [galleryPaused, setGalleryPaused] = useState(false)
   const galleryPauseTimer = useRef(null)
 
@@ -229,15 +229,14 @@ function ProductDetailPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const handleAddToCart = () => {
-    addToCart(product, {
+  const handleAddToCart = async () => {
+    await addToCart(product, {
       quantity,
       durationPlanId: selectedPlanId,
       durationPlan: selectedPlan,
       unitPrice,
     })
-    setCartPulse(true)
-    window.setTimeout(() => setCartPulse(false), 600)
+    navigate('/cart')
   }
 
   const handleToggleWishlist = () => {
@@ -447,7 +446,7 @@ function ProductDetailPage() {
                 <div className="pdp-actions">
                   <motion.button
                     type="button"
-                    className={`pdp-btn pdp-btn--cart${cartPulse ? ' pdp-btn--cart-pulse' : ''}`}
+                    className="pdp-btn pdp-btn--cart"
                     onClick={handleAddToCart}
                     whileHover={{ scale: 1.02, y: -2 }}
                     whileTap={{ scale: 0.98 }}

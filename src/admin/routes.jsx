@@ -5,6 +5,7 @@ import AdminDashboardPage from './pages/AdminDashboardPage'
 import AdminProductsPage from './pages/AdminProductsPage'
 import AdminUsersPage from './pages/AdminUsersPage'
 import AdminOrdersPage from './pages/AdminOrdersPage'
+import AdminInvoicesPage from './pages/AdminInvoicesPage'
 import AdminKycPage from './pages/AdminKycPage'
 import AdminContentPage from './pages/AdminContentPage'
 import AdminSupportPage from './pages/AdminSupportPage'
@@ -19,6 +20,7 @@ export const adminRoutes = (
       <Route path="products" element={<AdminProductsPage />} />
       <Route path="users" element={<AdminUsersPage />} />
       <Route path="orders" element={<AdminOrdersPage />} />
+      <Route path="invoices" element={<AdminInvoicesPage />} />
       <Route path="kyc" element={<AdminKycPage />} />
       <Route path="content" element={<AdminContentPage />} />
       <Route path="support" element={<AdminSupportPage />} />

@@ -49,13 +49,6 @@ function formatPhoneTel(phone) {
   return digits ? `+${digits}` : ''
 }
 
-function formatWhatsAppLink(phone, message = '') {
-  const digits = String(phone ?? '').replace(/\D/g, '')
-  const normalized = digits.length === 10 ? `91${digits}` : digits
-  const text = encodeURIComponent(message)
-  return `https://wa.me/${normalized}${text ? `?text=${text}` : ''}`
-}
-
 function getInitials(name) {
   return (
     name
@@ -97,10 +90,6 @@ function enrichRequest(request, authUsers, orders) {
       : '—',
     telHref: formatPhoneTel(request.phone) ? `tel:${formatPhoneTel(request.phone)}` : null,
     mailHref: request.email ? `mailto:${request.email}` : null,
-    whatsappHref: formatWhatsAppLink(
-      request.phone,
-      `Hi ${request.name}, this is Nuevo Rental support regarding your inquiry (${request.id}).`,
-    ),
     initials: getInitials(request.name),
     isRegisteredUser: Boolean(profile),
     registeredName: profile?.displayName ?? null,

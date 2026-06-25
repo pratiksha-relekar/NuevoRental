@@ -22,6 +22,7 @@ import CartPage from './pages/CartPage'
 import WishlistPage from './pages/WishlistPage'
 import SearchResultsPage from './pages/SearchResultsPage'
 import CheckoutPage from './pages/CheckoutPage'
+import OrdersPage from './pages/OrdersPage'
 import LoginPage from './pages/LoginPage'
 import SignUpPage from './pages/SignUpPage'
 import { adminRoutes } from './admin/routes'
@@ -54,6 +55,7 @@ function App() {
             <Route path="product/:id" element={<ProductDetailPage />} />
             <Route path="cart" element={<CartPage />} />
             <Route path="checkout" element={<CheckoutPage />} />
+            <Route path="orders" element={<OrdersPage />} />
             <Route path="wishlist" element={<WishlistPage />} />
             <Route path="search" element={<SearchResultsPage />} />
             <Route path="login" element={<LoginPage />} />

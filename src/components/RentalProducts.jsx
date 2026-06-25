@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { getProductImage } from '../data/products'
+import { getDefaultProjectPlanId, getProductPlanPricing } from '../data/projectPlans'
 import { useCatalog } from '../context/CatalogContext'
 import { useCartWishlist } from '../context/CartWishlistContext'
 import './RentalProducts.css'
@@ -65,12 +66,16 @@ function CartIcon() {
 }
 
 
-export function ProductCard({ product }) {
+export function ProductCard({ product, durationFilter = 'all' }) {
   const { toggleWishlist, isInWishlist, addToCart } = useCartWishlist()
   const [cartAdded, setCartAdded] = useState(false)
   const cartTimer = useRef(null)
   const wishlisted = isInWishlist(product.id)
   const imageSrc = getProductImage(product)
+  const planPricing = useMemo(
+    () => getProductPlanPricing(product, durationFilter),
+    [product, durationFilter],
+  )
 
   const handleWishlist = (event) => {
     event.preventDefault()
@@ -81,7 +86,10 @@ export function ProductCard({ product }) {
   const handleAddToCart = (event) => {
     event.preventDefault()
     event.stopPropagation()
-    addToCart(product, { quantity: 1, durationPlanId: '1m' })
+    addToCart(product, {
+      quantity: 1,
+      durationPlanId: planPricing.durationPlanId ?? getDefaultProjectPlanId(product),
+    })
     setCartAdded(true)
     if (cartTimer.current) window.clearTimeout(cartTimer.current)
     cartTimer.current = window.setTimeout(() => setCartAdded(false), 600)
@@ -123,8 +131,8 @@ export function ProductCard({ product }) {
           <div className="product-pricing">
             <span className="product-original">₹{product.originalPrice}</span>
             <span className="product-rental">
-              ₹{product.rentalPrice}
-              <span className="product-period">/{product.period}</span>
+              ₹{planPricing.price}
+              <span className="product-period">/{planPricing.period}</span>
             </span>
           </div>
           <div className="product-footer">

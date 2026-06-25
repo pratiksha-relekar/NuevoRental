@@ -518,8 +518,8 @@ function DashboardPage() {
                       Track placed rental orders, delivery status, and order history.
                     </p>
                   </div>
-                  <Link to="/rent-products" className="account-edit-btn">
-                    Rent more
+                  <Link to="/orders" className="account-edit-btn">
+                    View all orders
                   </Link>
                 </div>
 

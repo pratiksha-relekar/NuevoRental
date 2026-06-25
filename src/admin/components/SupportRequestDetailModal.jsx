@@ -67,17 +67,6 @@ export function SupportRequestDetailModal({ request, onClose, onStatusChange, on
               Email customer
             </a>
           )}
-          {request.whatsappHref && (
-            <a
-              href={request.whatsappHref}
-              target="_blank"
-              rel="noreferrer"
-              className="admin-support-contact-btn admin-support-contact-btn--whatsapp"
-            >
-              <MessageSquare size={16} aria-hidden="true" />
-              WhatsApp
-            </a>
-          )}
         </div>
 
         <div className="admin-support-detail-layout">
@@ -95,7 +84,7 @@ export function SupportRequestDetailModal({ request, onClose, onStatusChange, on
                 <dt>Phone</dt>
                 <dd>{request.phone || 'Not provided'}</dd>
               </div>
-              <div>
+              <div className="admin-support-detail-dl-item admin-support-detail-dl-item--full">
                 <dt>Email</dt>
                 <dd>{request.email || 'Not provided'}</dd>
               </div>
