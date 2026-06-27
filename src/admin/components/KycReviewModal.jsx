@@ -14,28 +14,48 @@ import {
 import { getKycDocumentPreview } from '../../data/kycStorage'
 import { formatINR } from '../../utils/cartSummary'
 import { formatKycStatus } from '../../data/userStorage'
-import { getProductImage } from '../../data/products'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { cn } from '@/lib/utils'
+import {
+  AdminIconButton,
+  AdminOutlineButton,
+  AdminPrimaryButton,
+  AdminStatusBadge,
+} from './admin-ui'
+
+const sectionTitleClass = 'mb-3 flex items-center gap-2 text-[11px] font-semibold tracking-wide text-[#666] uppercase'
+const dtClass = 'text-[10px] font-semibold tracking-wide text-[#888] uppercase'
+const ddClass = 'text-sm text-[#1a1a1a]'
+
+function getKycStatusTone(status) {
+  if (status === 'approved') return 'success'
+  if (status === 'in_review' || status === 'in_progress') return 'warning'
+  if (status === 'rejected') return 'danger'
+  return 'neutral'
+}
+
 function DocumentCard({ label, document }) {
   const preview = getKycDocumentPreview(document)
 
   return (
-    <article className="admin-kyc-doc-card">
-      <div className="admin-kyc-doc-card-head">
+    <article className="border border-[#e5e5e5] bg-white p-3">
+      <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#1a1a1a]">
         <FileImage size={16} aria-hidden="true" />
         <strong>{label}</strong>
       </div>
       {preview ? (
-        <img src={preview} alt={`${label} preview`} className="admin-kyc-doc-preview" />
+        <img src={preview} alt={`${label} preview`} className="aspect-[4/3] w-full border border-[#e5e5e5] object-cover" />
       ) : (
-        <div className="admin-kyc-doc-empty">No document uploaded</div>
+        <div className="flex aspect-[4/3] items-center justify-center border border-dashed border-[#ddd] bg-[#fafafa] text-xs text-[#888]">
+          No document uploaded
+        </div>
       )}
-      {document?.name && <small>{document.name}</small>}
+      {document?.name && <small className="mt-2 block text-xs text-[#888]">{document.name}</small>}
       {document?.uploadedAt && (
-        <span>Uploaded {new Date(document.uploadedAt).toLocaleString('en-IN')}</span>
+        <span className="mt-1 block text-[10px] text-[#888]">
+          Uploaded {new Date(document.uploadedAt).toLocaleString('en-IN')}
+        </span>
       )}
     </article>
   )
@@ -51,191 +71,222 @@ export function KycReviewModal({ user, loading = false, onClose, onApprove, onRe
   )
 
   return (
-    <Dialog open onOpenChange={(isOpen) => !isOpen && onClose()}>
+    <Dialog open onOpenChange={(v) => !v && onClose()}>
       <DialogContent
-        className="admin-kyc-review-modal admin-modal-root--wide"
+        className="max-h-[min(92vh,900px)] max-w-[980px] gap-0 overflow-auto rounded-none border-[#d8d8d8] p-0"
         showCloseButton={false}
         aria-labelledby="kyc-review-title"
       >
-        <div className="admin-kyc-review-header">
-          <div className="admin-kyc-review-profile">
-            <span className="admin-kyc-review-avatar" aria-hidden="true">
+        <div className="flex items-start justify-between border-b border-[#e5e5e5] px-6 py-4">
+          <div className="flex items-center gap-3">
+            <span className="relative inline-flex size-12 items-center justify-center border border-[#e5e5e5] bg-[#fafafa] text-sm font-bold text-[#1a1a1a]" aria-hidden="true">
               {user.initials}
-              {user.isOnline && <span className="admin-kyc-review-online-dot" />}
+              {user.isOnline && (
+                <span className="absolute -right-0.5 -bottom-0.5 size-2.5 border border-white bg-[#1f6b3a]" />
+              )}
             </span>
             <div>
-              <span className="admin-kyc-review-eyebrow">KYC review</span>
-              <h2 id="kyc-review-title">
+              <span className="mb-1 block text-[11px] font-semibold tracking-wide text-[#666] uppercase">
+                KYC review
+              </span>
+              <h2 id="kyc-review-title" className="flex items-center gap-2 text-lg font-bold text-[#1a1a1a]">
                 {user.displayName}
                 {user.kycStatus === 'approved' && (
-                  <BadgeCheck className="admin-kyc-review-verified" size={16} aria-label="Verified" />
+                  <BadgeCheck size={16} aria-label="Verified" className="text-[#1f6b3a]" />
                 )}
               </h2>
-              <p>{user.email}</p>
+              <p className="text-sm text-[#888]">{user.email}</p>
             </div>
           </div>
-          <Button type="button" variant="ghost" className="admin-kyc-review-close" onClick={onClose} aria-label="Close">
+          <AdminIconButton onClick={onClose} aria-label="Close">
             <X size={18} />
-          </Button>
+          </AdminIconButton>
         </div>
 
         {loading && (
-          <Alert className="admin-kyc-review-loading">
+          <Alert className="mx-6 mt-4 rounded-none border-[#c8daf5] bg-[#eef4fd] text-[#245ea8]">
             <AlertDescription>Loading latest KYC documents from Firestore...</AlertDescription>
           </Alert>
         )}
 
-        <div className="admin-kyc-review-badges">
-          <Badge className={`admin-kyc-review-status admin-kyc-review-status--${user.kycStatus}`}>
+        <div className="flex flex-wrap gap-2 border-b border-[#e5e5e5] px-6 py-4">
+          <AdminStatusBadge tone={getKycStatusTone(user.kycStatus)} className="gap-1.5">
             <ShieldCheck size={14} aria-hidden="true" />
             {formatKycStatus(user.kycStatus)}
-          </Badge>
+          </AdminStatusBadge>
           {user.isOnline && (
-            <Badge className="admin-kyc-review-badge admin-kyc-review-badge--online">
+            <AdminStatusBadge tone="success" className="gap-1.5">
               <Wifi size={14} aria-hidden="true" />
               Active session
-            </Badge>
+            </AdminStatusBadge>
           )}
-          <Badge className="admin-kyc-review-badge">
+          <AdminStatusBadge tone="neutral">
             {user.provider === 'google' ? 'Google sign-in' : 'Email sign-in'}
-          </Badge>
+          </AdminStatusBadge>
           {user.pendingOrderCount > 0 && (
-            <Badge className="admin-kyc-review-badge admin-kyc-review-badge--orders">
+            <AdminStatusBadge tone="warning" className="gap-1.5">
               <ShoppingBag size={14} aria-hidden="true" />
               {user.pendingOrderCount} order{user.pendingOrderCount === 1 ? '' : 's'} awaiting KYC
-            </Badge>
+            </AdminStatusBadge>
           )}
         </div>
 
-        <div className="admin-kyc-review-layout">
-          <section className="admin-kyc-review-section">
-            <h3>
+        <div className="grid grid-cols-2 gap-4 px-6 py-4 max-lg:grid-cols-1">
+          <section className={sectionClass}>
+            <h3 className={sectionTitleClass}>
               <User size={16} aria-hidden="true" />
               Customer profile
             </h3>
-            <dl className="admin-kyc-review-dl">
+            <dl className="grid grid-cols-2 gap-2.5 max-sm:grid-cols-1">
               <div>
-                <dt>Phone</dt>
-                <dd>{user.phone || 'Not provided'}</dd>
+                <dt className={dtClass}>Phone</dt>
+                <dd className={ddClass}>{user.phone || 'Not provided'}</dd>
               </div>
               <div>
-                <dt>Location</dt>
-                <dd>{user.location || 'Not provided'}</dd>
+                <dt className={dtClass}>Location</dt>
+                <dd className={ddClass}>{user.location || 'Not provided'}</dd>
               </div>
               <div>
-                <dt>Member since</dt>
-                <dd>{user.joinedLabel}</dd>
+                <dt className={dtClass}>Member since</dt>
+                <dd className={ddClass}>{user.joinedLabel}</dd>
               </div>
               <div>
-                <dt>Total orders</dt>
-                <dd>{user.orderCount}</dd>
+                <dt className={dtClass}>Total orders</dt>
+                <dd className={ddClass}>{user.orderCount}</dd>
               </div>
             </dl>
-            {user.aboutMe && <p className="admin-kyc-review-note">{user.aboutMe}</p>}
+            {user.aboutMe && (
+              <p className="mt-3 border border-[#e5e5e5] bg-white p-3 text-sm leading-relaxed text-[#444]">
+                {user.aboutMe}
+              </p>
+            )}
           </section>
 
-          <section className="admin-kyc-review-section">
-            <h3>
+          <section className={sectionClass}>
+            <h3 className={sectionTitleClass}>
               <FileImage size={16} aria-hidden="true" />
               Uploaded documents
             </h3>
-            <div className="admin-kyc-doc-grid">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <DocumentCard label="Aadhaar card" document={kyc.documents.aadhaar} />
               <DocumentCard label="PAN card" document={kyc.documents.pan} />
               <DocumentCard label="Live selfie" document={kyc.documents.selfie} />
             </div>
           </section>
 
-          <section className="admin-kyc-review-section">
-            <h3>
+          <section className={sectionClass}>
+            <h3 className={sectionTitleClass}>
               <ShieldCheck size={16} aria-hidden="true" />
               OCR extracted details
             </h3>
             {kyc.ocrData ? (
-              <dl className="admin-kyc-review-dl admin-kyc-review-dl--compare">
+              <dl className="grid grid-cols-2 gap-2.5 max-sm:grid-cols-1">
                 <div>
-                  <dt>Name on ID</dt>
-                  <dd>{kyc.ocrData.name || '—'}</dd>
+                  <dt className={dtClass}>Name on ID</dt>
+                  <dd className={ddClass}>{kyc.ocrData.name || '—'}</dd>
                 </div>
                 <div>
-                  <dt>Profile name</dt>
-                  <dd>{user.displayName}</dd>
+                  <dt className={dtClass}>Profile name</dt>
+                  <dd className={ddClass}>{user.displayName}</dd>
                 </div>
                 <div>
-                  <dt>Aadhaar number</dt>
-                  <dd>{kyc.ocrData.aadhaar || '—'}</dd>
+                  <dt className={dtClass}>Aadhaar number</dt>
+                  <dd className={ddClass}>{kyc.ocrData.aadhaar || '—'}</dd>
                 </div>
                 <div>
-                  <dt>PAN number</dt>
-                  <dd>{kyc.ocrData.pan || '—'}</dd>
+                  <dt className={dtClass}>PAN number</dt>
+                  <dd className={ddClass}>{kyc.ocrData.pan || '—'}</dd>
                 </div>
                 <div>
-                  <dt>Date of birth</dt>
-                  <dd>{kyc.ocrData.dob || '—'}</dd>
+                  <dt className={dtClass}>Date of birth</dt>
+                  <dd className={ddClass}>{kyc.ocrData.dob || '—'}</dd>
                 </div>
                 <div>
-                  <dt>Submitted on</dt>
-                  <dd>{kyc.submittedLabel}</dd>
+                  <dt className={dtClass}>Submitted on</dt>
+                  <dd className={ddClass}>{kyc.submittedLabel}</dd>
                 </div>
               </dl>
             ) : (
-              <p className="admin-kyc-review-empty">OCR data not available yet. User may still be uploading documents.</p>
+              <p className="text-sm text-[#666]">
+                OCR data not available yet. User may still be uploading documents.
+              </p>
             )}
           </section>
 
-          <section className="admin-kyc-review-section">
-            <h3>
+          <section className={sectionClass}>
+            <h3 className={sectionTitleClass}>
               <Package size={16} aria-hidden="true" />
               Rental orders ({orders.length})
             </h3>
             {orders.length === 0 ? (
-              <p className="admin-kyc-review-empty">No rental orders placed by this customer yet.</p>
+              <p className="text-sm text-[#666]">No rental orders placed by this customer yet.</p>
             ) : (
-              <ul className="admin-kyc-order-list">
+              <ul className="space-y-2">
                 {orders.map((order) => (
-                  <li key={order.id} className={order.awaitingKyc ? 'is-pending-kyc' : ''}>
-                    <div className="admin-kyc-order-head">
-                      <strong>{order.id}</strong>
-                      <span className={`admin-kyc-order-status admin-kyc-order-status--${order.status}`}>
+                  <li
+                    key={order.id}
+                    className={cn(
+                      'border border-[#e5e5e5] bg-white p-3',
+                      order.awaitingKyc && 'border-[#f0d9a8] bg-[#fff8ea]',
+                    )}
+                  >
+                    <div className="mb-1 flex items-center justify-between gap-2">
+                      <strong className="text-sm text-[#1a1a1a]">{order.id}</strong>
+                      <AdminStatusBadge tone={order.awaitingKyc ? 'warning' : 'neutral'}>
                         {order.awaitingKyc ? 'Awaiting KYC approval' : order.status}
-                      </span>
+                      </AdminStatusBadge>
                     </div>
-                    <p>
+                    <p className="text-sm text-[#444]">
                       {order.firstItemTitle}
                       {order.itemCount > 1 ? ` + ${order.itemCount - 1} more` : ''}
                       {' · '}
                       {formatINR(order.payAmount)}
                     </p>
-                    <small>
+                    <small className="mt-1 flex items-center gap-1 text-xs text-[#888]">
                       <MapPin size={12} aria-hidden="true" />
                       {order.deliveryCity} · {order.scheduleLabel}
                     </small>
-                    <small>Placed {order.placedLabel}</small>
+                    <small className="mt-0.5 block text-xs text-[#888]">Placed {order.placedLabel}</small>
                   </li>
                 ))}
               </ul>
             )}
           </section>
 
-          <section className="admin-kyc-review-section admin-kyc-review-section--steps">
-            <h3>Verification steps</h3>
-            <div className="admin-kyc-review-progress">
-              <strong>{kyc.progressPercent}% complete</strong>
-              <span>{kyc.completedSteps}/{kyc.totalSteps} steps</span>
+          <section className={cn(sectionClass, 'lg:col-span-2')}>
+            <h3 className={sectionTitleClass}>Verification steps</h3>
+            <div className="mb-2 flex items-center justify-between text-sm">
+              <strong className="text-[#1a1a1a]">{kyc.progressPercent}% complete</strong>
+              <span className="text-[#888]">{kyc.completedSteps}/{kyc.totalSteps} steps</span>
             </div>
-            <div className="admin-kyc-review-progress-bar">
-              <span style={{ width: `${kyc.progressPercent}%` }} />
+            <div className="mb-3 h-1.5 overflow-hidden bg-[#e5e5e5]">
+              <span
+                className="block h-full bg-[#1a1a1a] transition-all"
+                style={{ width: `${kyc.progressPercent}%` }}
+              />
             </div>
-            <ul className="admin-kyc-review-steps">
+            <ul className="space-y-1.5">
               {kyc.steps.map((step) => (
-                <li key={step.id} className={`admin-kyc-review-step admin-kyc-review-step--${step.status}`}>
-                  <span>{step.label}</span>
-                  <em>{step.status}</em>
+                <li
+                  key={step.id}
+                  className="flex items-center justify-between border border-[#e5e5e5] bg-white px-3 py-2 text-sm"
+                >
+                  <span className="text-[#1a1a1a]">{step.label}</span>
+                  <em
+                    className={cn(
+                      'text-[10px] font-semibold tracking-wide uppercase not-italic',
+                      step.status === 'done' && 'text-[#1f6b3a]',
+                      step.status === 'active' && 'text-[#8a6200]',
+                      step.status === 'pending' && 'text-[#888]',
+                    )}
+                  >
+                    {step.status}
+                  </em>
                 </li>
               ))}
             </ul>
             {kyc.rejectionReason && (
-              <p className="admin-kyc-review-rejected-note">
+              <p className="mt-3 border border-[#f0caca] bg-[#fdf2f2] p-3 text-xs text-[#a94442]">
                 Previous rejection: {kyc.rejectionReason}
               </p>
             )}
@@ -243,38 +294,35 @@ export function KycReviewModal({ user, loading = false, onClose, onApprove, onRe
         </div>
 
         {canDecide && (
-          <div className="admin-kyc-review-actions">
-            <p>
+          <div className="border-t border-[#e5e5e5] px-6 py-4">
+            <p className="mb-4 text-sm leading-relaxed text-[#666]">
               Review the uploaded Aadhaar/PAN documents and live selfie. Approving KYC lets this customer
               rent products and confirms {pendingOrders.length || 'any pending'} rental order
               {pendingOrders.length === 1 ? '' : 's'} for dispatch.
             </p>
-            <div className="admin-kyc-review-action-btns">
-              <Button
-                type="button"
-                variant="outline"
-                className="admin-kyc-review-btn admin-kyc-review-btn--reject"
+            <div className="flex flex-wrap justify-end gap-2">
+              <AdminOutlineButton
+                className="gap-2 border-[#f0d0d0] text-[#c0392b] normal-case tracking-normal hover:bg-[#c0392b] hover:text-white"
                 onClick={() => onReject(user)}
                 disabled={loading}
               >
                 <XCircle size={16} aria-hidden="true" />
                 Reject KYC
-              </Button>
-              <Button
-                type="button"
-                className="admin-kyc-review-btn admin-kyc-review-btn--approve"
+              </AdminOutlineButton>
+              <AdminPrimaryButton
+                className="gap-2 normal-case tracking-normal"
                 onClick={() => onApprove(user)}
                 disabled={loading || !user.hasDocuments}
               >
                 <CheckCircle2 size={16} aria-hidden="true" />
                 Approve KYC
-              </Button>
+              </AdminPrimaryButton>
             </div>
           </div>
         )}
 
         {user.kycStatus === 'approved' && (
-          <Alert className="admin-kyc-review-approved-banner">
+          <Alert className="mx-6 mb-6 rounded-none border-[#b8dfc4] bg-[#eef8f0] text-[#1f6b3a]">
             <CheckCircle2 size={18} aria-hidden="true" />
             <AlertDescription>
               KYC verified on {kyc.completedLabel}. Customer can rent any product on Nuevo Rental.

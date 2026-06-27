@@ -3,8 +3,7 @@ import desktopSetupImg from '../assets/processed/desktop-setup.png'
 import printerImg from '../assets/categories/printer.png'
 import projectorImg from '../assets/categories/projector.png'
 import watchImg from '../assets/watch.png'
-import { buttonVariants } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 function PromoBanners() {
   return (
     <section className="promo-banners" aria-label="Rental promotions">
@@ -20,7 +19,9 @@ function PromoBanners() {
               <span className="promo-banner-divider">/</span>
               Perfect for Offices &amp; Startups
             </p>
-            <a href="#rental-products" className={cn(buttonVariants({ variant: 'default' }), 'promo-banner-btn')}>RENT NOW</a>
+            <Button render={<a href="#rental-products" />} variant="default" className="promo-banner-btn">
+              RENT NOW
+            </Button>
           </div>
 
           <div className="promo-banner-visual promo-banner-visual--cluster" aria-hidden="true">
@@ -50,7 +51,9 @@ function PromoBanners() {
               <span className="promo-banner-divider">|</span>
               Daily, Monthly &amp; Long-Term
             </p>
-            <a href="#rental-products" className={cn(buttonVariants({ variant: 'default' }), 'promo-banner-btn promo-banner-btn--accent')}>RENT NOW</a>
+            <Button render={<a href="#rental-products" />} variant="default" className="promo-banner-btn promo-banner-btn--accent">
+              RENT NOW
+            </Button>
           </div>
 
           <div className="promo-banner-visual promo-banner-visual--hero" aria-hidden="true">

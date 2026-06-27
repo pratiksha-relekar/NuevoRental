@@ -8,8 +8,18 @@ import {
   toCountdownInputValue,
   WeeklyOfferFormModal,
 } from '../components/WeeklyOfferFormModal'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import {
+  AdminPage,
+  AdminPageHeader,
+  AdminPanel,
+  AdminIconButton,
+  AdminPrimaryButton,
+  AdminSectionTitle,
+  AdminStatusBadge,
+  adminInputClass,
+  adminTableClass,
+  adminTableWrapClass,
+} from '../components/admin-ui'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -20,6 +30,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { cn } from '@/lib/utils'
+
 function AdminWeeklyOffersPage() {
   const { products, categories } = useCatalog()
   const {
@@ -82,72 +94,76 @@ function AdminWeeklyOffersPage() {
   }
 
   return (
-    <div className="admin-weekly-offers-page">
-      <header className="admin-weekly-offers-head">
-        <div>
-          <h1>Weekly Offers</h1>
-          <p>
-            Manage the homepage Weekly Best Deals carousel, countdown timer, and featured rental
-            offers. Default catalog deals stay available until you edit or hide them.
-          </p>
-        </div>
-        <Button
-          type="button"
-          className="admin-weekly-offers-refresh-btn"
-          onClick={handleRefresh}
-          disabled={isRefreshing}
-        >
-          <RefreshCw size={16} className={isRefreshing ? 'is-spinning' : ''} aria-hidden="true" />
-          {isRefreshing ? 'Syncing…' : 'Sync offers'}
-        </Button>
-      </header>
+    <AdminPage>
+      <AdminPageHeader
+        title="Weekly Offers"
+        description="Manage the homepage Weekly Best Deals carousel, countdown timer, and featured rental offers. Default catalog deals stay available until you edit or hide them."
+        actions={
+          <AdminPrimaryButton onClick={handleRefresh} disabled={isRefreshing} className="gap-2">
+            <RefreshCw size={16} className={cn(isRefreshing && 'animate-spin')} aria-hidden="true" />
+            {isRefreshing ? 'Syncing…' : 'Sync offers'}
+          </AdminPrimaryButton>
+        }
+      />
 
-      <section className="admin-weekly-offers-timer-card">
-        <div className="admin-weekly-offers-timer-copy">
-          <span className="admin-weekly-offers-timer-icon" aria-hidden="true">
-            <Clock3 size={18} />
-          </span>
-          <div>
-            <h2>Countdown timer</h2>
-            <p>Set when the “Limited time only!” offer ends on the homepage.</p>
+      <AdminPanel>
+        <div className="flex flex-col gap-4 border-b border-[#e5e5e5] p-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-start gap-3">
+            <span className="inline-flex size-9 shrink-0 items-center justify-center border border-[#e5e5e5] bg-[#fafafa] text-[#1a1a1a]">
+              <Clock3 size={18} aria-hidden="true" />
+            </span>
+            <div>
+              <AdminSectionTitle className="normal-case">Countdown timer</AdminSectionTitle>
+              <p className="mt-1 text-sm text-[#666]">
+                Set when the &ldquo;Limited time only!&rdquo; offer ends on the homepage.
+              </p>
+            </div>
           </div>
+
+          <form className="flex flex-col gap-3 sm:flex-row sm:items-end" onSubmit={handleSaveTimer}>
+            <Label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-wide text-[#666]">
+              <span>Ends on</span>
+              <Input
+                type="datetime-local"
+                className={adminInputClass}
+                value={timerValue}
+                onChange={(e) => setTimerValue(e.target.value)}
+              />
+            </Label>
+            <AdminPrimaryButton type="submit" disabled={timerSaving}>
+              {timerSaving ? 'Saving…' : 'Save timer'}
+            </AdminPrimaryButton>
+          </form>
         </div>
 
-        <form className="admin-weekly-offers-timer-form" onSubmit={handleSaveTimer}>
-          <Label>
-            <span>Ends on</span>
-            <Input
-              type="datetime-local"
-              value={timerValue}
-              onChange={(e) => setTimerValue(e.target.value)}
-            />
-          </Label>
-          <Button type="submit" disabled={timerSaving}>
-            {timerSaving ? 'Saving…' : 'Save timer'}
-          </Button>
-        </form>
-
-        {timerMessage && <p className="admin-weekly-offers-timer-message">{timerMessage}</p>}
-      </section>
-
-      <section className="admin-weekly-offers-panel">
-        <div className="admin-weekly-offers-panel-head">
-          <div>
-            <h2>Offer products</h2>
-            <p>{deals.length} active offer{deals.length === 1 ? '' : 's'} on the homepage.</p>
-          </div>
-          <Button
-            type="button"
-            className="admin-weekly-offers-add-btn"
-            onClick={() => setOfferModal({ mode: 'create' })}
+        {timerMessage ? (
+          <p
+            className={cn(
+              'border-t border-[#e5e5e5] px-4 py-3 text-sm',
+              timerMessage.includes('updated') ? 'text-[#1f6b3a]' : 'text-[#a94442]',
+            )}
           >
+            {timerMessage}
+          </p>
+        ) : null}
+      </AdminPanel>
+
+      <AdminPanel>
+        <div className="flex flex-col gap-4 border-b border-[#e5e5e5] p-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <AdminSectionTitle className="normal-case">Offer products</AdminSectionTitle>
+            <p className="mt-1 text-sm text-[#666]">
+              {deals.length} active offer{deals.length === 1 ? '' : 's'} on the homepage.
+            </p>
+          </div>
+          <AdminPrimaryButton type="button" className="gap-2" onClick={() => setOfferModal({ mode: 'create' })}>
             <Plus size={16} aria-hidden="true" />
             Add offer
-          </Button>
+          </AdminPrimaryButton>
         </div>
 
-        <div className="admin-weekly-offers-table-wrap">
-          <Table className="admin-weekly-offers-table">
+        <div className={adminTableWrapClass}>
+          <Table className={adminTableClass}>
             <TableHeader>
               <TableRow>
                 <TableHead scope="col">Product</TableHead>
@@ -155,52 +171,53 @@ function AdminWeeklyOffersPage() {
                 <TableHead scope="col">Offer price</TableHead>
                 <TableHead scope="col">Stock</TableHead>
                 <TableHead scope="col">Source</TableHead>
-                <TableHead scope="col" className="admin-weekly-offers-col-action">Action</TableHead>
+                <TableHead scope="col" className="text-right">
+                  Action
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {deals.map((deal) => (
                 <TableRow key={deal.id}>
                   <TableCell>
-                    <div className="admin-weekly-offers-product">
-                      <img src={deal.image} alt="" />
-                      <div>
-                        <strong>{deal.title}</strong>
-                        <span>{deal.id}</span>
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={deal.image}
+                        alt=""
+                        className="size-12 shrink-0 border border-[#e5e5e5] object-cover"
+                      />
+                      <div className="min-w-0">
+                        <strong className="block text-sm text-[#1a1a1a]">{deal.title}</strong>
+                        <span className="block truncate text-xs text-[#888]">{deal.id}</span>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>{deal.discountPercent}% OFF</TableCell>
                   <TableCell>
-                    <strong>{formatINR(deal.offerPrice)}</strong>
-                    <span className="admin-weekly-offers-original">{formatINR(deal.originalPrice)}</span>
+                    <strong className="block text-sm text-[#1a1a1a]">{formatINR(deal.offerPrice)}</strong>
+                    <span className="text-xs text-[#888] line-through">{formatINR(deal.originalPrice)}</span>
                   </TableCell>
                   <TableCell>{deal.inStock ? `In stock (${deal.stock})` : 'Hidden'}</TableCell>
                   <TableCell>
-                    <Badge className={`admin-weekly-offers-source${storedIds.has(deal.id) ? ' is-custom' : ''}`}>
+                    <AdminStatusBadge tone={storedIds.has(deal.id) ? 'info' : 'neutral'}>
                       {storedIds.has(deal.id) ? 'Admin updated' : 'Default'}
-                    </Badge>
+                    </AdminStatusBadge>
                   </TableCell>
-                  <TableCell className="admin-weekly-offers-col-action">
-                    <div className="admin-weekly-offers-actions">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
+                  <TableCell className="text-right">
+                    <div className="inline-flex items-center gap-1">
+                      <AdminIconButton
                         aria-label={`Edit ${deal.title}`}
                         onClick={() => setOfferModal({ mode: 'edit', deal })}
                       >
                         <Pencil size={15} />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
+                      </AdminIconButton>
+                      <AdminIconButton
+                        danger
                         aria-label={`Remove ${deal.title}`}
                         onClick={() => handleDelete(deal)}
                       >
                         <Trash2 size={15} />
-                      </Button>
+                      </AdminIconButton>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -208,9 +225,9 @@ function AdminWeeklyOffersPage() {
             </TableBody>
           </Table>
         </div>
-      </section>
+      </AdminPanel>
 
-      {offerModal && (
+      {offerModal ? (
         <WeeklyOfferFormModal
           deal={offerModal.mode === 'edit' ? offerModal.deal : null}
           products={products}
@@ -218,8 +235,8 @@ function AdminWeeklyOffersPage() {
           onClose={() => setOfferModal(null)}
           onSave={saveDeal}
         />
-      )}
-    </div>
+      ) : null}
+    </AdminPage>
   )
 }
 

@@ -21,9 +21,7 @@ import {
 import { InvoiceDocument } from '../../components/invoice/InvoiceDocument'
 import { downloadInvoicePdf } from '../../utils/downloadInvoicePdf'
 import { InvoiceDetailModal } from '../components/InvoiceDetailModal'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
   Select,
@@ -40,7 +38,26 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs } from '@/components/ui/tabs'
+import { cn } from '@/lib/utils'
+import {
+  AdminEmptyState,
+  AdminPage,
+  AdminPageHeader,
+  AdminPanel,
+  AdminIconButton,
+  AdminOutlineButton,
+  AdminPrimaryButton,
+  AdminSearchField,
+  AdminStatusBadge,
+  AdminTabTrigger,
+  AdminTabsList,
+  AdminToolbar,
+  adminSelectTriggerClass,
+  adminTableClass,
+  adminTableWrapClass,
+} from '../components/admin-ui'
+
 const STATUS_TABS = [
   { id: 'all', label: 'All Invoices' },
   { id: 'draft', label: 'Draft' },
@@ -57,6 +74,13 @@ const SORT_OPTIONS = [
   { id: 'amount-high', label: 'Amount: high to low' },
   { id: 'amount-low', label: 'Amount: low to high' },
 ]
+
+function getInvoiceStatusTone(status) {
+  if (status === 'paid' || status === 'recurring') return 'success'
+  if (status === 'due') return 'warning'
+  if (status === 'overdue') return 'danger'
+  return 'neutral'
+}
 
 function AdminInvoicesPage() {
   const [version, setVersion] = useState(0)
@@ -194,8 +218,8 @@ function AdminInvoicesPage() {
 
     const handlePointerDown = (event) => {
       if (
-        !event.target.closest('.admin-invoices-action-menu')
-        && !event.target.closest('.admin-invoices-action-btn')
+        !event.target.closest('[data-admin-invoices-action-menu]')
+        && !event.target.closest('[data-admin-invoices-action-btn]')
       ) {
         setActionMenu(null)
       }
@@ -229,49 +253,45 @@ function AdminInvoicesPage() {
   }
 
   return (
-    <div className="admin-invoices-page">
-      <header className="admin-invoices-head">
-        <div>
-          <h1>Invoices</h1>
-          <p>
+    <AdminPage>
+      <AdminPageHeader
+        title="Invoices"
+        description={
+          <>
             Auto-generated rental invoices for every customer order. {invoices.length} invoice
             {invoices.length === 1 ? '' : 's'} · {formatINR(stats.totalRevenue)} collected ·{' '}
             {formatINR(stats.outstanding)} outstanding
-          </p>
-        </div>
-        <Button
-          type="button"
-          className="admin-invoices-create-btn"
-          onClick={handleRefresh}
-          disabled={isRefreshing}
-        >
-          {isRefreshing ? <RefreshCw size={16} className="is-spinning" aria-hidden="true" /> : <Plus size={16} aria-hidden="true" />}
-          {isRefreshing ? 'Syncing…' : 'Sync Invoices'}
-        </Button>
-      </header>
+          </>
+        }
+        actions={
+          <AdminPrimaryButton onClick={handleRefresh} disabled={isRefreshing}>
+            {isRefreshing ? (
+              <RefreshCw size={16} className="animate-spin" aria-hidden="true" />
+            ) : (
+              <Plus size={16} aria-hidden="true" />
+            )}
+            {isRefreshing ? 'Syncing…' : 'Sync Invoices'}
+          </AdminPrimaryButton>
+        }
+      />
 
-      <section className="admin-invoices-panel">
-        <div className="admin-invoices-tabs-row">
+      <AdminPanel>
+        <div className="flex flex-col gap-3 border-b border-[#e5e5e5] p-4 lg:flex-row lg:items-center lg:justify-between">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="admin-invoices-tabs">
+            <AdminTabsList className="flex-wrap">
               {STATUS_TABS.map((tab) => (
-                <TabsTrigger
-                  key={tab.id}
-                  value={tab.id}
-                  className={`admin-invoices-tab${activeTab === tab.id ? ' is-active' : ''}`}
-                >
+                <AdminTabTrigger key={tab.id} value={tab.id} count={tabCount(tab.id)}>
                   {tab.label}
-                  <span>{tabCount(tab.id)}</span>
-                </TabsTrigger>
+                </AdminTabTrigger>
               ))}
-            </TabsList>
+            </AdminTabsList>
           </Tabs>
 
-          <div className="admin-invoices-tab-actions">
-            <Label className="admin-invoices-sort">
+          <div className="flex flex-wrap items-center gap-2">
+            <Label className="inline-flex items-center gap-2 text-xs font-semibold tracking-wide text-[#666] uppercase">
               <ArrowDownUp size={14} aria-hidden="true" />
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger aria-label="Sort invoices">
+                <SelectTrigger className={cn(adminSelectTriggerClass, 'w-[180px]')} aria-label="Sort invoices">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -281,29 +301,27 @@ function AdminInvoicesPage() {
                 </SelectContent>
               </Select>
             </Label>
-            <Button type="button" variant="outline" className="admin-invoices-filter-btn">
+            <AdminOutlineButton>
               <Filter size={14} aria-hidden="true" />
               Filter
-            </Button>
+            </AdminOutlineButton>
           </div>
         </div>
 
-        <div className="admin-invoices-table-toolbar">
-          <label className="admin-invoices-search">
-            <Search size={16} aria-hidden="true" />
-            <Input
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search invoice"
-            />
-          </label>
+        <AdminToolbar className="lg:justify-between">
+          <AdminSearchField
+            icon={Search}
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search invoice"
+          />
 
-          <div className="admin-invoices-table-meta">
-            <Label>
-              <span>Showing</span>
+          <div className="flex flex-wrap items-center gap-2 text-sm text-[#666]">
+            <Label className="inline-flex items-center gap-2">
+              <span className="text-xs font-semibold tracking-wide text-[#666] uppercase">Showing</span>
               <Select value={String(pageSize)} onValueChange={(value) => setPageSize(Number(value))}>
-                <SelectTrigger aria-label="Results per page">
+                <SelectTrigger className={cn(adminSelectTriggerClass, 'w-[72px]')} aria-label="Results per page">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -317,10 +335,10 @@ function AdminInvoicesPage() {
               of {filteredInvoices.length} result{filteredInvoices.length === 1 ? '' : 's'}
             </span>
           </div>
-        </div>
+        </AdminToolbar>
 
-        <div className="admin-invoices-table-wrap">
-          <Table className="admin-invoices-table">
+        <div className={adminTableWrapClass}>
+          <Table className={adminTableClass}>
             <TableHeader>
               <TableRow>
                 <TableHead scope="col">Invoice</TableHead>
@@ -330,7 +348,7 @@ function AdminInvoicesPage() {
                 <TableHead scope="col">Due Amount</TableHead>
                 <TableHead scope="col">Due Date</TableHead>
                 <TableHead scope="col">Status</TableHead>
-                <TableHead scope="col" className="admin-invoices-col-action">Action</TableHead>
+                <TableHead scope="col" className="w-[72px] text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -340,45 +358,42 @@ function AdminInvoicesPage() {
                     <Button
                       type="button"
                       variant="ghost"
-                      className="admin-invoices-invoice-link"
+                      className="h-auto rounded-none px-0 py-0 text-left hover:bg-transparent"
                       onClick={() => handleQuickDownload(invoice)}
                       disabled={isPdfDownloading && pdfInvoice?.id === invoice.id}
                       aria-label={`Open PDF for ${invoice.id}`}
                     >
-                      <div className="admin-invoices-cell-invoice">
-                        <strong>{invoice.id}</strong>
-                        <span>Created on: {invoice.createdLabel}</span>
+                      <div className="flex flex-col gap-0.5">
+                        <strong className="text-sm text-[#1a1a1a] hover:underline">{invoice.id}</strong>
+                        <span className="text-xs text-[#888]">Created on: {invoice.createdLabel}</span>
                       </div>
                     </Button>
                   </TableCell>
                   <TableCell>
-                    <div className="admin-invoices-cell-client">
-                      <strong>{invoice.customerName}</strong>
-                      <span>{invoice.customerCompany}</span>
+                    <div className="flex flex-col gap-0.5">
+                      <strong className="text-sm text-[#1a1a1a]">{invoice.customerName}</strong>
+                      <span className="text-xs text-[#888]">{invoice.customerCompany}</span>
                     </div>
                   </TableCell>
-                  <TableCell><strong>{formatINR(invoice.totalAmount)}</strong></TableCell>
-                  <TableCell className="is-paid">{formatINR(invoice.paidAmount)}</TableCell>
-                  <TableCell className="is-due">{formatINR(invoice.dueAmount)}</TableCell>
+                  <TableCell><strong className="text-sm text-[#1a1a1a]">{formatINR(invoice.totalAmount)}</strong></TableCell>
+                  <TableCell className="text-[#1f6b3a]">{formatINR(invoice.paidAmount)}</TableCell>
+                  <TableCell className="text-[#a94442]">{formatINR(invoice.dueAmount)}</TableCell>
                   <TableCell>{invoice.dueDateLabel}</TableCell>
                   <TableCell>
-                    <Badge className={`admin-invoices-status admin-invoices-status--${invoice.status}`}>
+                    <AdminStatusBadge tone={getInvoiceStatusTone(invoice.status)}>
                       {INVOICE_STATUS_LABELS[invoice.status] ?? invoice.status}
-                    </Badge>
+                    </AdminStatusBadge>
                   </TableCell>
-                  <TableCell className="admin-invoices-col-action">
-                    <div className="admin-invoices-action-wrap">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        className="admin-invoices-action-btn"
+                  <TableCell className="text-right">
+                    <div className="flex justify-end">
+                      <AdminIconButton
+                        data-admin-invoices-action-btn
                         aria-label={`Actions for ${invoice.id}`}
                         aria-expanded={actionMenu?.invoice.id === invoice.id}
                         onClick={(event) => handleOpenActionMenu(invoice, event)}
                       >
                         <MoreVertical size={16} />
-                      </Button>
+                      </AdminIconButton>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -387,17 +402,17 @@ function AdminInvoicesPage() {
           </Table>
 
           {filteredInvoices.length === 0 && (
-            <p className="admin-invoices-empty">
+            <AdminEmptyState>
               No invoices match your search or filter. Invoices are created automatically when customers place orders.
-            </p>
+            </AdminEmptyState>
           )}
         </div>
 
         {filteredInvoices.length > 0 && (
-          <div className="admin-invoices-pagination">
+          <div className="flex flex-wrap items-center justify-center gap-1.5 border-t border-[#e5e5e5] p-4">
             <Button
               type="button"
-              variant="outline"
+              variant="adminOutline"
               size="icon-sm"
               aria-label="Previous page"
               disabled={currentPage <= 1}
@@ -416,12 +431,13 @@ function AdminInvoicesPage() {
                 const prev = array[index - 1]
                 const showEllipsis = prev && pageNumber - prev > 1
                 return (
-                  <span key={pageNumber} className="admin-invoices-page-group">
-                    {showEllipsis && <span className="admin-invoices-ellipsis">…</span>}
+                  <span key={pageNumber} className="inline-flex items-center gap-1">
+                    {showEllipsis && <span className="px-1 text-sm text-[#888]">…</span>}
                     <Button
                       type="button"
-                      variant={pageNumber === currentPage ? 'default' : 'outline'}
-                      className={pageNumber === currentPage ? 'is-active' : ''}
+                      variant={pageNumber === currentPage ? 'admin' : 'adminOutline'}
+                      size="admin"
+                      className="size-8 rounded-none p-0 text-xs font-semibold"
                       onClick={() => setPage(pageNumber)}
                     >
                       {pageNumber}
@@ -432,7 +448,7 @@ function AdminInvoicesPage() {
 
             <Button
               type="button"
-              variant="outline"
+              variant="adminOutline"
               size="icon-sm"
               aria-label="Next page"
               disabled={currentPage >= totalPages}
@@ -442,20 +458,22 @@ function AdminInvoicesPage() {
             </Button>
           </div>
         )}
-      </section>
+      </AdminPanel>
 
       <InvoiceDetailModal invoice={selectedInvoice} onClose={() => setSelectedInvoice(null)} />
 
       {actionMenu && (
         <div
-          className="admin-invoices-action-menu"
+          className="fixed z-50 flex min-w-[180px] flex-col border border-[#e5e5e5] bg-white py-1 shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
           style={{ top: `${actionMenu.top}px`, left: `${actionMenu.left}px` }}
+          data-admin-invoices-action-menu
           role="menu"
         >
           <Button
             type="button"
             variant="ghost"
             role="menuitem"
+            className="h-9 justify-start rounded-none px-3 text-sm font-normal text-[#1a1a1a] hover:bg-[#fafafa]"
             onClick={() => {
               setSelectedInvoice(actionMenu.invoice)
               setActionMenu(null)
@@ -468,6 +486,7 @@ function AdminInvoicesPage() {
             type="button"
             variant="ghost"
             role="menuitem"
+            className="h-9 justify-start rounded-none px-3 text-sm font-normal text-[#1a1a1a] hover:bg-[#fafafa]"
             onClick={() => handleQuickDownload(actionMenu.invoice)}
             disabled={isPdfDownloading}
           >
@@ -478,11 +497,11 @@ function AdminInvoicesPage() {
       )}
 
       {pdfInvoice && (
-        <div className="admin-invoices-pdf-render" aria-hidden="true">
+        <div className="pointer-events-none fixed -left-[9999px] top-0 opacity-0" aria-hidden="true">
           <InvoiceDocument ref={hiddenInvoiceRef} invoice={pdfInvoice} />
         </div>
       )}
-    </div>
+    </AdminPage>
   )
 }
 

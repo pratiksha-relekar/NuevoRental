@@ -4,7 +4,8 @@ import { useAuth } from '../context/AuthContext'
 import { getAuthErrorMessage } from '../backend/firebase/auth'
 import GoogleAuthButton from '../components/GoogleAuthButton'
 import { Badge } from '@/components/ui/badge'
-import { Button, buttonVariants } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
+import { LinkButton } from '@/components/ui/link-button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -80,15 +81,13 @@ function LoginPage() {
       className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-[#ececec] p-4 max-sm:items-start max-sm:pt-14"
       aria-labelledby="login-heading"
     >
-      <Link
+      <LinkButton
         to="/"
-        className={cn(
-          buttonVariants({ variant: 'outline' }),
-          'fixed top-4 left-4 z-[110] h-auto rounded-none border-[#d0d0d0] bg-white px-3.5 py-2 text-xs font-semibold tracking-wide text-[#1a1a1a] shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:bg-[#1a1a1a] hover:text-white',
-        )}
+        variant="outline"
+        className="fixed top-4 left-4 z-[110] h-auto rounded-none border-[#d0d0d0] bg-white px-3.5 py-2 text-xs font-semibold tracking-wide text-[#1a1a1a] shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:bg-[#1a1a1a] hover:text-white"
       >
         ← Back to Home
-      </Link>
+      </LinkButton>
 
       <Card
         className={cn(
@@ -195,15 +194,13 @@ function LoginPage() {
           </p>
 
           <div className="mt-5 border-t border-[#ebebeb] pt-5">
-            <Link
+            <LinkButton
               to="/admin/login"
-              className={cn(
-                buttonVariants({ variant: 'outline' }),
-                'h-[42px] w-full rounded-none border-[1.5px] border-[#1a1a1a] bg-white text-[11px] font-semibold tracking-wide text-[#1a1a1a] uppercase shadow-none hover:bg-[#1a1a1a] hover:text-white',
-              )}
+              variant="outline"
+              className="h-[42px] w-full rounded-none border-[1.5px] border-[#1a1a1a] bg-white text-[11px] font-semibold tracking-wide text-[#1a1a1a] uppercase shadow-none hover:bg-[#1a1a1a] hover:text-white"
             >
               Admin Login
-            </Link>
+            </LinkButton>
           </div>
         </CardContent>
       </Card>

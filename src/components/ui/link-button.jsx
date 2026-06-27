@@ -1,17 +1,17 @@
 import { Link } from 'react-router-dom'
-import { buttonVariants } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-/**
- * Router Link styled as a shadcn Button.
- */
 function LinkButton({ variant = 'default', size = 'default', className, ...props }) {
   return (
-    <Link
-      className={cn(buttonVariants({ variant, size }), className)}
+    <Button
+      render={<Link />}
+      variant={variant}
+      size={size}
+      className={cn('no-underline', className)}
       {...props}
     />
   )
 }
 
-export { LinkButton }
+export { LinkButton, buttonVariants }

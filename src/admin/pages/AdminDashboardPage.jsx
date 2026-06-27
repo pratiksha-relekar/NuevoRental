@@ -3,7 +3,6 @@ import {
   IndianRupee,
   Package,
   PieChart,
-  TrendingUp,
   Users,
 } from 'lucide-react'
 import { getCatalogProducts } from '../../data/catalogStorage'
@@ -14,9 +13,16 @@ import { getAdminOrderStats, loadAdminOrders } from '../../data/orderStorage'
 import { formatINR } from '../../utils/cartSummary'
 import { AdminTrendChart } from '../components/AdminTrendChart'
 import { AdminRevenueSection } from '../components/AdminRevenueSection'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import {
+  AdminPage,
+  AdminPanel,
+  AdminPrimaryButton,
+  AdminSectionTitle,
+  AdminStatCard,
+  adminPanelClass,
+} from '../components/admin-ui'
+import { cn } from '@/lib/utils'
+
 const DASHBOARD_STAT_CARDS = [
   {
     id: 'orders',
@@ -88,6 +94,12 @@ const ADMIN_MODULES = [
     accent: 'pink',
   },
 ]
+
+const MODULE_ACCENT_CLASS = {
+  blue: 'border-t-[#1a1a1a]',
+  pink: 'border-t-[#666]',
+  amber: 'border-t-[#999]',
+}
 
 function loadOpenSupportCount() {
   return getOpenSupportCount()
@@ -161,34 +173,17 @@ function AdminDashboardPage() {
   }
 
   return (
-    <div className="admin-dashboard">
-      <div className="admin-stat-grid">
-        {DASHBOARD_STAT_CARDS.map((card) => {
-          const Icon = card.icon
-
-          return (
-            <Card key={card.id} className="admin-stat-card">
-              <div className="admin-stat-card-head">
-                <span className="admin-stat-card-icon" aria-hidden="true">
-                  <Icon size={18} strokeWidth={1.8} />
-                </span>
-                <span className="admin-stat-card-label">{card.title}</span>
-              </div>
-
-              <strong className="admin-stat-card-value">
-                {formatStatValue(card.id, stats)}
-              </strong>
-
-              <div className="admin-stat-card-trend">
-                <Badge className="admin-stat-trend-badge">
-                  <TrendingUp size={12} strokeWidth={2.4} aria-hidden="true" />
-                  {card.trend}%
-                </Badge>
-                <span className="admin-stat-trend-note">vs last 7 days</span>
-              </div>
-            </Card>
-          )
-        })}
+    <AdminPage>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {DASHBOARD_STAT_CARDS.map((card) => (
+          <AdminStatCard
+            key={card.id}
+            icon={card.icon}
+            label={card.title}
+            value={formatStatValue(card.id, stats)}
+            trend={card.trend}
+          />
+        ))}
       </div>
 
       <AdminTrendChart
@@ -199,41 +194,57 @@ function AdminDashboardPage() {
 
       <AdminRevenueSection />
 
-      <section className="admin-modules" aria-label="Admin modules">
-        <h3>Management modules</h3>
-        <div className="admin-module-grid">
+      <AdminPanel className="p-0" aria-label="Admin modules">
+        <div className="border-b border-[#e5e5e5] p-4">
+          <AdminSectionTitle>Management modules</AdminSectionTitle>
+        </div>
+        <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2 xl:grid-cols-3">
           {ADMIN_MODULES.map((module) => (
-            <Card
+            <section
               key={module.id}
               id={module.id}
-              className={`admin-module-card admin-module-card--${module.accent}`}
+              className={cn(
+                adminPanelClass,
+                'flex scroll-mt-[100px] flex-col gap-3 border-t-2 p-4',
+                MODULE_ACCENT_CLASS[module.accent],
+              )}
             >
-              <div className="admin-module-card-top">
-                <h4>{module.title}</h4>
-                <span className="admin-module-stat">
+              <div className="flex items-start justify-between gap-3">
+                <h4 className="text-base font-bold text-[#1a1a1a]">{module.title}</h4>
+                <span className="flex flex-col items-end text-[22px] font-bold leading-none text-[#1a1a1a]">
                   {statForModule(module.id)}
-                  <small>{module.statLabel}</small>
+                  <small className="mt-1 text-[10px] font-semibold tracking-wide text-[#666] uppercase">
+                    {module.statLabel}
+                  </small>
                 </span>
               </div>
-              <p>{module.description}</p>
-              <Button type="button" className="admin-module-btn" disabled>
+              <p className="flex-1 text-sm leading-relaxed text-[#666]">{module.description}</p>
+              <AdminPrimaryButton className="self-start opacity-85" disabled>
                 Open module (coming soon)
-              </Button>
-            </Card>
+              </AdminPrimaryButton>
+            </section>
           ))}
         </div>
-      </section>
+      </AdminPanel>
 
-      <section className="admin-privileges">
-        <h3>Admin privileges</h3>
-        <ul>
-          <li>Full access to rental product catalog and pricing</li>
-          <li>User accounts, profiles, and KYC verification control</li>
-          <li>Order management and delivery status updates</li>
-          <li>Website content, banners, and page configuration</li>
+      <AdminPanel className="p-4">
+        <AdminSectionTitle className="mb-3">Admin privileges</AdminSectionTitle>
+        <ul className="m-0 flex list-none flex-col gap-2 p-0 text-sm leading-relaxed text-[#666]">
+          <li className="relative pl-5 before:absolute before:top-[7px] before:left-0 before:size-1.5 before:bg-[#1a1a1a]">
+            Full access to rental product catalog and pricing
+          </li>
+          <li className="relative pl-5 before:absolute before:top-[7px] before:left-0 before:size-1.5 before:bg-[#1a1a1a]">
+            User accounts, profiles, and KYC verification control
+          </li>
+          <li className="relative pl-5 before:absolute before:top-[7px] before:left-0 before:size-1.5 before:bg-[#1a1a1a]">
+            Order management and delivery status updates
+          </li>
+          <li className="relative pl-5 before:absolute before:top-[7px] before:left-0 before:size-1.5 before:bg-[#1a1a1a]">
+            Website content, banners, and page configuration
+          </li>
         </ul>
-      </section>
-    </div>
+      </AdminPanel>
+    </AdminPage>
   )
 }
 

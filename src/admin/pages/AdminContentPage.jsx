@@ -15,6 +15,18 @@ import {
 import { AdminContentGrowthChart } from '../components/AdminContentGrowthChart'
 import { AdminContentSalesChart } from '../components/AdminContentSalesChart'
 import {
+  AdminOutlineButton,
+  AdminPage,
+  AdminPageHeader,
+  AdminPanel,
+  AdminPrimaryButton,
+  AdminSectionTitle,
+  AdminStatCard,
+  AdminStatusBadge,
+  adminTableClass,
+  adminTableWrapClass,
+} from '../components/admin-ui'
+import {
   getContentAlert,
   getContentSections,
   getContentSummaryStats,
@@ -22,8 +34,6 @@ import {
 } from '../../data/contentStorage'
 import { formatINR } from '../../utils/cartSummary'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Badge } from '@/components/ui/badge'
-import { buttonVariants } from '@/components/ui/button'
 import {
   Table,
   TableBody,
@@ -33,6 +43,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
+
 const SECTION_ICONS = {
   homepage: Sparkles,
   'rent-products': Package,
@@ -42,40 +53,58 @@ const SECTION_ICONS = {
   support: Globe,
 }
 
+function listingStatusTone(status) {
+  switch (status) {
+    case 'active':
+      return 'success'
+    case 'draft':
+      return 'warning'
+    default:
+      return 'neutral'
+  }
+}
+
 function ContentSectionCard({ section, index, reduceMotion }) {
   const Icon = SECTION_ICONS[section.id] ?? Layers
 
   return (
     <motion.div
-      className={`admin-content-section-card admin-content-section-card--${section.accent}`}
+      className="flex flex-col gap-3 border border-[#e5e5e5] bg-white p-4"
       initial={reduceMotion ? false : { opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.08 * index, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       whileHover={reduceMotion ? undefined : { y: -4 }}
     >
-      <div className="admin-content-section-card-top">
-        <span className="admin-content-section-icon" aria-hidden="true">
-          <Icon size={18} />
+      <div className="flex items-start justify-between gap-3">
+        <span className="inline-flex size-9 items-center justify-center border border-[#e5e5e5] bg-[#fafafa] text-[#1a1a1a]">
+          <Icon size={18} aria-hidden="true" />
         </span>
-        <span className="admin-content-section-stat">
-          {section.stat ?? '—'}
-          <small>{section.statLabel}</small>
-        </span>
+        <div className="text-right">
+          <strong className="block text-lg font-bold text-[#1a1a1a]">{section.stat ?? '—'}</strong>
+          <small className="text-xs text-[#888]">{section.statLabel}</small>
+        </div>
       </div>
-      <h3>{section.title}</h3>
-      <p>{section.description}</p>
-      <div className="admin-content-section-actions">
-        {section.adminPath && (
-          <Link to={section.adminPath} className={cn(buttonVariants(), 'admin-content-section-btn')}>
-            Manage in admin
+      <h3 className="text-sm font-bold text-[#1a1a1a]">{section.title}</h3>
+      <p className="text-sm leading-relaxed text-[#666]">{section.description}</p>
+      <div className="mt-auto flex flex-wrap items-center gap-2 pt-1">
+        {section.adminPath ? (
+          <Link to={section.adminPath}>
+            <AdminOutlineButton className="h-9 px-3 text-[10px]">
+              Manage in admin
+            </AdminOutlineButton>
           </Link>
-        )}
-        {section.path && (
-          <a href={section.path} target="_blank" rel="noreferrer" className="admin-content-section-link">
+        ) : null}
+        {section.path ? (
+          <a
+            href={section.path}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-[#666] hover:text-[#1a1a1a]"
+          >
             <ExternalLink size={14} aria-hidden="true" />
             View on website
           </a>
-        )}
+        ) : null}
       </div>
     </motion.div>
   )
@@ -90,40 +119,37 @@ function AdminContentPage() {
   const topListings = useMemo(() => getTopProductListings(5), [])
 
   return (
-    <div className="admin-content-page">
-      <header className="admin-content-page-head">
-        <div>
-          <h1>Website content</h1>
-          <p>
-            Monitor rental listing performance, review storefront sections, and keep Nuevo Rental
-            product pages fresh for customers.
-          </p>
-        </div>
-      </header>
+    <AdminPage>
+      <AdminPageHeader
+        title="Website content"
+        description="Monitor rental listing performance, review storefront sections, and keep Nuevo Rental product pages fresh for customers."
+      />
 
       <motion.aside
-        className="admin-content-alert"
+        className="flex flex-col gap-4 border border-[#e5e5e5] bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
         initial={reduceMotion ? false : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       >
-        <Alert className="admin-content-alert-copy border-0 bg-transparent p-0 shadow-none">
-          <span className="admin-content-alert-icon" aria-hidden="true">🏠</span>
+        <Alert className="border-0 bg-transparent p-0 shadow-none">
+          <span className="text-xl" aria-hidden="true">
+            🏠
+          </span>
           <div>
-            <AlertTitle>
+            <AlertTitle className="text-sm font-bold text-[#1a1a1a]">
               {alert.count} rental listing{alert.count === 1 ? '' : 's'} need your attention
             </AlertTitle>
-            <AlertDescription>{alert.message}</AlertDescription>
+            <AlertDescription className="text-sm text-[#666]">{alert.message}</AlertDescription>
           </div>
         </Alert>
-        <Link to="/admin/products" className={cn(buttonVariants(), 'admin-content-alert-btn')}>
-          Review listings
+        <Link to="/admin/products">
+          <AdminPrimaryButton>Review listings</AdminPrimaryButton>
         </Link>
       </motion.aside>
 
-      <div className="admin-content-analytics-grid">
+      <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
         <motion.div
-          className="admin-content-analytics-main"
+          className="border border-[#e5e5e5] bg-white"
           initial={reduceMotion ? false : { opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.08, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
@@ -132,7 +158,7 @@ function AdminContentPage() {
         </motion.div>
 
         <motion.div
-          className="admin-content-analytics-side"
+          className="border border-[#e5e5e5] bg-white"
           initial={reduceMotion ? false : { opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.14, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
@@ -141,42 +167,41 @@ function AdminContentPage() {
         </motion.div>
       </div>
 
-      <section className="admin-content-quick-stats" aria-label="Content overview">
-        <article className="admin-content-quick-stat">
-          <span>Active listings</span>
-          <strong>{summary.activeListings}</strong>
-          <small>devices on rent catalog</small>
-        </article>
-        <article className="admin-content-quick-stat">
-          <span>Categories</span>
-          <strong>{summary.categoryCount}</strong>
-          <small>storefront groupings</small>
-        </article>
-        <article className="admin-content-quick-stat">
-          <span>Content sections</span>
-          <strong>{sections.length}</strong>
-          <small>managed website areas</small>
-        </article>
-        <article className="admin-content-quick-stat">
-          <span>Catalog revenue</span>
-          <strong>{formatINR(summary.totalSales)}</strong>
-          <small>all-time rental value</small>
-        </article>
-      </section>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Content overview">
+        <AdminStatCard
+          label="Active listings"
+          value={summary.activeListings}
+          note="devices on rent catalog"
+        />
+        <AdminStatCard label="Categories" value={summary.categoryCount} note="storefront groupings" />
+        <AdminStatCard label="Content sections" value={sections.length} note="managed website areas" />
+        <AdminStatCard
+          label="Catalog revenue"
+          value={formatINR(summary.totalSales)}
+          note="all-time rental value"
+        />
+      </div>
 
-      <section className="admin-content-sections-wrap">
-        <div className="admin-content-sections-head">
+      <AdminPanel>
+        <div className="flex flex-col gap-4 border-b border-[#e5e5e5] p-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2>Storefront content modules</h2>
-            <p>Manage homepage, product listing, deals, and support content across the Nuevo Rental website.</p>
+            <AdminSectionTitle className="normal-case">Storefront content modules</AdminSectionTitle>
+            <p className="mt-1 text-sm text-[#666]">
+              Manage homepage, product listing, deals, and support content across the Nuevo Rental website.
+            </p>
           </div>
-          <Link to="/" target="_blank" rel="noreferrer" className="admin-content-view-site">
+          <a
+            href="/"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-[#1a1a1a] hover:underline"
+          >
             View live website
             <ArrowUpRight size={16} aria-hidden="true" />
-          </Link>
+          </a>
         </div>
 
-        <div className="admin-content-sections-grid">
+        <div className="grid gap-4 p-4 sm:grid-cols-2 xl:grid-cols-3">
           {sections.map((section, index) => (
             <ContentSectionCard
               key={section.id}
@@ -186,21 +211,26 @@ function AdminContentPage() {
             />
           ))}
         </div>
-      </section>
+      </AdminPanel>
 
-      <section className="admin-content-listings-panel">
-        <div className="admin-content-listings-head">
+      <AdminPanel>
+        <div className="flex flex-col gap-4 border-b border-[#e5e5e5] p-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2>Top product listings</h2>
-            <p>Most booked rental devices based on order activity and listing engagement.</p>
+            <AdminSectionTitle className="normal-case">Top product listings</AdminSectionTitle>
+            <p className="mt-1 text-sm text-[#666]">
+              Most booked rental devices based on order activity and listing engagement.
+            </p>
           </div>
-          <Link to="/admin/products" className="admin-content-listings-link">
+          <Link
+            to="/admin/products"
+            className="text-xs font-semibold uppercase tracking-wide text-[#1a1a1a] hover:underline"
+          >
             Open products admin
           </Link>
         </div>
 
-        <div className="admin-content-listings-table-wrap">
-          <Table className="admin-content-listings-table">
+        <div className={adminTableWrapClass}>
+          <Table className={adminTableClass}>
             <TableHeader>
               <TableRow>
                 <TableHead>Product</TableHead>
@@ -215,25 +245,29 @@ function AdminContentPage() {
               {topListings.map((listing) => (
                 <TableRow key={listing.id}>
                   <TableCell>
-                    <strong>{listing.title}</strong>
-                    {listing.featured && <Badge className="admin-content-featured-tag">Featured</Badge>}
+                    <strong className="text-sm text-[#1a1a1a]">{listing.title}</strong>
+                    {listing.featured ? (
+                      <AdminStatusBadge tone="dark" className="ml-2">
+                        Featured
+                      </AdminStatusBadge>
+                    ) : null}
                   </TableCell>
                   <TableCell>{listing.category}</TableCell>
                   <TableCell>{formatINR(listing.rentalPrice)}</TableCell>
                   <TableCell>{listing.bookings}</TableCell>
                   <TableCell>{listing.views ?? '—'}</TableCell>
                   <TableCell>
-                    <Badge className={`admin-content-listing-status admin-content-listing-status--${listing.status}`}>
+                    <AdminStatusBadge tone={listingStatusTone(listing.status)}>
                       {listing.status}
-                    </Badge>
+                    </AdminStatusBadge>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
-      </section>
-    </div>
+      </AdminPanel>
+    </AdminPage>
   )
 }
 

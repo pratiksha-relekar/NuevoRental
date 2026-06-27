@@ -308,6 +308,7 @@ body.auth-standalone-open #root {
   height: auto;
   min-height: 0;
   line-height: 1.25;
+  border-radius: 0;
 }
 
 [data-slot="input"],
@@ -337,6 +338,17 @@ body.auth-standalone-open #root {
   flex-shrink: 0;
 }
 
+.header-search-popular-btn.is-active,
+.header-search-popular-btn.is-active:hover {
+  background-color: #1a1a1a !important;
+  border-color: #1a1a1a !important;
+  color: #ffffff !important;
+}
+
+.header-search-popular-btn.is-active svg {
+  color: #ffffff !important;
+}
+
 .checkout-field [data-slot="input"],
 .checkout-field [data-slot="textarea"],
 .checkout-field [data-slot="select-trigger"],
@@ -345,11 +357,46 @@ body.auth-standalone-open #root {
 .account-field [data-slot="input"],
 .account-field [data-slot="textarea"],
 .auth-field [data-slot="input"],
-.admin-modal-field [data-slot="input"],
-.admin-modal-field [data-slot="textarea"],
-.admin-modal-field [data-slot="select-trigger"],
 .rent-products-filter-group [data-slot="select-trigger"] {
   width: 100%;
   min-height: 32px;
   height: auto;
+}
+
+/* Admin sidebar: readable labels, icons, and count badges */
+[data-sidebar="menu-button"] {
+  color: #1a1a1a;
+}
+
+[data-sidebar="menu-button"] svg,
+[data-sidebar="menu-button"] span {
+  color: inherit;
+}
+
+[data-sidebar="menu-button"][data-active],
+[data-sidebar="menu-button"][data-active='true'],
+[data-sidebar="menu-button"].active {
+  background-color: #1a1a1a !important;
+  color: #ffffff !important;
+}
+
+[data-sidebar="menu-button"][data-active] svg,
+[data-sidebar="menu-button"][data-active] span,
+[data-sidebar="menu-button"][data-active='true'] svg,
+[data-sidebar="menu-button"][data-active='true'] span,
+[data-sidebar="menu-button"].active svg,
+[data-sidebar="menu-button"].active span {
+  color: #ffffff !important;
+}
+
+[data-sidebar="menu-badge"] {
+  background-color: #1a1a1a;
+  color: #ffffff;
+}
+
+[data-sidebar="menu-button"][data-active] + [data-sidebar="menu-badge"],
+[data-sidebar="menu-button"][data-active='true'] + [data-sidebar="menu-badge"] {
+  background-color: #ffffff;
+  color: #1a1a1a;
+  border: 1px solid rgb(255 255 255 / 0.35);
 }

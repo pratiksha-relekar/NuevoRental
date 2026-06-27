@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import { motion, useReducedMotion } from 'motion/react'
 import {
   BadgeCheck,
   CalendarClock,
@@ -23,10 +22,6 @@ import {
 } from '../../data/orderStorage'
 import { formatKycStatus } from '../../data/userStorage'
 import { OrderDetailModal } from '../components/OrderDetailModal'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -34,7 +29,33 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Tabs } from '@/components/ui/tabs'
+import { cn } from '@/lib/utils'
+import {
+  AdminEmptyState,
+  AdminPage,
+  AdminPageHeader,
+  AdminPanel,
+  AdminSearchField,
+  AdminStatCard,
+  AdminStatusBadge,
+  AdminTabTrigger,
+  AdminTabsList,
+  AdminIconButton,
+  AdminToolbar,
+  adminSelectTriggerClass,
+  adminTableClass,
+  adminTableWrapClass,
+} from '../components/admin-ui'
+
 const FILTER_TABS = [
   { id: 'all', label: 'All orders' },
   { id: 'today', label: 'Today' },
@@ -44,31 +65,23 @@ const FILTER_TABS = [
   { id: 'canceled', label: 'Canceled' },
 ]
 
-function StatCard({ icon: Icon, label, value, note, tone, delay = 0 }) {
-  const reduceMotion = useReducedMotion()
+function getOrderStatusTone(status) {
+  if (status === 'delivered') return 'success'
+  if (status === 'canceled') return 'danger'
+  if (status === 'confirmed') return 'warning'
+  if (status === 'out_for_delivery' || status === 'placed') return 'info'
+  return 'neutral'
+}
 
-  return (
-    <motion.div
-      className={`admin-orders-stat-card admin-orders-stat-card--${tone}`}
-      initial={reduceMotion ? false : { opacity: 0, y: 14 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      whileHover={reduceMotion ? undefined : { y: -4 }}
-    >
-      <span className="admin-orders-stat-icon" aria-hidden="true">
-        <Icon size={18} />
-      </span>
-      <div>
-        <span className="admin-orders-stat-label">{label}</span>
-        <strong>{value}</strong>
-        <small>{note}</small>
-      </div>
-    </motion.div>
-  )
+function getKycTone(status) {
+  if (status === 'approved') return 'success'
+  if (status === 'pending') return 'warning'
+  if (status === 'in_review') return 'info'
+  if (status === 'rejected') return 'danger'
+  return 'neutral'
 }
 
 function AdminOrdersPage() {
-  const reduceMotion = useReducedMotion()
   const [version, setVersion] = useState(0)
   const [search, setSearch] = useState('')
   const [activeFilter, setActiveFilter] = useState('all')
@@ -137,60 +150,52 @@ function AdminOrdersPage() {
   }
 
   return (
-    <div className="admin-orders-page">
-      <header className="admin-orders-page-head">
-        <div>
-          <h1>Orders</h1>
-          <p>Track rental orders, delivery schedules, cancellations, and fulfillment across Nuevo Rental.</p>
-        </div>
-      </header>
+    <AdminPage>
+      <AdminPageHeader
+        title="Orders"
+        description="Track rental orders, delivery schedules, cancellations, and fulfillment across Nuevo Rental."
+      />
 
-      <div className="admin-orders-stat-grid">
-        <StatCard icon={ShoppingBag} label="Total orders" value={stats.total} note="all rental bookings" tone="blue" delay={0} />
-        <StatCard icon={CalendarClock} label="Today" value={stats.today} note="placed today" tone="purple" delay={0.05} />
-        <StatCard icon={Package} label="Scheduled" value={stats.scheduled} note="upcoming deliveries" tone="amber" delay={0.1} />
-        <StatCard icon={Truck} label="In delivery" value={stats.delivery} note="out for delivery" tone="blue" delay={0.15} />
-        <StatCard icon={CircleCheck} label="Delivered" value={stats.delivered} note="completed rentals" tone="green" delay={0.2} />
-        <StatCard icon={XCircle} label="Canceled" value={stats.canceled} note="canceled orders" tone="pink" delay={0.25} />
-        <StatCard icon={ShieldCheck} label="KYC verified" value={stats.kycVerified} note="customers with approved KYC" tone="green" delay={0.3} />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <AdminStatCard icon={ShoppingBag} label="Total orders" value={stats.total} note="all rental bookings" />
+        <AdminStatCard icon={CalendarClock} label="Today" value={stats.today} note="placed today" />
+        <AdminStatCard icon={Package} label="Scheduled" value={stats.scheduled} note="upcoming deliveries" />
+        <AdminStatCard icon={Truck} label="In delivery" value={stats.delivery} note="out for delivery" />
+        <AdminStatCard icon={CircleCheck} label="Delivered" value={stats.delivered} note="completed rentals" />
+        <AdminStatCard icon={XCircle} label="Canceled" value={stats.canceled} note="canceled orders" />
+        <AdminStatCard icon={ShieldCheck} label="KYC verified" value={stats.kycVerified} note="customers with approved KYC" />
       </div>
 
-      <section className="admin-orders-panel">
-        <div className="admin-orders-panel-head">
-          <div>
-            <h2>Rental order records</h2>
-            <p>{filteredOrders.length} matching order{filteredOrders.length === 1 ? '' : 's'} · {formatINR(stats.revenue)} total value</p>
-          </div>
+      <AdminPanel>
+        <div className="border-b border-[#e5e5e5] p-4">
+          <h2 className="text-sm font-bold tracking-wide text-[#1a1a1a] uppercase">Rental order records</h2>
+          <p className="mt-1 text-sm text-[#666]">
+            {filteredOrders.length} matching order{filteredOrders.length === 1 ? '' : 's'} · {formatINR(stats.revenue)} total value
+          </p>
         </div>
 
-        <div className="admin-orders-toolbar">
-          <Tabs value={activeFilter} onValueChange={setActiveFilter}>
-            <TabsList className="admin-orders-tabs">
+        <AdminToolbar className="flex-col items-stretch xl:flex-row xl:items-center xl:justify-between">
+          <Tabs value={activeFilter} onValueChange={setActiveFilter} className="w-full xl:w-auto">
+            <AdminTabsList className="h-auto w-full flex-wrap">
               {FILTER_TABS.map((tab) => (
-                <TabsTrigger
-                  key={tab.id}
-                  value={tab.id}
-                  className={`admin-orders-tab${activeFilter === tab.id ? ' is-active' : ''}`}
-                >
+                <AdminTabTrigger key={tab.id} value={tab.id}>
                   {tab.label}
-                </TabsTrigger>
+                </AdminTabTrigger>
               ))}
-            </TabsList>
+            </AdminTabsList>
           </Tabs>
 
-          <div className="admin-orders-toolbar-filters">
-            <label className="admin-orders-search">
-              <Search size={16} aria-hidden="true" />
-              <Input
-                type="search"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search order ID, customer, KYC, city or product"
-              />
-            </label>
+          <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center xl:w-auto">
+            <AdminSearchField
+              icon={Search}
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search order ID, customer, KYC, city or product"
+            />
 
             <Select value={kycFilter} onValueChange={setKycFilter}>
-              <SelectTrigger className="admin-orders-filter" aria-label="Filter by KYC status">
+              <SelectTrigger className={cn(adminSelectTriggerClass, 'w-full sm:w-[160px]')} aria-label="Filter by KYC status">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -203,116 +208,148 @@ function AdminOrdersPage() {
               </SelectContent>
             </Select>
           </div>
-        </div>
+        </AdminToolbar>
 
-        <div className="admin-orders-list">
-          {filteredOrders.map((order, index) => (
-            <motion.article
-              key={`${order.userEmail}-${order.id}`}
-              className={`admin-orders-card admin-orders-card--${order.status}`}
-              initial={reduceMotion ? false : { opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.04 * index, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-              whileHover={reduceMotion ? undefined : { y: -4 }}
-            >
-              <div className="admin-orders-card-top">
-                <div className="admin-orders-card-customer">
-                  <span className="admin-orders-card-avatar" aria-hidden="true">
-                    {order.customer?.initials ?? order.customerName?.[0] ?? 'U'}
-                    {order.isCustomerOnline && <span className="admin-orders-online-dot" title="Active session" />}
-                  </span>
-                  <div>
-                    <span className="admin-orders-card-id">{order.id}</span>
-                    <h3>
-                      {order.customerName}
-                      {order.kycStatus === 'approved' && (
-                        <BadgeCheck className="admin-orders-verified-icon" size={14} aria-label="KYC verified" />
-                      )}
-                    </h3>
-                    <p>{order.userEmail}</p>
-                    {order.isCustomerOnline && (
-                      <em className="admin-orders-online-label">Active session</em>
-                    )}
-                  </div>
-                </div>
-                <Badge className={`admin-orders-status admin-orders-status--${order.status}`}>
-                  {ADMIN_ORDER_STATUS_LABELS[order.status] ?? order.status}
-                </Badge>
-              </div>
-
-              <div className="admin-orders-card-meta">
-                <Badge className={`admin-orders-kyc admin-orders-kyc--${order.kycStatus}`}>
-                  <ShieldCheck size={12} aria-hidden="true" />
-                  {formatKycStatus(order.kycStatus)}
-                </Badge>
-                <Badge className={`admin-orders-provider admin-orders-provider--${order.provider}`}>
-                  {order.provider === 'google' ? 'Google' : 'Email'}
-                </Badge>
-                {order.customerPhone && (
-                  <span className="admin-orders-phone">{order.customerPhone}</span>
-                )}
-              </div>
-
-              <div className="admin-orders-card-grid">
-                <div>
-                  <span>Product</span>
-                  <strong>{order.firstItemTitle}</strong>
-                  <small>{order.itemCount} item{order.itemCount === 1 ? '' : 's'}</small>
-                </div>
-                <div>
-                  <span>Amount</span>
-                  <strong>{formatINR(order.payAmount)}</strong>
-                  <small>{order.paymentMethod === 'cod' ? 'Pay on delivery' : order.paymentMethod.toUpperCase()}</small>
-                </div>
-                <div>
-                  <span>Delivery</span>
-                  <strong>{order.deliveryCity}</strong>
-                  <small>{order.scheduleLabel}</small>
-                </div>
-                <div>
-                  <span>Placed</span>
-                  <strong>{order.placedLabel}</strong>
-                  <small>{order.estimatedDelivery ?? 'Standard delivery'}</small>
-                </div>
-              </div>
-
-              <div className="admin-orders-card-actions">
-                <Label className="admin-orders-status-select">
-                  <span>Update status</span>
-                  <Select
-                    value={order.status}
-                    onValueChange={(status) => handleStatusChange(order, status)}
-                  >
-                    <SelectTrigger className="w-full" aria-label={`Update status for ${order.id}`}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(ADMIN_ORDER_STATUS_LABELS).map(([value, label]) => (
-                        <SelectItem key={value} value={value}>
-                          {label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Label>
-
-                <Button
-                  type="button"
-                  className="admin-orders-view-btn"
-                  onClick={() => setSelectedOrder(order)}
+        <div className={adminTableWrapClass}>
+          <Table className={adminTableClass}>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Order</TableHead>
+                <TableHead>Customer</TableHead>
+                <TableHead>Product</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>Delivery</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>KYC</TableHead>
+                <TableHead>Placed</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredOrders.map((order) => (
+                <TableRow
+                  key={`${order.userEmail}-${order.id}`}
+                  className={cn(
+                    order.isCustomerOnline && 'bg-[#f8fff9]',
+                    order.status === 'canceled' && 'opacity-80',
+                  )}
                 >
-                  <Eye size={16} aria-hidden="true" />
-                  View details
-                </Button>
-              </div>
-            </motion.article>
-          ))}
+                  <TableCell>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-mono text-[11px] font-semibold tracking-wide text-[#888] uppercase">
+                        {order.id}
+                      </span>
+                      <AdminStatusBadge tone={order.provider === 'google' ? 'info' : 'neutral'}>
+                        {order.provider === 'google' ? 'Google' : 'Email'}
+                      </AdminStatusBadge>
+                    </div>
+                  </TableCell>
+
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <span
+                        className="relative inline-flex size-9 shrink-0 items-center justify-center border border-[#e5e5e5] bg-[#fafafa] text-xs font-bold text-[#1a1a1a]"
+                        aria-hidden="true"
+                      >
+                        {order.customer?.initials ?? order.customerName?.[0] ?? 'U'}
+                        {order.isCustomerOnline && (
+                          <span
+                            className="absolute -right-0.5 -bottom-0.5 size-2.5 rounded-full border-2 border-white bg-[#22c55e]"
+                            title="Active session"
+                          />
+                        )}
+                      </span>
+                      <div className="min-w-[160px] whitespace-normal">
+                        <strong className="inline-flex items-center gap-1 text-sm text-[#1a1a1a]">
+                          {order.customerName}
+                          {order.kycStatus === 'approved' && (
+                            <BadgeCheck className="text-[#1f6b3a]" size={14} aria-label="KYC verified" />
+                          )}
+                        </strong>
+                        <span className="block text-xs text-[#888]">{order.userEmail}</span>
+                        {order.customerPhone ? (
+                          <span className="block text-xs text-[#666]">{order.customerPhone}</span>
+                        ) : null}
+                        {order.isCustomerOnline && (
+                          <em className="text-[11px] not-italic text-[#1f6b3a]">Active session</em>
+                        )}
+                      </div>
+                    </div>
+                  </TableCell>
+
+                  <TableCell className="whitespace-normal">
+                    <strong className="block max-w-[180px] text-sm text-[#1a1a1a]">{order.firstItemTitle}</strong>
+                    <span className="text-xs text-[#888]">
+                      {order.itemCount} item{order.itemCount === 1 ? '' : 's'}
+                    </span>
+                  </TableCell>
+
+                  <TableCell>
+                    <strong className="block text-sm text-[#1a1a1a]">{formatINR(order.payAmount)}</strong>
+                    <span className="text-xs text-[#888]">
+                      {order.paymentMethod === 'cod' ? 'Pay on delivery' : order.paymentMethod.toUpperCase()}
+                    </span>
+                  </TableCell>
+
+                  <TableCell className="whitespace-normal">
+                    <strong className="block text-sm text-[#1a1a1a]">{order.deliveryCity}</strong>
+                    <span className="block text-xs text-[#888]">{order.scheduleLabel}</span>
+                    <span className="block text-xs text-[#aaa]">{order.estimatedDelivery ?? 'Standard delivery'}</span>
+                  </TableCell>
+
+                  <TableCell className="whitespace-normal">
+                    <AdminStatusBadge tone={getOrderStatusTone(order.status)} className="mb-2">
+                      {ADMIN_ORDER_STATUS_LABELS[order.status] ?? order.status}
+                    </AdminStatusBadge>
+                    <Select
+                      value={order.status}
+                      onValueChange={(status) => handleStatusChange(order, status)}
+                    >
+                      <SelectTrigger
+                        className={cn(adminSelectTriggerClass, 'h-9 min-w-[140px]')}
+                        aria-label={`Update status for ${order.id}`}
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(ADMIN_ORDER_STATUS_LABELS).map(([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+
+                  <TableCell>
+                    <AdminStatusBadge tone={getKycTone(order.kycStatus)} className="gap-1">
+                      <ShieldCheck size={12} aria-hidden="true" />
+                      {formatKycStatus(order.kycStatus)}
+                    </AdminStatusBadge>
+                  </TableCell>
+
+                  <TableCell>
+                    <span className="text-sm text-[#444]">{order.placedLabel}</span>
+                  </TableCell>
+
+                  <TableCell>
+                    <AdminIconButton
+                      aria-label={`View order ${order.id}`}
+                      onClick={() => setSelectedOrder(order)}
+                    >
+                      <Eye size={16} />
+                    </AdminIconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
 
           {filteredOrders.length === 0 && (
-            <p className="admin-orders-empty">No orders match your search or filter.</p>
+            <AdminEmptyState>No orders match your search or filter.</AdminEmptyState>
           )}
         </div>
-      </section>
+      </AdminPanel>
 
       <OrderDetailModal
         order={selectedOrder}
@@ -322,7 +359,7 @@ function AdminOrdersPage() {
           handleStatusChange(selectedOrder, status)
         }}
       />
-    </div>
+    </AdminPage>
   )
 }
 

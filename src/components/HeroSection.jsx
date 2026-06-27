@@ -1,8 +1,7 @@
 import { useMemo } from 'react'
 import laptopImg from '../assets/laptop.png'
 import desktopImg from '../assets/processed/desktop-setup.png'
-import { buttonVariants } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 import Hyperspeed from './Hyperspeed'
 import HeroCarouselCard from './HeroCarouselCard'
 import { HERO_HYPERSPEED_OPTIONS } from '../constants/hyperspeedOptions'
@@ -29,7 +28,9 @@ function HeroSection() {
             <p className="hero-eyebrow">Rent the Best</p>
             <h1>Premium Laptops</h1>
             <p className="hero-subtitle">Daily, Monthly &amp; Long-Term Plans — Doorstep Delivery</p>
-            <a href="#rental-products" className={cn(buttonVariants({ variant: 'default' }), 'hero-cta-btn hero-cta-btn--dark')}>RENT NOW</a>
+            <Button render={<a href="#rental-products" />} variant="default" className="hero-cta-btn hero-cta-btn--dark">
+              RENT NOW
+            </Button>
           </div>
         </article>
 
@@ -49,7 +50,9 @@ function HeroSection() {
               <h2>Desktops on Rent</h2>
               <span className="hero-side-line hero-side-line--blue" aria-hidden="true" />
               <p>iMac, Tower PCs &amp; Tiny PCs for Teams</p>
-              <a href="#rental-products" className={cn(buttonVariants({ variant: 'default' }), 'hero-side-link')}>RENT NOW</a>
+              <Button render={<a href="#rental-products" />} variant="default" className="hero-side-link">
+                RENT NOW
+              </Button>
             </div>
           </article>
 

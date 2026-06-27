@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
-import { ChevronDown, Coins, IndianRupee, Package, TrendingDown, TrendingUp } from 'lucide-react'
+import { Coins, IndianRupee, Package, TrendingDown, TrendingUp } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -10,6 +10,14 @@ import {
 } from '@/components/ui/select'
 import { getContentSalesTrend, getContentSummaryStats } from '../../data/contentStorage'
 import { formatINR } from '../../utils/cartSummary'
+import {
+  AdminSectionTitle,
+  AdminStatusBadge,
+  adminPanelClass,
+  adminSelectTriggerClass,
+} from './admin-ui'
+import { cn } from '@/lib/utils'
+
 const LINE_COLORS = {
   rentalRevenue: '#2aa89a',
   securityDeposits: '#f5a623',
@@ -20,6 +28,12 @@ const LINE_LABELS = {
   rentalRevenue: 'Rental revenue',
   securityDeposits: 'Security deposits',
   bookingCount: 'Bookings',
+}
+
+const STAT_TONE_CLASS = {
+  amber: 'border-[#f0d9a8] bg-[#fff8ea] text-[#8a6200]',
+  teal: 'border-[#b8dfc4] bg-[#eef8f0] text-[#1f6b3a]',
+  yellow: 'border-[#e5e5e5] bg-[#f5f5f5] text-[#1a1a1a]',
 }
 
 function formatAxisValue(value) {
@@ -65,14 +79,32 @@ function SummaryStat({ icon: Icon, label, value, change, tone }) {
   const isPositive = change >= 0
 
   return (
-    <article className={`admin-content-sales-stat admin-content-sales-stat--${tone}`}>
-      <span className="admin-content-sales-stat-icon" aria-hidden="true">
+    <article
+      className={cn(
+        adminPanelClass,
+        'flex items-start gap-3 rounded-none p-4 transition-colors hover:border-[#1a1a1a]',
+      )}
+    >
+      <span
+        className={cn(
+          'inline-flex size-10 shrink-0 items-center justify-center border',
+          STAT_TONE_CLASS[tone],
+        )}
+        aria-hidden="true"
+      >
         <Icon size={18} />
       </span>
       <div>
-        <span>{label}</span>
-        <strong>{value}</strong>
-        <em className={isPositive ? 'is-up' : 'is-down'}>
+        <span className="mb-1 block text-[11px] font-semibold tracking-wide text-[#666] uppercase">
+          {label}
+        </span>
+        <strong className="block text-lg font-bold text-[#1a1a1a]">{value}</strong>
+        <em
+          className={cn(
+            'mt-1 inline-flex items-center gap-1 text-xs font-semibold not-italic',
+            isPositive ? 'text-[#1f6b3a]' : 'text-[#c0392b]',
+          )}
+        >
           {isPositive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
           {Math.abs(change).toFixed(2)}%
         </em>
@@ -96,29 +128,33 @@ export function AdminContentSalesChart() {
   )
 
   return (
-    <section className="admin-content-sales-chart" aria-label="Rental sales statistics">
-      <div className="admin-content-sales-head">
-        <h3>Rental sales statistics</h3>
-        <div className="admin-content-sales-filter">
-          <Select value={period} onValueChange={setPeriod}>
-            <SelectTrigger className="w-full" aria-label="Chart period">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="3">Last 3 months</SelectItem>
-              <SelectItem value="6">Last 6 months</SelectItem>
-              <SelectItem value="12">Last 12 months</SelectItem>
-            </SelectContent>
-          </Select>
-          <ChevronDown size={14} aria-hidden="true" />
-        </div>
+    <section
+      className={cn(adminPanelClass, 'flex flex-col gap-4 rounded-none p-4')}
+      aria-label="Rental sales statistics"
+    >
+      <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+        <AdminSectionTitle className="text-base normal-case tracking-tight">
+          Rental sales statistics
+        </AdminSectionTitle>
+        <Select value={period} onValueChange={setPeriod}>
+          <SelectTrigger className={cn(adminSelectTriggerClass, 'w-full sm:w-[180px]')} aria-label="Chart period">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="rounded-none">
+            <SelectItem value="3">Last 3 months</SelectItem>
+            <SelectItem value="6">Last 6 months</SelectItem>
+            <SelectItem value="12">Last 12 months</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
-      {isDemo && <span className="admin-content-demo-tag">Sample trend data</span>}
+      {isDemo && (
+        <AdminStatusBadge tone="info" className="normal-case">Sample trend data</AdminStatusBadge>
+      )}
 
-      <div className="admin-content-sales-canvas-wrap">
+      <div className="overflow-hidden border border-[#e5e5e5] bg-[#fafafa]">
         <svg
-          className="admin-content-sales-svg"
+          className="block h-auto w-full"
           viewBox="0 0 720 280"
           preserveAspectRatio="none"
           aria-hidden="true"
@@ -139,9 +175,14 @@ export function AdminContentSalesChart() {
                 y1={tick.y}
                 x2="696"
                 y2={tick.y}
-                className="admin-content-sales-grid-line"
+                stroke="#e5e5e5"
+                strokeWidth="1"
               />
-              <text x="8" y={tick.y + 4} className="admin-content-sales-axis-label">
+              <text
+                x="8"
+                y={tick.y + 4}
+                className="fill-[#888] text-[10px]"
+              >
                 {tick.label}
               </text>
             </g>
@@ -154,7 +195,7 @@ export function AdminContentSalesChart() {
                 key={point.key}
                 x={x}
                 y="272"
-                className="admin-content-sales-axis-label admin-content-sales-axis-label--month"
+                className="fill-[#666] text-[10px] font-semibold"
               >
                 {point.label}
               </text>
@@ -189,17 +230,21 @@ export function AdminContentSalesChart() {
           ))}
         </svg>
 
-        <ul className="admin-content-sales-legend">
+        <ul className="m-0 flex list-none flex-wrap gap-4 border-t border-[#e5e5e5] bg-white px-4 py-3">
           {keys.map((key) => (
-            <li key={key}>
-              <span style={{ backgroundColor: LINE_COLORS[key] }} aria-hidden="true" />
+            <li key={key} className="inline-flex items-center gap-2 text-xs font-semibold text-[#666]">
+              <span
+                className="size-2.5 rounded-none"
+                style={{ backgroundColor: LINE_COLORS[key] }}
+                aria-hidden="true"
+              />
               {LINE_LABELS[key]}
             </li>
           ))}
         </ul>
       </div>
 
-      <div className="admin-content-sales-stats">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         <SummaryStat
           icon={IndianRupee}
           label="Total rental sales"

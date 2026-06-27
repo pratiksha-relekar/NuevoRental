@@ -1,16 +1,25 @@
 import { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
 import { slugifyCategoryId } from '../../data/catalogStorage'
-import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
+import {
+  AdminIconButton,
+  AdminOutlineButton,
+  AdminPrimaryButton,
+  adminInputClass,
+} from './admin-ui'
+
 const EMPTY_FORM = {
   id: '',
   label: '',
   description: '',
 }
+
+const labelClass = 'text-[11px] font-semibold tracking-wide text-[#444] uppercase'
 
 export function CategoryFormModal({ open, category, onClose, onSave }) {
   const [form, setForm] = useState(EMPTY_FORM)
@@ -33,60 +42,67 @@ export function CategoryFormModal({ open, category, onClose, onSave }) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent
-        className="admin-modal-card admin-product-modal"
+        className="max-w-[640px] gap-0 rounded-none border-[#d8d8d8] p-0"
         showCloseButton={false}
         aria-labelledby="category-modal-title"
       >
-        <div className="admin-modal-header">
-          <h2 id="category-modal-title">{category ? 'Edit category' : 'Add category'}</h2>
-          <Button type="button" variant="ghost" className="admin-modal-close" onClick={onClose} aria-label="Close">
+        <div className="flex items-center justify-between border-b border-[#e5e5e5] px-6 py-4">
+          <h2 id="category-modal-title" className="text-lg font-bold text-[#1a1a1a]">
+            {category ? 'Edit category' : 'Add category'}
+          </h2>
+          <AdminIconButton onClick={onClose} aria-label="Close">
             <X size={18} />
-          </Button>
+          </AdminIconButton>
         </div>
 
-        <form className="admin-modal-form" onSubmit={handleSubmit}>
-          <Label className="admin-modal-field admin-modal-field--full">
-            <span>Category name</span>
-            <Input
-              type="text"
-              value={form.label}
-              onChange={(e) => updateField('label', e.target.value)}
-              placeholder="e.g. Gaming Laptops"
-              required
-            />
-          </Label>
-
-          {!category && (
-            <Label className="admin-modal-field admin-modal-field--full">
-              <span>Category ID</span>
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-4 px-6 py-4">
+            <Label className="flex flex-col gap-2">
+              <span className={labelClass}>Category name</span>
               <Input
                 type="text"
-                value={form.id || slugifyCategoryId(form.label)}
-                onChange={(e) => updateField('id', slugifyCategoryId(e.target.value))}
-                placeholder="gaming-laptops"
+                className={adminInputClass}
+                value={form.label}
+                onChange={(e) => updateField('label', e.target.value)}
+                placeholder="e.g. Gaming Laptops"
+                required
               />
             </Label>
-          )}
 
-          <Label className="admin-modal-field admin-modal-field--full">
-            <span>Description (optional)</span>
-            <Textarea
-              rows={3}
-              value={form.description}
-              onChange={(e) => updateField('description', e.target.value)}
-              placeholder="Describe what products belong in this category"
-            />
-          </Label>
+            {!category && (
+              <Label className="flex flex-col gap-2">
+                <span className={labelClass}>Category ID</span>
+                <Input
+                  type="text"
+                  className={adminInputClass}
+                  value={form.id || slugifyCategoryId(form.label)}
+                  onChange={(e) => updateField('id', slugifyCategoryId(e.target.value))}
+                  placeholder="gaming-laptops"
+                />
+              </Label>
+            )}
 
-          <div className="admin-modal-footer">
-            <Button type="button" variant="outline" className="admin-modal-btn admin-modal-btn--ghost" onClick={onClose}>
+            <Label className="flex flex-col gap-2">
+              <span className={labelClass}>Description (optional)</span>
+              <Textarea
+                rows={3}
+                className={cn(adminInputClass, 'min-h-[84px] resize-y')}
+                value={form.description}
+                onChange={(e) => updateField('description', e.target.value)}
+                placeholder="Describe what products belong in this category"
+              />
+            </Label>
+          </div>
+
+          <div className="flex justify-end gap-2 border-t border-[#e5e5e5] px-6 py-4">
+            <AdminOutlineButton onClick={onClose}>
               Cancel
-            </Button>
-            <Button type="submit" className="admin-modal-btn admin-modal-btn--primary">
+            </AdminOutlineButton>
+            <AdminPrimaryButton type="submit">
               {category ? 'Save category' : 'Add category'}
-            </Button>
+            </AdminPrimaryButton>
           </div>
         </form>
       </DialogContent>

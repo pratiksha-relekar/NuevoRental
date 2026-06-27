@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink, useMatch, useResolvedPath } from 'react-router-dom'
 import {
   ExternalLink,
   FileText,
@@ -36,6 +36,7 @@ import {
   SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarRail,
   useSidebar,
 } from '../../components/ui/sidebar'
 
@@ -51,6 +52,50 @@ function getInitials(name) {
       .slice(0, 2)
       .map((part) => part[0]?.toUpperCase() ?? '')
       .join('') || 'A'
+  )
+}
+
+function SidebarNavItem({ to, end = false, title, icon: Icon, badge, onNavigate }) {
+  const resolved = useResolvedPath(to)
+  const match = useMatch({ path: resolved.pathname, end })
+  const isActive = Boolean(match)
+
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        render={
+          <NavLink
+            to={to}
+            end={end}
+            onClick={onNavigate}
+            className={({ isActive: navActive }) =>
+              cn(
+                navActive &&
+                  'bg-[#1a1a1a] text-white hover:bg-[#1a1a1a] hover:text-white [&_svg]:text-white [&_span]:text-white',
+              )
+            }
+          />
+        }
+        isActive={isActive}
+        tooltip={title}
+        className="rounded-none text-[#1a1a1a] hover:bg-[#f5f5f5] hover:text-[#1a1a1a] [&_svg]:text-[#1a1a1a] hover:[&_svg]:text-[#1a1a1a]"
+      >
+        <Icon />
+        <span>{title}</span>
+      </SidebarMenuButton>
+      {badge != null && badge > 0 ? (
+        <SidebarMenuBadge
+          className={cn(
+            'rounded-none text-[10px] font-bold leading-none',
+            isActive
+              ? 'border border-white/35 bg-white text-[#1a1a1a]'
+              : 'bg-[#1a1a1a] text-white',
+          )}
+        >
+          {badge}
+        </SidebarMenuBadge>
+      ) : null}
+    </SidebarMenuItem>
   )
 }
 
@@ -112,12 +157,12 @@ export function AppSidebar({ onLogout }) {
 
   return (
     <Sidebar collapsible="icon" variant="sidebar">
-      <SidebarHeader>
-        <div className="sidebar-brand">
-          <BrandLogo variant="sidebar" to="/admin/dashboard" className="sidebar-brand-logo-image" />
-          <div className="sidebar-brand-text">
-            <strong>Nuevo Admin</strong>
-            <span>Control Panel</span>
+      <SidebarHeader className="border-b border-sidebar-border">
+        <div className="flex items-center gap-2.5 px-1 py-1">
+          <BrandLogo variant="sidebar" to="/admin/dashboard" className="shrink-0" />
+          <div className="min-w-0 group-data-[collapsible=icon]:hidden">
+            <strong className="block text-sm text-[#1a1a1a]">Nuevo Admin</strong>
+            <span className="block text-[11px] text-[#888]">Control Panel</span>
           </div>
         </div>
       </SidebarHeader>
@@ -127,18 +172,13 @@ export function AppSidebar({ onLogout }) {
           <SidebarGroupLabel>Platform</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <NavLink
-                  to="/admin/dashboard"
-                  end
-                  title="Dashboard"
-                  onClick={closeMobile}
-                  className={({ isActive }) => cn('sidebar-menu-button', isActive && 'is-active')}
-                >
-                  <LayoutDashboard />
-                  <span>Dashboard</span>
-                </NavLink>
-              </SidebarMenuItem>
+              <SidebarNavItem
+                to="/admin/dashboard"
+                end
+                title="Dashboard"
+                icon={LayoutDashboard}
+                onNavigate={closeMobile}
+              />
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -147,70 +187,11 @@ export function AppSidebar({ onLogout }) {
           <SidebarGroupLabel>Management</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <NavLink
-                  to="/admin/products"
-                  title="Products"
-                  onClick={closeMobile}
-                  className={({ isActive }) => cn('sidebar-menu-button', isActive && 'is-active')}
-                >
-                  <Package />
-                  <span>Products</span>
-                </NavLink>
-                <SidebarMenuBadge>{stats.products}</SidebarMenuBadge>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <NavLink
-                  to="/admin/users"
-                  title="Users"
-                  onClick={closeMobile}
-                  className={({ isActive }) => cn('sidebar-menu-button', isActive && 'is-active')}
-                >
-                  <Users />
-                  <span>Users</span>
-                </NavLink>
-                <SidebarMenuBadge>{stats.users}</SidebarMenuBadge>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <NavLink
-                  to="/admin/orders"
-                  title="Orders"
-                  onClick={closeMobile}
-                  className={({ isActive }) => cn('sidebar-menu-button', isActive && 'is-active')}
-                >
-                  <ShoppingBag />
-                  <span>Orders</span>
-                </NavLink>
-                <SidebarMenuBadge>{stats.orders}</SidebarMenuBadge>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <NavLink
-                  to="/admin/invoices"
-                  title="Invoices"
-                  onClick={closeMobile}
-                  className={({ isActive }) => cn('sidebar-menu-button', isActive && 'is-active')}
-                >
-                  <FileText />
-                  <span>Invoices</span>
-                </NavLink>
-                <SidebarMenuBadge>{stats.invoices}</SidebarMenuBadge>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <NavLink
-                  to="/admin/kyc"
-                  title="KYC"
-                  onClick={closeMobile}
-                  className={({ isActive }) => cn('sidebar-menu-button', isActive && 'is-active')}
-                >
-                  <ShieldCheck />
-                  <span>KYC</span>
-                </NavLink>
-                {stats.kyc > 0 && <SidebarMenuBadge>{stats.kyc}</SidebarMenuBadge>}
-              </SidebarMenuItem>
+              <SidebarNavItem to="/admin/products" title="Products" icon={Package} badge={stats.products} onNavigate={closeMobile} />
+              <SidebarNavItem to="/admin/users" title="Users" icon={Users} badge={stats.users} onNavigate={closeMobile} />
+              <SidebarNavItem to="/admin/orders" title="Orders" icon={ShoppingBag} badge={stats.orders} onNavigate={closeMobile} />
+              <SidebarNavItem to="/admin/invoices" title="Invoices" icon={FileText} badge={stats.invoices} onNavigate={closeMobile} />
+              <SidebarNavItem to="/admin/kyc" title="KYC" icon={ShieldCheck} badge={stats.kyc} onNavigate={closeMobile} />
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -219,85 +200,47 @@ export function AppSidebar({ onLogout }) {
           <SidebarGroupLabel>Website</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <NavLink
-                  to="/admin/content"
-                  title="Content"
-                  onClick={closeMobile}
-                  className={({ isActive }) => cn('sidebar-menu-button', isActive && 'is-active')}
-                >
-                  <Globe />
-                  <span>Content</span>
-                </NavLink>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <NavLink
-                  to="/admin/weekly-offers"
-                  title="Weekly Offers"
-                  onClick={closeMobile}
-                  className={({ isActive }) => cn('sidebar-menu-button', isActive && 'is-active')}
-                >
-                  <Percent />
-                  <span>Weekly Offers</span>
-                </NavLink>
-                <SidebarMenuBadge>{weeklyOffers.length}</SidebarMenuBadge>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <NavLink
-                  to="/admin/support"
-                  title="Support"
-                  onClick={closeMobile}
-                  className={({ isActive }) => cn('sidebar-menu-button', isActive && 'is-active')}
-                >
-                  <Headphones />
-                  <span>Support</span>
-                </NavLink>
-                {stats.support > 0 && <SidebarMenuBadge>{stats.support}</SidebarMenuBadge>}
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <NavLink
-                  to="/admin/settings"
-                  title="Settings"
-                  onClick={closeMobile}
-                  className={({ isActive }) => cn('sidebar-menu-button', isActive && 'is-active')}
-                >
-                  <Settings />
-                  <span>Settings</span>
-                </NavLink>
-              </SidebarMenuItem>
+              <SidebarNavItem to="/admin/content" title="Content" icon={Globe} onNavigate={closeMobile} />
+              <SidebarNavItem to="/admin/weekly-offers" title="Weekly Offers" icon={Percent} badge={weeklyOffers.length} onNavigate={closeMobile} />
+              <SidebarNavItem to="/admin/support" title="Support" icon={Headphones} badge={stats.support} onNavigate={closeMobile} />
+              <SidebarNavItem to="/admin/settings" title="Settings" icon={Settings} onNavigate={closeMobile} />
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter>
-        <div className="sidebar-footer-user">
-          <span className="sidebar-footer-avatar" aria-hidden="true">
+      <SidebarFooter className="border-t border-sidebar-border">
+        <div className="mb-1 flex items-center gap-2.5 border border-sidebar-border bg-sidebar-accent/40 p-2 group-data-[collapsible=icon]:hidden">
+          <span
+            className="inline-flex size-[34px] shrink-0 items-center justify-center bg-[#1a1a1a] text-xs font-bold text-white"
+            aria-hidden="true"
+          >
             {getInitials(admin?.displayName ?? 'Admin')}
           </span>
-          <div className="sidebar-footer-user-meta">
-            <strong>{admin?.displayName}</strong>
-            <span>{admin?.role?.replace('_', ' ')}</span>
+          <div className="min-w-0">
+            <strong className="block truncate text-[13px] text-[#1a1a1a]">{admin?.displayName}</strong>
+            <span className="block truncate text-[11px] capitalize text-[#888]">
+              {admin?.role?.replace('_', ' ')}
+            </span>
           </div>
         </div>
 
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <Link to="/" title="View website" onClick={closeMobile}>
-                <ExternalLink />
-                <span>View website</span>
-              </Link>
+            <SidebarMenuButton
+              render={<Link to="/" onClick={closeMobile} />}
+              tooltip="View website"
+              className="rounded-none text-[#1a1a1a] hover:bg-[#f5f5f5] [&_svg]:text-[#1a1a1a]"
+            >
+              <ExternalLink />
+              <span>View website</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
           <SidebarMenuItem>
             <SidebarMenuButton
-              className="sidebar-menu-button--danger"
-              title="Logout"
+              tooltip="Logout"
+              className="rounded-none text-destructive hover:bg-destructive/10 hover:text-destructive [&_svg]:text-destructive"
               onClick={() => {
                 closeMobile()
                 onLogout()
@@ -309,6 +252,8 @@ export function AppSidebar({ onLogout }) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
+
+      <SidebarRail />
     </Sidebar>
   )
 }

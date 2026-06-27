@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom'
 import { ChevronDown, ExternalLink, LogOut, Settings, Shield } from 'lucide-react'
 import { SidebarTrigger } from '../../components/ui/sidebar'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+
 function getInitials(name) {
   return (
     name
@@ -65,8 +67,8 @@ export function AdminHeader({ admin, onLogout }) {
     const handlePointerDown = (event) => {
       const target = event.target
       if (!(target instanceof Element)) return
-      if (target.closest('.admin-profile-popover')) return
-      if (target.closest('.admin-profile-scrim')) return
+      if (target.closest('[data-admin-profile-popover]')) return
+      if (target.closest('[data-admin-profile-scrim]')) return
       if (triggerRef.current?.contains(target)) return
       setOpen(false)
     }
@@ -75,41 +77,44 @@ export function AdminHeader({ admin, onLogout }) {
     return () => document.removeEventListener('pointerdown', handlePointerDown)
   }, [open])
 
-  useEffect(() => {
-    document.body.classList.toggle('admin-profile-open', open)
-    return () => document.body.classList.remove('admin-profile-open')
-  }, [open])
-
   const handleLogout = () => {
     setOpen(false)
     onLogout()
   }
 
+  const menuLinkClass =
+    'flex w-full items-center gap-2.5 rounded-none px-3 py-2.5 text-left text-sm font-medium text-[#1a1a1a] no-underline transition-colors hover:bg-[#f5f5f5]'
+
   return (
-    <header className="admin-inset-header">
-      <div className="admin-inset-header-main">
+    <header className="sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-[#e5e5e5] bg-white px-4 py-3 md:px-6">
+      <div className="flex min-w-0 items-center gap-3">
         <SidebarTrigger />
-        <h1 className="admin-inset-title">Welcome to admin dashboard</h1>
+        <h1 className="truncate text-sm font-semibold tracking-wide text-[#1a1a1a] uppercase md:text-base">
+          Admin Dashboard
+        </h1>
       </div>
 
-      <div className={`admin-profile${open ? ' is-open' : ''}`}>
+      <div className="relative">
         <Button
           ref={triggerRef}
           type="button"
           variant="ghost"
-          className="admin-profile-trigger"
+          className="h-auto rounded-none px-2 py-1.5 hover:bg-[#f5f5f5]"
           onClick={() => setOpen((prev) => !prev)}
           aria-expanded={open}
           aria-haspopup="menu"
         >
-          <span className="admin-profile-avatar admin-profile-avatar--sm" aria-hidden="true">
+          <span
+            className="inline-flex size-8 items-center justify-center bg-[#1a1a1a] text-xs font-bold text-white"
+            aria-hidden="true"
+          >
             {getInitials(admin.displayName)}
           </span>
-          <span className="admin-profile-trigger-text">
-            <span className="admin-profile-greet">Hello,</span>
-            <span className="admin-profile-name">{admin.displayName}</span>
+          <span className="hidden min-w-0 flex-col items-start sm:flex">
+            <span className="text-[10px] font-medium tracking-wide text-[#888] uppercase">Hello,</span>
+            <span className="max-w-[120px] truncate text-sm font-semibold text-[#1a1a1a]">{admin.displayName}</span>
           </span>
-          <ChevronDown className="admin-profile-chevron" size={16} aria-hidden="true" />
+          <ChevronDown className={cn('size-4 text-[#666] transition-transform', open && 'rotate-180')} aria-hidden="true" />
         </Button>
 
         {open && popover && createPortal(
@@ -117,15 +122,17 @@ export function AdminHeader({ admin, onLogout }) {
             <Button
               type="button"
               variant="ghost"
-              className="admin-profile-scrim"
+              data-admin-profile-scrim
+              className="fixed inset-0 z-[90] h-full w-full rounded-none bg-[#1a1a1a]/20 p-0 hover:bg-[#1a1a1a]/20"
               onClick={() => setOpen(false)}
               aria-label="Close admin menu"
             />
             <div
               ref={popoverRef}
-              className="admin-profile-popover"
+              data-admin-profile-popover
               role="menu"
               aria-label="Admin account menu"
+              className="fixed z-[100] border border-[#d8d8d8] bg-white shadow-[0_12px_40px_rgba(0,0,0,0.12)]"
               onPointerDown={(event) => event.stopPropagation()}
               style={{
                 top: popover.top,
@@ -133,58 +140,56 @@ export function AdminHeader({ admin, onLogout }) {
                 width: popover.width,
               }}
             >
-              <div className="admin-profile-popover-user">
-                <span className="admin-profile-avatar" aria-hidden="true">
+              <div className="flex items-center gap-3 border-b border-[#ececec] px-4 py-3">
+                <span
+                  className="inline-flex size-10 items-center justify-center bg-[#1a1a1a] text-sm font-bold text-white"
+                  aria-hidden="true"
+                >
                   {getInitials(admin.displayName)}
                 </span>
-                <div className="admin-profile-popover-meta">
-                  <strong>{admin.displayName}</strong>
-                  <span>{formatRole(admin.role)}</span>
+                <div className="min-w-0">
+                  <strong className="block truncate text-sm text-[#1a1a1a]">{admin.displayName}</strong>
+                  <span className="block text-xs text-[#888]">{formatRole(admin.role)}</span>
                 </div>
               </div>
 
-              <div className="admin-profile-popover-divider" />
+              <div className="p-2">
+                <Link to="/" role="menuitem" className={menuLinkClass} onClick={() => setOpen(false)}>
+                  <ExternalLink size={18} strokeWidth={2} aria-hidden="true" />
+                  View website
+                </Link>
 
-              <Link
-                to="/"
-                role="menuitem"
-                className="admin-profile-popover-link"
-                onClick={() => setOpen(false)}
-              >
-                <ExternalLink size={18} strokeWidth={2} aria-hidden="true" />
-                View website
-              </Link>
+                <Link
+                  to="/admin/settings"
+                  role="menuitem"
+                  className={menuLinkClass}
+                  onClick={() => setOpen(false)}
+                >
+                  <Settings size={18} strokeWidth={2} aria-hidden="true" />
+                  Admin settings
+                </Link>
 
-              <Link
-                to="/admin/settings"
-                role="menuitem"
-                className="admin-profile-popover-link"
-                onClick={() => setOpen(false)}
-              >
-                <Settings size={18} strokeWidth={2} aria-hidden="true" />
-                Admin settings
-              </Link>
+                <Link
+                  to="/admin/dashboard"
+                  role="menuitem"
+                  className={menuLinkClass}
+                  onClick={() => setOpen(false)}
+                >
+                  <Shield size={18} strokeWidth={2} aria-hidden="true" />
+                  Admin dashboard
+                </Link>
 
-              <Link
-                to="/admin/dashboard"
-                role="menuitem"
-                className="admin-profile-popover-link"
-                onClick={() => setOpen(false)}
-              >
-                <Shield size={18} strokeWidth={2} aria-hidden="true" />
-                Admin dashboard
-              </Link>
-
-              <Button
-                type="button"
-                variant="ghost"
-                role="menuitem"
-                className="admin-profile-popover-link admin-profile-popover-link--logout"
-                onClick={handleLogout}
-              >
-                <LogOut size={18} strokeWidth={2} aria-hidden="true" />
-                Logout
-              </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  role="menuitem"
+                  className={cn(menuLinkClass, 'text-[#c0392b] hover:bg-[#fdf2f2] hover:text-[#a94442]')}
+                  onClick={handleLogout}
+                >
+                  <LogOut size={18} strokeWidth={2} aria-hidden="true" />
+                  Logout
+                </Button>
+              </div>
             </div>
           </>,
           document.body,

@@ -3,9 +3,21 @@ import { motion, useReducedMotion } from 'motion/react'
 import { ChevronDown } from 'lucide-react'
 import { RENTAL_PRODUCTS } from '../../data/products'
 import { formatINR } from '../../utils/cartSummary'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import {
+  AdminOutlineButton,
+  AdminSectionTitle,
+  AdminStatusBadge,
+  adminPanelClass,
+} from './admin-ui'
+import { cn } from '@/lib/utils'
+
 const BADGE_VARIANTS = ['pink', 'pink', 'blue', 'purple']
+
+const BADGE_TONE_CLASS = {
+  pink: 'border-[#f0caca] bg-[#fdf2f2] text-[#a94442]',
+  blue: 'border-[#c8daf5] bg-[#eef4fd] text-[#245ea8]',
+  purple: 'border-[#ddd] bg-[#f5f5f5] text-[#444]',
+}
 
 const SEGMENT_COLORS = {
   laptops: '#7b6fd6',
@@ -159,9 +171,9 @@ function DonutChart({ segments, centerPercent, reduceMotion }) {
   let cumulative = 0
 
   return (
-    <div className="admin-revenue-donut">
+    <div className="relative mx-auto size-[168px]">
       <svg
-        className="admin-revenue-donut-svg"
+        className="block"
         width={size}
         height={size}
         viewBox={`0 0 ${size} ${size}`}
@@ -172,7 +184,7 @@ function DonutChart({ segments, centerPercent, reduceMotion }) {
           cy={cy}
           r={radius}
           fill="none"
-          stroke="#edf1f5"
+          stroke="#ececec"
           strokeWidth={stroke}
         />
         <g transform={`rotate(-90 ${cx} ${cy})`}>
@@ -207,13 +219,17 @@ function DonutChart({ segments, centerPercent, reduceMotion }) {
       </svg>
 
       <motion.div
-        className="admin-revenue-donut-center"
+        className="absolute inset-0 flex flex-col items-center justify-center text-center"
         initial={reduceMotion ? false : { opacity: 0, scale: 0.85 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.55, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       >
-        <strong>{centerPercent}%</strong>
-        <span>Collected</span>
+        <strong className="text-2xl font-extrabold tracking-tight text-[#1a1a1a]">
+          {centerPercent}%
+        </strong>
+        <span className="mt-0.5 text-[10px] font-semibold tracking-wide text-[#666] uppercase">
+          Collected
+        </span>
       </motion.div>
     </div>
   )
@@ -231,67 +247,90 @@ export function AdminRevenueSection() {
   )
 
   return (
-    <section className="admin-revenue-section" aria-label="Revenue breakdown">
+    <section
+      className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(280px,0.95fr)_minmax(0,1.35fr)]"
+      aria-label="Revenue breakdown"
+    >
       <motion.article
-        className="admin-revenue-list-card"
+        className={cn(adminPanelClass, 'rounded-none p-5')}
         initial={reduceMotion ? false : { opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       >
-        <div className="admin-revenue-card-head">
-          <h3>Recent rentals</h3>
-          <Button type="button" variant="outline" className="admin-revenue-filter" aria-label="Filter by today">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <AdminSectionTitle className="text-base normal-case tracking-tight">
+            Recent rentals
+          </AdminSectionTitle>
+          <AdminOutlineButton
+            className="h-8 gap-1 px-3 text-[11px] normal-case"
+            aria-label="Filter by today"
+          >
             Today
             <ChevronDown size={14} aria-hidden="true" />
-          </Button>
+          </AdminOutlineButton>
         </div>
 
-        <ul className="admin-revenue-list">
+        <ul className="m-0 flex list-none flex-col gap-3.5 p-0">
           {recentRentals.map((item, index) => (
             <motion.li
               key={item.id}
-              className="admin-revenue-list-item"
+              className="flex items-center gap-3 rounded-none px-1 py-1 transition-colors hover:bg-[#f5f5f5]"
               initial={reduceMotion ? false : { opacity: 0, x: -12 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 + index * 0.08, duration: 0.35 }}
             >
-              <span className="admin-revenue-list-avatar" aria-hidden="true">
+              <span
+                className="inline-flex size-10 shrink-0 items-center justify-center border border-[#e5e5e5] bg-[#f5f5f5] text-xs font-bold text-[#1a1a1a]"
+                aria-hidden="true"
+              >
                 {getInitials(item.name)}
               </span>
-              <div className="admin-revenue-list-copy">
-                <strong>{item.name}</strong>
-                <span>{item.subtitle}</span>
+              <div className="min-w-0 flex-1">
+                <strong className="block truncate text-sm font-semibold text-[#1a1a1a]">
+                  {item.name}
+                </strong>
+                <span className="block truncate text-xs text-[#666]">{item.subtitle}</span>
               </div>
-              <Badge className={`admin-revenue-list-badge admin-revenue-list-badge--${item.badge}`}>
+              <AdminStatusBadge
+                tone="neutral"
+                className={cn('shrink-0 normal-case', BADGE_TONE_CLASS[item.badge])}
+              >
                 {item.time}
-              </Badge>
+              </AdminStatusBadge>
             </motion.li>
           ))}
         </ul>
       </motion.article>
 
       <motion.article
-        className="admin-revenue-chart-card"
+        className={cn(adminPanelClass, 'rounded-none p-5')}
         initial={reduceMotion ? false : { opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.08, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       >
-        <div className="admin-revenue-card-head">
-          <h3>Total revenue</h3>
-          {isDemo && <Badge className="admin-revenue-demo-tag">Sample data</Badge>}
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <AdminSectionTitle className="text-base normal-case tracking-tight">
+            Total revenue
+          </AdminSectionTitle>
+          {isDemo && (
+            <AdminStatusBadge tone="neutral" className="normal-case">Sample data</AdminStatusBadge>
+          )}
         </div>
 
-        <div className="admin-revenue-chart-body">
+        <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center">
           <DonutChart
             segments={segments}
             centerPercent={centerPercent}
             reduceMotion={reduceMotion}
           />
 
-          <div className="admin-revenue-chart-meta">
-            <div className="admin-revenue-total">
-              <span>Total revenue</span>
+          <div className="min-w-0 flex-1">
+            <div className="mb-4">
+              <span className="mb-1 block text-xs font-semibold tracking-wide text-[#666] uppercase">
+                Total revenue
+              </span>
               <motion.strong
+                className="text-[clamp(22px,2.5vw,28px)] font-extrabold tracking-tight text-[#1a1a1a]"
                 initial={reduceMotion ? false : { opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.4 }}
@@ -300,21 +339,22 @@ export function AdminRevenueSection() {
               </motion.strong>
             </div>
 
-            <ul className="admin-revenue-legend">
+            <ul className="m-0 flex list-none flex-col gap-2.5 p-0">
               {segments.map((segment, index) => (
                 <motion.li
                   key={segment.id}
+                  className="flex items-center gap-2.5 text-sm"
                   initial={reduceMotion ? false : { opacity: 0, x: 10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.35 + index * 0.08, duration: 0.35 }}
                 >
                   <span
-                    className="admin-revenue-legend-dot"
+                    className="size-2.5 shrink-0 rounded-none"
                     style={{ backgroundColor: segment.color }}
                     aria-hidden="true"
                   />
-                  <span className="admin-revenue-legend-label">{segment.label}</span>
-                  <span className="admin-revenue-legend-value">{segment.percent}%</span>
+                  <span className="min-w-0 flex-1 text-[#666]">{segment.label}</span>
+                  <span className="font-semibold text-[#1a1a1a]">{segment.percent}%</span>
                 </motion.li>
               ))}
             </ul>

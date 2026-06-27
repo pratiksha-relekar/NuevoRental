@@ -19,10 +19,6 @@ import {
   getAdminUserStats,
 } from '../../data/userStorage'
 import { UserDetailModal } from '../components/UserDetailModal'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -38,19 +34,28 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-function StatCard({ icon: Icon, label, value, note, tone }) {
-  return (
-    <Card className={`admin-users-stat-card admin-users-stat-card--${tone}`}>
-      <span className="admin-users-stat-icon" aria-hidden="true">
-        <Icon size={18} />
-      </span>
-      <div>
-        <span className="admin-users-stat-label">{label}</span>
-        <strong>{value}</strong>
-        <small>{note}</small>
-      </div>
-    </Card>
-  )
+import { cn } from '@/lib/utils'
+import {
+  AdminEmptyState,
+  AdminPage,
+  AdminPageHeader,
+  AdminPanel,
+  AdminSearchField,
+  AdminStatCard,
+  AdminStatusBadge,
+  AdminIconButton,
+  AdminToolbar,
+  adminSelectTriggerClass,
+  adminTableClass,
+  adminTableWrapClass,
+} from '../components/admin-ui'
+
+function getKycTone(status) {
+  if (status === 'approved') return 'success'
+  if (status === 'pending') return 'warning'
+  if (status === 'in_review') return 'info'
+  if (status === 'rejected') return 'danger'
+  return 'neutral'
 }
 
 function AdminUsersPage() {
@@ -118,66 +123,60 @@ function AdminUsersPage() {
   }
 
   return (
-    <div className="admin-users-page">
-      <header className="admin-users-page-head">
-        <div>
-          <h1>Users</h1>
-          <p>View registered rental customers, active sessions, KYC status, and order activity.</p>
-        </div>
-      </header>
+    <AdminPage>
+      <AdminPageHeader
+        title="Users"
+        description="View registered rental customers, active sessions, KYC status, and order activity."
+      />
 
-      <div className="admin-users-stat-grid">
-        <StatCard
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <AdminStatCard
           icon={Users}
           label="Total users"
           value={stats.totalUsers}
           note="registered rental accounts"
-          tone="blue"
         />
-        <StatCard
+        <AdminStatCard
           icon={ShoppingBag}
           label="Active renters"
           value={stats.activeRenters}
           note={`${stats.renterPercent}% placed orders`}
-          tone="purple"
         />
-        <StatCard
+        <AdminStatCard
           icon={ShieldCheck}
           label="KYC verified"
           value={stats.kycVerified}
           note="identity approved"
-          tone="green"
         />
-        <StatCard
+        <AdminStatCard
           icon={Wifi}
           label="Online now"
           value={stats.onlineNow}
           note={`${stats.emailUsers} email · ${stats.googleUsers} Google`}
-          tone="amber"
         />
       </div>
 
-      <section className="admin-users-panel">
-        <div className="admin-users-panel-head">
-          <div>
-            <h2>Registered accounts</h2>
-            <p>{filteredUsers.length} matching account{filteredUsers.length === 1 ? '' : 's'}</p>
-          </div>
+      <AdminPanel>
+        <div className="border-b border-[#e5e5e5] p-4">
+          <h2 className="text-sm font-bold tracking-wide text-[#1a1a1a] uppercase">Registered accounts</h2>
+          <p className="mt-1 text-sm text-[#666]">
+            {loading
+              ? 'Loading users…'
+              : `${filteredUsers.length} matching account${filteredUsers.length === 1 ? '' : 's'}`}
+          </p>
         </div>
 
-        <div className="admin-users-toolbar">
-          <label className="admin-users-search">
-            <Search size={16} aria-hidden="true" />
-            <Input
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name, email, phone or city"
-            />
-          </label>
+        <AdminToolbar className="lg:justify-start">
+          <AdminSearchField
+            icon={Search}
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by name, email, phone or city"
+          />
 
           <Select value={providerFilter} onValueChange={setProviderFilter}>
-            <SelectTrigger className="admin-users-filter" aria-label="Filter by sign-in provider">
+            <SelectTrigger className={cn(adminSelectTriggerClass, 'w-full sm:w-[160px]')} aria-label="Filter by sign-in provider">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -188,7 +187,7 @@ function AdminUsersPage() {
           </Select>
 
           <Select value={kycFilter} onValueChange={setKycFilter}>
-            <SelectTrigger className="admin-users-filter" aria-label="Filter by KYC status">
+            <SelectTrigger className={cn(adminSelectTriggerClass, 'w-full sm:w-[160px]')} aria-label="Filter by KYC status">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -200,10 +199,10 @@ function AdminUsersPage() {
               <SelectItem value="not_started">Not started</SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </AdminToolbar>
 
-        <div className="admin-users-table-wrap">
-          <Table className="admin-users-table">
+        <div className={adminTableWrapClass}>
+          <Table className={adminTableClass}>
             <TableHeader>
               <TableRow>
                 <TableHead>User</TableHead>
@@ -219,81 +218,84 @@ function AdminUsersPage() {
             </TableHeader>
             <TableBody>
               {filteredUsers.map((user) => (
-                <TableRow key={user.email} className={user.isOnline ? 'is-online' : ''}>
+                <TableRow key={user.email} className={cn(user.isOnline && 'bg-[#f8fff9]')}>
                   <TableCell>
-                    <div className="admin-users-user-cell">
-                      <span className="admin-users-avatar" aria-hidden="true">
+                    <div className="flex items-center gap-3">
+                      <span
+                        className="relative inline-flex size-9 shrink-0 items-center justify-center border border-[#e5e5e5] bg-[#fafafa] text-xs font-bold text-[#1a1a1a]"
+                        aria-hidden="true"
+                      >
                         {user.initials}
-                        {user.isOnline && <span className="admin-users-online-dot" title="Logged in now" />}
+                        {user.isOnline && (
+                          <span
+                            className="absolute -right-0.5 -bottom-0.5 size-2.5 rounded-full border-2 border-white bg-[#22c55e]"
+                            title="Logged in now"
+                          />
+                        )}
                       </span>
-                      <div className="admin-users-user-info">
-                        <strong>
+                      <div>
+                        <strong className="inline-flex items-center gap-1 text-sm text-[#1a1a1a]">
                           {user.displayName}
                           {user.kycStatus === 'approved' && (
-                            <BadgeCheck className="admin-users-verified-icon" size={14} aria-label="KYC verified" />
+                            <BadgeCheck className="text-[#1f6b3a]" size={14} aria-label="KYC verified" />
                           )}
                         </strong>
-                        <span className="admin-users-user-email">{user.email}</span>
-                        {user.isOnline && <em className="admin-users-online-label">Active session</em>}
+                        <span className="block text-xs text-[#888]">{user.email}</span>
+                        {user.isOnline && (
+                          <em className="text-[11px] not-italic text-[#1f6b3a]">Active session</em>
+                        )}
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge className={`admin-users-role admin-users-role--${user.role}`}>
+                    <AdminStatusBadge tone={user.role === 'renter' ? 'info' : 'neutral'}>
                       {user.role === 'renter' ? 'Renter' : 'Customer'}
-                    </Badge>
+                    </AdminStatusBadge>
                   </TableCell>
                   <TableCell>
-                    <Badge className={`admin-users-provider admin-users-provider--${user.provider}`}>
+                    <AdminStatusBadge tone={user.provider === 'google' ? 'info' : 'neutral'}>
                       {user.provider === 'google' ? 'Google' : 'Email'}
-                    </Badge>
+                    </AdminStatusBadge>
                   </TableCell>
                   <TableCell>
-                    <span className="admin-users-contact">
+                    <span className="inline-flex items-center gap-1.5 text-sm text-[#444]">
                       <Phone size={13} aria-hidden="true" />
-                      {user.phone || <em>No phone</em>}
+                      {user.phone || <em className="text-[#aaa]">No phone</em>}
                     </span>
                   </TableCell>
                   <TableCell>
-                    <span className="admin-users-location">
+                    <span className="inline-flex items-center gap-1.5 text-sm text-[#444]">
                       <MapPin size={13} aria-hidden="true" />
                       {user.location || '—'}
                     </span>
                   </TableCell>
                   <TableCell>
-                    <span className="admin-users-orders">
+                    <span className="inline-flex items-center gap-1.5 text-sm text-[#444]">
                       <Package size={13} aria-hidden="true" />
                       {user.orderCount}
                     </span>
                   </TableCell>
                   <TableCell>
-                    <Badge className={`admin-users-kyc admin-users-kyc--${user.kycStatus}`}>
+                    <AdminStatusBadge tone={getKycTone(user.kycStatus)}>
                       {formatKycStatus(user.kycStatus)}
-                    </Badge>
+                    </AdminStatusBadge>
                   </TableCell>
                   <TableCell>{user.joinedLabel}</TableCell>
                   <TableCell>
-                    <div className="admin-users-row-actions">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        className="admin-users-icon-btn"
+                    <div className="flex items-center gap-1.5">
+                      <AdminIconButton
                         aria-label={`View ${user.displayName}`}
                         onClick={() => setSelectedUser(user)}
                       >
                         <CircleUserRound size={16} />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        className="admin-users-icon-btn admin-users-icon-btn--danger"
+                      </AdminIconButton>
+                      <AdminIconButton
+                        danger
                         aria-label={`Delete ${user.displayName}`}
                         onClick={() => handleDelete(user)}
                       >
                         <Trash2 size={16} />
-                      </Button>
+                      </AdminIconButton>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -302,16 +304,16 @@ function AdminUsersPage() {
           </Table>
 
           {filteredUsers.length === 0 && (
-            <p className="admin-users-empty">No users match your search or filters.</p>
+            <AdminEmptyState>No users match your search or filters.</AdminEmptyState>
           )}
         </div>
-      </section>
+      </AdminPanel>
 
       <UserDetailModal
         user={selectedUser}
         onClose={() => setSelectedUser(null)}
       />
-    </div>
+    </AdminPage>
   )
 }
 

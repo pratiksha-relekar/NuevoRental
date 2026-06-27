@@ -2,6 +2,9 @@ import { useMemo } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { ArrowUpRight, ShoppingBag, TrendingUp, Users } from 'lucide-react'
 import { formatINR } from '../../utils/cartSummary'
+import { AdminSectionTitle, AdminStatusBadge, adminPanelClass } from './admin-ui'
+import { cn } from '@/lib/utils'
+
 const CHART_AREA_PATH =
   'M0 460.694c6.6-3.13 19.8-11.272 33-15.654s19.8-2.814 33-6.257 19.8.365 33-10.955 19.8-32.07 33-45.643c13.2-13.572 19.8-16.08 33-22.22s19.8-5.647 33-8.48c13.2-2.832 19.8 5.901 33-5.68 13.2-11.582 19.8-37.759 33-52.226 13.2-14.468 19.8-28.263 33-20.112 13.2 8.15 19.8 59.038 33 60.863 13.2 1.824 19.8-43.269 33-51.741s19.8 24.488 33 9.38c13.2-15.11 19.8-81.825 33-84.923s19.8 54.76 33 69.432 19.8 34.912 33 3.931 19.8-148.752 33-158.837c13.2-10.086 19.8 111.943 33 108.409 13.2-3.535 19.8-97.635 33-126.082s19.8-7.562 33-16.152 26.4-21.438 33-26.798L653 465H0Z'
 
@@ -77,41 +80,55 @@ export function AdminTrendChart({ orders, users, revenue }) {
   )
 
   return (
-    <section className="admin-performance" aria-label="Performance overview">
-      <div className="admin-performance-head">
+    <section className="flex flex-col gap-4" aria-label="Performance overview">
+      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row">
         <div>
-          <h3>Performance overview</h3>
-          <p>Rental demand, customer sign-ups, and revenue momentum across Nuevo Rental</p>
+          <AdminSectionTitle className="mb-1.5 text-base normal-case tracking-tight">
+            Performance overview
+          </AdminSectionTitle>
+          <p className="max-w-[520px] text-sm leading-relaxed text-[#666]">
+            Rental demand, customer sign-ups, and revenue momentum across Nuevo Rental
+          </p>
         </div>
-        <span className="admin-performance-live">
-          <span className="admin-performance-live-dot" aria-hidden="true" />
+        <AdminStatusBadge tone="success" className="shrink-0 gap-2 px-3 py-1.5 normal-case">
+          <span
+            className="size-1.5 animate-pulse rounded-none bg-[#1f6b3a]"
+            aria-hidden="true"
+          />
           Live analytics
-        </span>
+        </AdminStatusBadge>
       </div>
 
-      <div className="admin-performance-grid">
+      <div className="grid grid-cols-1 items-stretch gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(260px,0.9fr)]">
         <motion.article
-          className="admin-performance-chart-card"
+          className={cn(
+            adminPanelClass,
+            'relative min-h-[280px] overflow-hidden rounded-none',
+          )}
           initial={reduceMotion ? false : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div className="admin-performance-chart-overlay">
-            <span className="admin-performance-chart-eyebrow">This month</span>
+          <div className="pointer-events-none absolute top-0 left-0 z-[2] p-5 sm:p-6">
+            <span className="mb-1.5 block text-[13px] font-semibold text-[#666]">This month</span>
             <motion.strong
-              className="admin-performance-chart-growth"
+              className="block text-[clamp(28px,3vw,38px)] font-extrabold leading-none tracking-tight text-[#1a1a1a]"
               initial={reduceMotion ? false : { opacity: 0, scale: 0.92 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.35, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
             >
               {formatGrowth(growth)}
             </motion.strong>
-            <span className="admin-performance-chart-caption">Rental growth vs last month</span>
+            <span className="mt-2 block text-xs font-medium text-[#888]">
+              Rental growth vs last month
+            </span>
           </div>
 
-          <div className="admin-performance-chart-canvas">
+          <div
+            className="absolute inset-0 bg-white bg-[linear-gradient(to_right,rgba(229,229,229,0.9)_1px,transparent_1px),linear-gradient(to_bottom,rgba(229,229,229,0.9)_1px,transparent_1px)] bg-size-[28px_28px] after:pointer-events-none after:absolute after:inset-0 after:bg-linear-to-b after:from-white/35 after:to-transparent after:content-['']"
+          >
             <svg
-              className="admin-performance-chart-svg"
+              className="absolute right-0 bottom-0 left-0 h-[78%] w-full"
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 653 465"
               preserveAspectRatio="none"
@@ -119,19 +136,18 @@ export function AdminTrendChart({ orders, users, revenue }) {
             >
               <defs>
                 <linearGradient id="adminChartFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="rgba(74, 144, 226, 0.42)" />
-                  <stop offset="55%" stopColor="rgba(74, 144, 226, 0.14)" />
-                  <stop offset="100%" stopColor="rgba(74, 144, 226, 0.02)" />
+                  <stop offset="0%" stopColor="rgba(26, 26, 26, 0.18)" />
+                  <stop offset="55%" stopColor="rgba(26, 26, 26, 0.08)" />
+                  <stop offset="100%" stopColor="rgba(26, 26, 26, 0.02)" />
                 </linearGradient>
                 <linearGradient id="adminChartStroke" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#2b8fe8" />
-                  <stop offset="100%" stopColor="#4a90e2" />
+                  <stop offset="0%" stopColor="#333" />
+                  <stop offset="100%" stopColor="#1a1a1a" />
                 </linearGradient>
               </defs>
 
               <motion.path
                 d={CHART_AREA_PATH}
-                className="admin-performance-chart-area"
                 fill="url(#adminChartFill)"
                 initial={reduceMotion ? false : { opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -140,7 +156,6 @@ export function AdminTrendChart({ orders, users, revenue }) {
 
               <motion.path
                 d={CHART_LINE_PATH}
-                className="admin-performance-chart-line"
                 fill="none"
                 stroke="url(#adminChartStroke)"
                 strokeWidth="4"
@@ -154,14 +169,17 @@ export function AdminTrendChart({ orders, users, revenue }) {
           </div>
         </motion.article>
 
-        <div className="admin-performance-insights">
+        <div className="flex flex-col gap-3">
           {insights.map((item, index) => {
             const Icon = item.icon
 
             return (
               <motion.article
                 key={item.id}
-                className="admin-performance-insight"
+                className={cn(
+                  adminPanelClass,
+                  'group flex items-start gap-3 rounded-none p-4 transition-colors hover:border-[#1a1a1a]',
+                )}
                 initial={reduceMotion ? false : { opacity: 0, x: 14 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{
@@ -170,15 +188,24 @@ export function AdminTrendChart({ orders, users, revenue }) {
                   ease: [0.22, 1, 0.36, 1],
                 }}
               >
-                <span className="admin-performance-insight-icon" aria-hidden="true">
+                <span
+                  className="inline-flex size-10 shrink-0 items-center justify-center border border-[#e5e5e5] bg-[#f5f5f5] text-[#1a1a1a] transition-colors group-hover:border-[#1a1a1a] group-hover:bg-[#ececec]"
+                  aria-hidden="true"
+                >
                   <Icon size={18} strokeWidth={2} />
                 </span>
-                <div className="admin-performance-insight-body">
-                  <span className="admin-performance-insight-label">{item.label}</span>
-                  <strong>{item.value}</strong>
-                  <span className="admin-performance-insight-note">{item.note}</span>
+                <div className="min-w-0 flex-1">
+                  <span className="mb-1 block text-xs font-semibold text-[#888]">{item.label}</span>
+                  <strong className="block text-xl font-bold leading-tight text-[#1a1a1a]">
+                    {item.value}
+                  </strong>
+                  <span className="mt-1 block text-[11px] text-[#888]">{item.note}</span>
                 </div>
-                <ArrowUpRight className="admin-performance-insight-arrow" size={16} aria-hidden="true" />
+                <ArrowUpRight
+                  className="mt-1 shrink-0 text-[#d8d8d8] transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[#1a1a1a]"
+                  size={16}
+                  aria-hidden="true"
+                />
               </motion.article>
             )
           })}

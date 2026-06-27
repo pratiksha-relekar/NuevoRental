@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Lightfall from '../components/Lightfall'
 import { submitSupportRequest } from '../data/supportStorage'
-import { Button, buttonVariants } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -15,7 +15,6 @@ import {
 } from '@/components/ui/select'
 import { LinkButton } from '@/components/ui/link-button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { cn } from '@/lib/utils'
 const CONTACT_CHANNELS = [
   {
     icon: '📞',
@@ -360,12 +359,13 @@ function ContactPage() {
               <LinkButton to="/corporate" variant="default" className="contact-btn contact-btn--primary">
                 Corporate Rentals
               </LinkButton>
-              <a
-                href="tel:8080808964"
-                className={cn(buttonVariants({ variant: 'outline' }), 'contact-btn contact-btn--outline')}
+              <Button
+                render={<a href="tel:8080808964" />}
+                variant="outline"
+                className="contact-btn contact-btn--outline"
               >
                 Call Now
-              </a>
+              </Button>
             </div>
           </div>
         </section>

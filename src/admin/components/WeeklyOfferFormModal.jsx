@@ -3,7 +3,6 @@ import { Camera, ImagePlus, Trash2, Upload, X } from 'lucide-react'
 import { compressFileToWeeklyOfferDataUrl } from '../../backend/storage/imageStorage'
 import { getProductImage } from '../../data/products'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -15,6 +14,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { cn } from '@/lib/utils'
+import {
+  AdminIconButton,
+  AdminOutlineButton,
+  AdminPrimaryButton,
+  adminInputClass,
+  adminSelectTriggerClass,
+} from './admin-ui'
+
+const labelClass = 'text-[11px] font-semibold tracking-wide text-[#444] uppercase'
+
 const EMPTY_FORM = {
   productId: '',
   title: '',
@@ -72,50 +82,49 @@ function OfferImageUpload({
   const preview = primaryImage || fallbackPreview
 
   return (
-    <div className="admin-image-upload">
-      <span className="admin-image-upload-label">Offer image</span>
-      <p className="admin-image-upload-hint">
+    <div className="mb-4">
+      <span className={labelClass}>Offer image</span>
+      <p className="mb-3 text-xs text-[#888]">
         Upload a custom deal image. Images are compressed and saved directly in Firestore as base64.
       </p>
 
-      <div className="admin-image-upload-primary">
-        <div className={`admin-image-preview${preview ? ' has-image' : ''}`}>
+      <div className="grid grid-cols-[140px_1fr] items-start gap-4 max-sm:grid-cols-1">
+        <div
+          className={cn(
+            'size-[140px] overflow-hidden border border-dashed border-[#ddd] bg-[#fafafa] max-sm:mx-auto max-sm:w-full max-sm:max-w-[220px]',
+            preview && 'border-solid border-[#e5e5e5]',
+          )}
+        >
           {preview ? (
-            <img src={preview} alt="Weekly offer preview" />
+            <img src={preview} alt="Weekly offer preview" className="size-full object-cover" />
           ) : (
-            <div className="admin-image-placeholder">
+            <div className="flex size-full flex-col items-center justify-center gap-2 text-xs font-semibold text-[#888]">
               <ImagePlus size={28} aria-hidden="true" />
               <span>Offer image</span>
             </div>
           )}
         </div>
 
-        <div className="admin-image-upload-actions">
-          <Button
-            type="button"
-            variant="outline"
-            className="admin-image-upload-btn"
+        <div className="flex flex-col gap-2">
+          <AdminOutlineButton
+            className="justify-start gap-2 normal-case tracking-normal"
             disabled={processing}
             onClick={() => deviceInputRef.current?.click()}
           >
             <Upload size={16} aria-hidden="true" />
             Upload from device
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            className="admin-image-upload-btn admin-image-upload-btn--camera"
+          </AdminOutlineButton>
+          <AdminOutlineButton
+            className="justify-start gap-2 normal-case tracking-normal"
             disabled={processing}
             onClick={() => cameraInputRef.current?.click()}
           >
             <Camera size={16} aria-hidden="true" />
             Take photo
-          </Button>
+          </AdminOutlineButton>
           {preview && (
-            <Button
-              type="button"
-              variant="outline"
-              className="admin-image-upload-btn admin-image-upload-btn--danger"
+            <AdminOutlineButton
+              className="justify-start gap-2 border-[#f0d0d0] text-[#c0392b] normal-case tracking-normal hover:bg-[#c0392b] hover:text-white"
               disabled={processing}
               onClick={() => {
                 onError('')
@@ -124,7 +133,7 @@ function OfferImageUpload({
             >
               <Trash2 size={16} aria-hidden="true" />
               Remove image
-            </Button>
+            </AdminOutlineButton>
           )}
         </div>
       </div>
@@ -133,7 +142,7 @@ function OfferImageUpload({
         ref={deviceInputRef}
         type="file"
         accept="image/*"
-        className="admin-image-file-input"
+        className="hidden"
         onChange={(event) => {
           processFiles(event.target.files)
           event.target.value = ''
@@ -144,14 +153,14 @@ function OfferImageUpload({
         type="file"
         accept="image/*"
         capture="environment"
-        className="admin-image-file-input"
+        className="hidden"
         onChange={(event) => {
           processFiles(event.target.files)
           event.target.value = ''
         }}
       />
 
-      {processing && <p className="admin-image-upload-status">Processing image…</p>}
+      {processing && <p className="mt-2.5 text-xs font-semibold text-[#666]">Processing image…</p>}
     </div>
   )
 }
@@ -302,201 +311,214 @@ export function WeeklyOfferFormModal({ deal, products, categories, onClose, onSa
   }
 
   return (
-    <Dialog open onOpenChange={(isOpen) => !isOpen && onClose()}>
+    <Dialog open onOpenChange={(v) => !v && onClose()}>
       <DialogContent
-        className="weekly-offer-form-modal admin-modal-card admin-modal-root--wide"
+        className="max-h-[min(92vh,900px)] max-w-[760px] gap-0 overflow-auto rounded-none border-[#d8d8d8] p-0"
         showCloseButton={false}
         aria-labelledby="weekly-offer-form-title"
       >
-        <div className="weekly-offer-form-head admin-modal-header">
+        <div className="flex items-start justify-between border-b border-[#e5e5e5] px-6 py-4">
           <div>
-            <span className="weekly-offer-form-eyebrow">Weekly Best Deals</span>
-            <h2 id="weekly-offer-form-title">{deal?.id ? 'Edit offer' : 'Add offer'}</h2>
+            <span className="mb-1 block text-[11px] font-semibold tracking-wide text-[#666] uppercase">
+              Weekly Best Deals
+            </span>
+            <h2 id="weekly-offer-form-title" className="text-lg font-bold text-[#1a1a1a]">
+              {deal?.id ? 'Edit offer' : 'Add offer'}
+            </h2>
           </div>
-          <Button type="button" variant="ghost" className="weekly-offer-form-close admin-modal-close" onClick={onClose} aria-label="Close">
+          <AdminIconButton onClick={onClose} aria-label="Close">
             <X size={18} />
-          </Button>
+          </AdminIconButton>
         </div>
 
         {error && (
-          <Alert className="weekly-offer-form-error">
+          <Alert className="mx-6 mt-4 rounded-none border-[#f0caca] bg-[#fdf2f2] text-[#a94442]">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
-        <form className="weekly-offer-form admin-modal-form" onSubmit={handleSubmit}>
-          <div className="weekly-offer-form-grid">
-            <Label className="weekly-offer-form-field">
-              <span>Category</span>
-              <Select value={form.category} onValueChange={handleCategoryChange}>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {categoryOptions.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>{category.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-4 px-6 py-4">
+            <div className="grid grid-cols-2 gap-4 max-sm:grid-cols-1">
+              <Label className="flex flex-col gap-2">
+                <span className={labelClass}>Category</span>
+                <Select value={form.category} onValueChange={handleCategoryChange}>
+                  <SelectTrigger className={cn(adminSelectTriggerClass, 'w-full')}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categoryOptions.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>{category.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Label>
+
+              <Label className="flex flex-col gap-2">
+                <span className={labelClass}>Catalog product</span>
+                <Select value={form.productId} onValueChange={handleProductChange}>
+                  <SelectTrigger className={cn(adminSelectTriggerClass, 'w-full')}>
+                    <SelectValue placeholder={filteredProducts.length > 0 ? 'Select product' : 'No products in this category'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredProducts.map((product) => (
+                      <SelectItem key={product.id} value={String(product.id)}>
+                        {product.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Label>
+            </div>
+
+            <Label className="flex flex-col gap-2">
+              <span className={labelClass}>Deal title</span>
+              <Input
+                type="text"
+                className={adminInputClass}
+                value={form.title}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Laptop on Rent — HP ProBook i5"
+                required
+              />
             </Label>
 
-            <Label className="weekly-offer-form-field">
-              <span>Catalog product</span>
-              <Select value={form.productId} onValueChange={handleProductChange}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={filteredProducts.length > 0 ? 'Select product' : 'No products in this category'} />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredProducts.map((product) => (
-                    <SelectItem key={product.id} value={String(product.id)}>
-                      {product.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Label>
-          </div>
-
-          <Label className="weekly-offer-form-field">
-            <span>Deal title</span>
-            <Input
-              type="text"
-              value={form.title}
-              onChange={(e) => handleChange('title', e.target.value)}
-              placeholder="Laptop on Rent — HP ProBook i5"
-              required
+            <OfferImageUpload
+              primaryImage={primaryImage}
+              fallbackPreview={productPreview}
+              onPrimaryChange={setPrimaryImage}
+              onError={setImageError}
             />
-          </Label>
 
-          <OfferImageUpload
-            primaryImage={primaryImage}
-            fallbackPreview={productPreview}
-            onPrimaryChange={setPrimaryImage}
-            onError={setImageError}
-          />
+            {imageError && (
+              <Alert className="rounded-none border-[#f0caca] bg-[#fdf2f2] text-[#a94442]">
+                <AlertDescription>{imageError}</AlertDescription>
+              </Alert>
+            )}
 
-          {imageError && (
-            <Alert className="weekly-offer-form-error">
-              <AlertDescription>{imageError}</AlertDescription>
-            </Alert>
-          )}
+            <div className="grid grid-cols-2 gap-4 max-sm:grid-cols-1">
+              <Label className="flex flex-col gap-2">
+                <span className={labelClass}>Discount %</span>
+                <Select
+                  value={String(form.discountPercent)}
+                  onValueChange={(value) => handleChange('discountPercent', value)}
+                >
+                  <SelectTrigger className={cn(adminSelectTriggerClass, 'w-full')}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10% Off</SelectItem>
+                    <SelectItem value="20">20% Off</SelectItem>
+                    <SelectItem value="40">40% Off</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Label>
 
-          <div className="weekly-offer-form-grid">
-            <Label className="weekly-offer-form-field">
-              <span>Discount %</span>
-              <Select
-                value={String(form.discountPercent)}
-                onValueChange={(value) => handleChange('discountPercent', value)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="10">10% Off</SelectItem>
-                  <SelectItem value="20">20% Off</SelectItem>
-                  <SelectItem value="40">40% Off</SelectItem>
-                </SelectContent>
-              </Select>
-            </Label>
+              <Label className="flex flex-col gap-2">
+                <span className={labelClass}>Rental period</span>
+                <Select value={form.period} onValueChange={(value) => handleChange('period', value)}>
+                  <SelectTrigger className={cn(adminSelectTriggerClass, 'w-full')}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="day">Per day</SelectItem>
+                    <SelectItem value="week">Per week</SelectItem>
+                    <SelectItem value="month">Per month</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Label>
+            </div>
 
-            <Label className="weekly-offer-form-field">
-              <span>Rental period</span>
-              <Select value={form.period} onValueChange={(value) => handleChange('period', value)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="day">Per day</SelectItem>
-                  <SelectItem value="week">Per week</SelectItem>
-                  <SelectItem value="month">Per month</SelectItem>
-                </SelectContent>
-              </Select>
-            </Label>
+            <div className="grid grid-cols-2 gap-4 max-sm:grid-cols-1">
+              <Label className="flex flex-col gap-2">
+                <span className={labelClass}>Original price (₹)</span>
+                <Input
+                  type="number"
+                  min="0"
+                  className={adminInputClass}
+                  value={form.originalPrice}
+                  onChange={(e) => handleChange('originalPrice', e.target.value)}
+                />
+              </Label>
+
+              <Label className="flex flex-col gap-2">
+                <span className={labelClass}>Offer price (₹)</span>
+                <Input
+                  type="number"
+                  min="0"
+                  className={adminInputClass}
+                  value={form.offerPrice}
+                  onChange={(e) => handleChange('offerPrice', e.target.value)}
+                />
+              </Label>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 max-sm:grid-cols-1">
+              <Label className="flex flex-col gap-2">
+                <span className={labelClass}>Stock</span>
+                <Input
+                  type="number"
+                  min="0"
+                  className={adminInputClass}
+                  value={form.stock}
+                  onChange={(e) => handleChange('stock', e.target.value)}
+                />
+              </Label>
+
+              <Label className="flex flex-col gap-2">
+                <span className={labelClass}>Sort order</span>
+                <Input
+                  type="number"
+                  min="0"
+                  className={adminInputClass}
+                  value={form.sortOrder}
+                  onChange={(e) => handleChange('sortOrder', e.target.value)}
+                />
+              </Label>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 max-sm:grid-cols-1">
+              <Label className="flex flex-col gap-2">
+                <span className={labelClass}>Rating</span>
+                <Input
+                  type="number"
+                  min="1"
+                  max="5"
+                  step="0.1"
+                  className={adminInputClass}
+                  value={form.rating}
+                  onChange={(e) => handleChange('rating', e.target.value)}
+                />
+              </Label>
+
+              <Label className="flex flex-col gap-2">
+                <span className={labelClass}>Reviews</span>
+                <Input
+                  type="number"
+                  min="0"
+                  className={adminInputClass}
+                  value={form.reviews}
+                  onChange={(e) => handleChange('reviews', e.target.value)}
+                />
+              </Label>
+            </div>
+
+            <label className="flex items-center gap-2 text-sm font-medium text-[#1a1a1a]">
+              <Checkbox
+                checked={form.active}
+                onCheckedChange={(checked) => handleChange('active', checked === true)}
+              />
+              <span>Show this offer on the homepage</span>
+            </label>
           </div>
 
-          <div className="weekly-offer-form-grid">
-            <Label className="weekly-offer-form-field">
-              <span>Original price (₹)</span>
-              <Input
-                type="number"
-                min="0"
-                value={form.originalPrice}
-                onChange={(e) => handleChange('originalPrice', e.target.value)}
-              />
-            </Label>
-
-            <Label className="weekly-offer-form-field">
-              <span>Offer price (₹)</span>
-              <Input
-                type="number"
-                min="0"
-                value={form.offerPrice}
-                onChange={(e) => handleChange('offerPrice', e.target.value)}
-              />
-            </Label>
-          </div>
-
-          <div className="weekly-offer-form-grid">
-            <Label className="weekly-offer-form-field">
-              <span>Stock</span>
-              <Input
-                type="number"
-                min="0"
-                value={form.stock}
-                onChange={(e) => handleChange('stock', e.target.value)}
-              />
-            </Label>
-
-            <Label className="weekly-offer-form-field">
-              <span>Sort order</span>
-              <Input
-                type="number"
-                min="0"
-                value={form.sortOrder}
-                onChange={(e) => handleChange('sortOrder', e.target.value)}
-              />
-            </Label>
-          </div>
-
-          <div className="weekly-offer-form-grid">
-            <Label className="weekly-offer-form-field">
-              <span>Rating</span>
-              <Input
-                type="number"
-                min="1"
-                max="5"
-                step="0.1"
-                value={form.rating}
-                onChange={(e) => handleChange('rating', e.target.value)}
-              />
-            </Label>
-
-            <Label className="weekly-offer-form-field">
-              <span>Reviews</span>
-              <Input
-                type="number"
-                min="0"
-                value={form.reviews}
-                onChange={(e) => handleChange('reviews', e.target.value)}
-              />
-            </Label>
-          </div>
-
-          <label className="weekly-offer-form-check">
-            <Checkbox
-              checked={form.active}
-              onCheckedChange={(checked) => handleChange('active', checked === true)}
-            />
-            <span>Show this offer on the homepage</span>
-          </label>
-
-          <div className="weekly-offer-form-actions admin-modal-actions">
-            <Button type="button" variant="outline" className="weekly-offer-form-btn weekly-offer-form-btn--ghost" onClick={onClose}>
+          <div className="flex justify-end gap-2 border-t border-[#e5e5e5] px-6 py-4">
+            <AdminOutlineButton onClick={onClose}>
               Cancel
-            </Button>
-            <Button type="submit" className="weekly-offer-form-btn weekly-offer-form-btn--primary" disabled={saving}>
+            </AdminOutlineButton>
+            <AdminPrimaryButton type="submit" disabled={saving}>
               {saving ? 'Saving…' : 'Save offer'}
-            </Button>
+            </AdminPrimaryButton>
           </div>
         </form>
       </DialogContent>

@@ -23,11 +23,25 @@ import {
   updateSupportRequestStatus,
 } from '../../data/supportStorage'
 import { SupportRequestDetailModal } from '../components/SupportRequestDetailModal'
+import {
+  AdminEmptyState,
+  AdminPage,
+  AdminPageHeader,
+  AdminPanel,
+  AdminOutlineButton,
+  AdminPrimaryButton,
+  AdminSearchField,
+  AdminStatCard,
+  AdminStatusBadge,
+  AdminTabTrigger,
+  AdminTabsList,
+  AdminToolbar,
+} from '../components/admin-ui'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { buttonVariants } from '@/components/ui/button'
+import { Tabs, TabsContent } from '@/components/ui/tabs'
+import { cn } from '@/lib/utils'
+
 const FILTER_TABS = [
   { id: 'all', label: 'All requests' },
   { id: 'open', label: 'Open' },
@@ -35,27 +49,19 @@ const FILTER_TABS = [
   { id: 'resolved', label: 'Resolved' },
 ]
 
-function StatCard({ icon: Icon, label, value, note, tone, delay = 0 }) {
-  const reduceMotion = useReducedMotion()
-
-  return (
-    <motion.article
-      className={`admin-support-stat-card admin-support-stat-card--${tone}`}
-      initial={reduceMotion ? false : { opacity: 0, y: 14 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      whileHover={reduceMotion ? undefined : { y: -4 }}
-    >
-      <span className="admin-support-stat-icon" aria-hidden="true">
-        <Icon size={18} />
-      </span>
-      <div>
-        <span className="admin-support-stat-label">{label}</span>
-        <strong>{value}</strong>
-        <small>{note}</small>
-      </div>
-    </motion.article>
-  )
+function supportStatusTone(status) {
+  switch (status) {
+    case 'open':
+      return 'warning'
+    case 'in_progress':
+      return 'info'
+    case 'resolved':
+      return 'success'
+    case 'closed':
+      return 'neutral'
+    default:
+      return 'neutral'
+  }
 }
 
 function AdminSupportPage() {
@@ -187,201 +193,212 @@ function AdminSupportPage() {
 
   if (!canManageSupport) {
     return (
-      <div className="admin-support-page">
-        <header className="admin-support-page-head">
-          <div>
-            <h1>Support & inquiries</h1>
-            <p>You do not have permission to manage support requests. Contact a super admin to enable the manage_support privilege.</p>
-          </div>
-        </header>
-      </div>
+      <AdminPage>
+        <AdminPageHeader
+          title="Support & inquiries"
+          description="You do not have permission to manage support requests. Contact a super admin to enable the manage_support privilege."
+        />
+      </AdminPage>
     )
   }
 
   return (
-    <div className="admin-support-page">
-      <header className="admin-support-page-head">
-        <div>
-          <h1>Support & inquiries</h1>
-          <p>
-            Review contact form submissions, call requesting customers, and resolve rental support
-            tickets from the Nuevo Rental website.
-          </p>
-          {loadError && (
-            <Alert className="admin-support-load-error">
-              <AlertDescription>{loadError}</AlertDescription>
-            </Alert>
-          )}
-        </div>
-      </header>
+    <AdminPage>
+      <AdminPageHeader
+        title="Support & inquiries"
+        description="Review contact form submissions, call requesting customers, and resolve rental support tickets from the Nuevo Rental website."
+      />
 
-      {stats.urgent > 0 && (
+      {loadError ? (
+        <Alert className="rounded-none border-[#f0caca] bg-[#fdf2f2] text-[#a94442]">
+          <AlertDescription>{loadError}</AlertDescription>
+        </Alert>
+      ) : null}
+
+      {stats.urgent > 0 ? (
         <motion.aside
-          className="admin-support-alert"
+          className="flex flex-col gap-4 border border-[#e5e5e5] bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
           initial={reduceMotion ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
         >
-          <Alert className="admin-support-alert-copy border-0 bg-transparent p-0 shadow-none">
-            <AlertCircle size={22} aria-hidden="true" />
+          <Alert className="border-0 bg-transparent p-0 shadow-none">
+            <AlertCircle size={22} className="text-[#8a6200]" aria-hidden="true" />
             <div>
-              <AlertTitle>
+              <AlertTitle className="text-sm font-bold text-[#1a1a1a]">
                 {stats.urgent} urgent support request{stats.urgent === 1 ? '' : 's'} need attention
               </AlertTitle>
-              <AlertDescription>
-                Technical support and delivery inquiries are waiting for a callback. Review details
-                and contact customers directly from each ticket.
+              <AlertDescription className="text-sm text-[#666]">
+                Technical support and delivery inquiries are waiting for a callback. Review details and contact
+                customers directly from each ticket.
               </AlertDescription>
             </div>
           </Alert>
-          <Button
-            type="button"
-            className="admin-support-alert-btn"
-            onClick={() => setActiveFilter('open')}
-          >
+          <AdminPrimaryButton type="button" onClick={() => setActiveFilter('open')}>
             View open tickets
-          </Button>
+          </AdminPrimaryButton>
         </motion.aside>
-      )}
+      ) : null}
 
-      <div className="admin-support-stat-grid">
-        <StatCard icon={Ticket} label="Total requests" value={stats.total} note="all support inquiries" tone="blue" delay={0} />
-        <StatCard icon={MessageSquare} label="Open tickets" value={stats.open} note="awaiting admin response" tone="amber" delay={0.05} />
-        <StatCard icon={Clock3} label="In progress" value={stats.inProgress} note="active follow-ups" tone="purple" delay={0.1} />
-        <StatCard icon={CheckCircle2} label="Resolved today" value={stats.resolvedToday} note={`${stats.resolved} total closed`} tone="green" delay={0.15} />
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <AdminStatCard icon={Ticket} label="Total requests" value={stats.total} note="all support inquiries" />
+        <AdminStatCard icon={MessageSquare} label="Open tickets" value={stats.open} note="awaiting admin response" />
+        <AdminStatCard icon={Clock3} label="In progress" value={stats.inProgress} note="active follow-ups" />
+        <AdminStatCard
+          icon={CheckCircle2}
+          label="Resolved today"
+          value={stats.resolvedToday}
+          note={`${stats.resolved} total closed`}
+        />
       </div>
 
-      <section className="admin-support-panel">
-        <div className="admin-support-panel-head">
+      <AdminPanel>
+        <div className="flex flex-col gap-4 border-b border-[#e5e5e5] p-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2>Customer support requests</h2>
-            <p>
+            <h2 className="text-base font-bold text-[#1a1a1a]">Customer support requests</h2>
+            <p className="mt-1 text-sm text-[#666]">
               {loading
                 ? 'Loading support requests...'
                 : `${filteredRequests.length} matching ticket${filteredRequests.length === 1 ? '' : 's'}`}
             </p>
           </div>
-          <Link to="/contact" target="_blank" rel="noreferrer" className="admin-support-contact-link">
+          <Link
+            to="/contact"
+            target="_blank"
+            rel="noreferrer"
+            className="text-xs font-semibold uppercase tracking-wide text-[#1a1a1a] hover:underline"
+          >
             View contact page
           </Link>
         </div>
 
-        <div className="admin-support-toolbar">
+        <AdminToolbar>
           <Tabs value={activeFilter} onValueChange={setActiveFilter}>
-            <TabsList className="admin-support-tabs">
+            <AdminTabsList>
               {FILTER_TABS.map((tab) => (
-                <TabsTrigger
-                  key={tab.id}
-                  value={tab.id}
-                  className={`admin-support-tab${activeFilter === tab.id ? ' is-active' : ''}`}
-                >
+                <AdminTabTrigger key={tab.id} value={tab.id}>
                   {tab.label}
-                </TabsTrigger>
+                </AdminTabTrigger>
               ))}
-            </TabsList>
+            </AdminTabsList>
+            <TabsContent value={activeFilter} className="hidden" />
           </Tabs>
 
-          <label className="admin-support-search">
-            <Search size={16} aria-hidden="true" />
-            <Input
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search name, email, phone, ticket ID or message"
-            />
-          </label>
-        </div>
+          <AdminSearchField
+            icon={Search}
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search name, email, phone, ticket ID or message"
+          />
+        </AdminToolbar>
 
-        <div className="admin-support-list">
+        <div className="flex flex-col gap-3 p-4">
           {filteredRequests.map((request, index) => (
             <motion.article
               key={request.id}
-              className={`admin-support-card admin-support-card--${request.status}`}
+              className="flex flex-col gap-3 border border-[#e5e5e5] bg-white p-4"
               initial={reduceMotion ? false : { opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.04 * index, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
               whileHover={reduceMotion ? undefined : { y: -4 }}
             >
-              <div className="admin-support-card-top">
-                <div className="admin-support-card-customer">
-                  <span className="admin-support-card-avatar" aria-hidden="true">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex items-start gap-3">
+                  <span className="inline-flex size-9 shrink-0 items-center justify-center border border-[#e5e5e5] bg-[#fafafa] text-xs font-bold text-[#1a1a1a]">
                     {request.initials}
                   </span>
-                  <div className="admin-support-card-user-info">
-                    <span className="admin-support-card-id">{request.id}</span>
-                    <h3>{request.name}</h3>
-                    <p>{request.email}</p>
+                  <div className="min-w-0">
+                    <span className="block text-[10px] font-semibold uppercase tracking-wide text-[#888]">
+                      {request.id}
+                    </span>
+                    <h3 className="text-sm font-bold text-[#1a1a1a]">{request.name}</h3>
+                    <p className="text-xs text-[#666]">{request.email}</p>
                   </div>
                 </div>
-                <Badge className={`admin-support-status admin-support-status--${request.status}`}>
+                <AdminStatusBadge tone={supportStatusTone(request.status)}>
                   {request.statusLabel}
-                </Badge>
+                </AdminStatusBadge>
               </div>
 
-              <div className="admin-support-card-meta">
-                <Badge className={`admin-support-topic admin-support-topic--${request.topic}`}>
-                  {request.topicLabel}
-                </Badge>
+              <div className="flex flex-wrap items-center gap-2 text-xs text-[#666]">
+                <AdminStatusBadge tone="neutral">{request.topicLabel}</AdminStatusBadge>
                 <span>{request.createdLabel}</span>
-                {request.isRegisteredUser && (
-                  <span className="admin-support-registered">Registered · {request.userOrderCount} orders</span>
-                )}
+                {request.isRegisteredUser ? (
+                  <span className="text-[#1f6b3a]">
+                    Registered · {request.userOrderCount} orders
+                  </span>
+                ) : null}
               </div>
 
-              <p className="admin-support-card-message">{request.messagePreview}</p>
+              <p className="text-sm leading-relaxed text-[#444]">{request.messagePreview}</p>
 
-              <div className="admin-support-card-actions">
-                <div className="admin-support-quick-actions">
-                  {request.telHref && (
-                    <a href={request.telHref} className="admin-support-quick-btn admin-support-quick-btn--call">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-wrap items-center gap-2">
+                  {request.telHref ? (
+                    <a
+                      href={request.telHref}
+                      className={cn(
+                        buttonVariants({ variant: 'adminOutline', size: 'admin' }),
+                        'inline-flex h-8 items-center gap-1.5 px-3 text-[10px] no-underline',
+                      )}
+                    >
                       <Phone size={14} aria-hidden="true" />
                       Call
                     </a>
-                  )}
-                  {request.mailHref && (
-                    <a href={request.mailHref} className="admin-support-quick-btn">
+                  ) : null}
+                  {request.mailHref ? (
+                    <a
+                      href={request.mailHref}
+                      className={cn(
+                        buttonVariants({ variant: 'adminOutline', size: 'admin' }),
+                        'inline-flex h-8 items-center gap-1.5 px-3 text-[10px] no-underline',
+                      )}
+                    >
                       <Mail size={14} aria-hidden="true" />
                       Email
                     </a>
-                  )}
+                  ) : null}
                 </div>
 
-                <Button
-                  type="button"
-                  className="admin-support-view-btn"
-                  onClick={() => openRequest(request)}
-                >
+                <AdminOutlineButton className="gap-1.5" onClick={() => openRequest(request)}>
                   <Eye size={16} aria-hidden="true" />
                   View details
-                </Button>
+                </AdminOutlineButton>
               </div>
             </motion.article>
           ))}
 
-          {!loading && filteredRequests.length === 0 && (
-            <p className="admin-support-empty">No support requests match your search or filter.</p>
-          )}
+          {!loading && filteredRequests.length === 0 ? (
+            <AdminEmptyState className="border-0">
+              No support requests match your search or filter.
+            </AdminEmptyState>
+          ) : null}
         </div>
-      </section>
+      </AdminPanel>
 
-      <section className="admin-support-channels">
-        <article className="admin-support-channel-card">
-          <Headphones size={20} aria-hidden="true" />
-          <div>
-            <strong>Support hotline</strong>
-            <a href="tel:+918080808964">8080808964</a>
-            <span>Mon–Sat, 9am – 7pm IST</span>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <article className="flex items-start gap-3 border border-[#e5e5e5] bg-white p-4">
+          <Headphones size={20} className="shrink-0 text-[#1a1a1a]" aria-hidden="true" />
+          <div className="flex flex-col gap-0.5">
+            <strong className="text-sm text-[#1a1a1a]">Support hotline</strong>
+            <a href="tel:+918080808964" className="text-sm font-semibold text-[#1a1a1a] hover:underline">
+              8080808964
+            </a>
+            <span className="text-xs text-[#888]">Mon–Sat, 9am – 7pm IST</span>
           </div>
         </article>
-        <article className="admin-support-channel-card">
-          <Mail size={20} aria-hidden="true" />
-          <div>
-            <strong>Support email</strong>
-            <a href="mailto:support@nuevorental.com">support@nuevorental.com</a>
-            <span>Replies within 24 hours</span>
+        <article className="flex items-start gap-3 border border-[#e5e5e5] bg-white p-4">
+          <Mail size={20} className="shrink-0 text-[#1a1a1a]" aria-hidden="true" />
+          <div className="flex flex-col gap-0.5">
+            <strong className="text-sm text-[#1a1a1a]">Support email</strong>
+            <a href="mailto:support@nuevorental.com" className="text-sm font-semibold text-[#1a1a1a] hover:underline">
+              support@nuevorental.com
+            </a>
+            <span className="text-xs text-[#888]">Replies within 24 hours</span>
           </div>
         </article>
-      </section>
+      </div>
 
       <SupportRequestDetailModal
         request={selectedRequest ? { ...selectedRequest, adminNotes: notesDraft } : null}
@@ -392,7 +409,7 @@ function AdminSupportPage() {
         onStatusChange={handleStatusChange}
         onNotesChange={handleNotesChange}
       />
-    </div>
+    </AdminPage>
   )
 }
 

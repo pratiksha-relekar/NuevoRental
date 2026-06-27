@@ -13,9 +13,6 @@ import { getProductImage } from '../../data/products'
 import { formatINR } from '../../utils/cartSummary'
 import { CategoryFormModal } from '../components/CategoryFormModal'
 import { ProductFormModal } from '../components/ProductFormModal'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -31,9 +28,34 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsContent } from '@/components/ui/tabs'
+import { cn } from '@/lib/utils'
+import {
+  AdminEmptyState,
+  AdminPage,
+  AdminPageHeader,
+  AdminPanel,
+  AdminIconButton,
+  AdminPrimaryButton,
+  AdminSearchField,
+  AdminStatusBadge,
+  AdminTabTrigger,
+  AdminTabsList,
+  AdminToolbar,
+  adminSelectTriggerClass,
+  adminTableClass,
+  adminTableWrapClass,
+} from '../components/admin-ui'
+
 function getCategoryLabel(categories, categoryId) {
   return categories.find((category) => category.id === categoryId)?.label ?? categoryId
+}
+
+function getProductStatusTone(status) {
+  if (status === 'active') return 'success'
+  if (status === 'draft') return 'warning'
+  if (status === 'inactive') return 'neutral'
+  return 'neutral'
 }
 
 function ProductThumb({ product }) {
@@ -42,7 +64,7 @@ function ProductThumb({ product }) {
     <img
       src={src}
       alt=""
-      className="admin-products-thumb"
+      className="size-11 shrink-0 border border-[#e5e5e5] object-cover"
       loading="lazy"
     />
   )
@@ -119,231 +141,214 @@ function AdminProductsPage() {
   }
 
   return (
-    <div className="admin-products-page">
-      <header className="admin-products-page-head">
-        <div>
-          <h1>Products</h1>
-          <p>Add new listings, manage categories and keep the Nuevo Rental catalogue tidy.</p>
-        </div>
-      </header>
+    <AdminPage>
+      <AdminPageHeader
+        title="Products"
+        description="Add new listings, manage categories and keep the Nuevo Rental catalogue tidy."
+      />
 
-      <section className="admin-products-panel">
+      <AdminPanel>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="admin-products-toolbar">
-          <TabsList className="admin-products-tabs">
-            <TabsTrigger value="products" className={`admin-products-tab${activeTab === 'products' ? ' is-active' : ''}`}>
-              <Package size={16} aria-hidden="true" />
-              Products
-              <span className="admin-products-tab-count">{products.length}</span>
-            </TabsTrigger>
-            <TabsTrigger value="categories" className={`admin-products-tab${activeTab === 'categories' ? ' is-active' : ''}`}>
-              <FolderOpen size={16} aria-hidden="true" />
-              Categories
-              <span className="admin-products-tab-count">{categories.length}</span>
-            </TabsTrigger>
-          </TabsList>
+          <AdminToolbar>
+            <AdminTabsList>
+              <AdminTabTrigger value="products" count={products.length}>
+                <Package size={16} aria-hidden="true" />
+                Products
+              </AdminTabTrigger>
+              <AdminTabTrigger value="categories" count={categories.length}>
+                <FolderOpen size={16} aria-hidden="true" />
+                Categories
+              </AdminTabTrigger>
+            </AdminTabsList>
 
-          <div className="admin-products-actions">
-            <label className="admin-products-search">
-              <Search size={16} aria-hidden="true" />
-              <Input
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+              <AdminSearchField
+                icon={Search}
                 type="search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search by title, location or category"
               />
-            </label>
 
-            {activeTab === 'products' && (
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="admin-products-filter" aria-label="Filter by category">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All categories</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+              {activeTab === 'products' && (
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger className={cn(adminSelectTriggerClass, 'w-full sm:w-[180px]')} aria-label="Filter by category">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All categories</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
 
-            <Button
-              type="button"
-              className="admin-products-add-btn"
-              onClick={() =>
-                activeTab === 'products'
-                  ? setProductModal({ mode: 'create' })
-                  : setCategoryModal({ mode: 'create' })
-              }
-            >
-              <Plus size={16} aria-hidden="true" />
-              {activeTab === 'products' ? 'Add product' : 'Add category'}
-            </Button>
-          </div>
-        </div>
+              <AdminPrimaryButton
+                onClick={() =>
+                  activeTab === 'products'
+                    ? setProductModal({ mode: 'create' })
+                    : setCategoryModal({ mode: 'create' })
+                }
+              >
+                <Plus size={16} aria-hidden="true" />
+                {activeTab === 'products' ? 'Add product' : 'Add category'}
+              </AdminPrimaryButton>
+            </div>
+          </AdminToolbar>
 
-        <TabsContent value="products">
-          <div className="admin-products-table-wrap">
-            <Table className="admin-products-table">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Product</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Source</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredProducts.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell>
-                      <div className="admin-products-product-cell">
-                        <ProductThumb product={product} />
-                        <div>
-                          <strong>{product.title}</strong>
-                          <div className="admin-products-product-meta">
-                            <span>{product.condition}</span>
-                            {product.verified && (
-                              <Badge className="admin-products-verified">
-                                <BadgeCheck size={12} aria-hidden="true" />
-                                Verified
-                              </Badge>
-                            )}
+          <TabsContent value="products" className="mt-0">
+            <div className={adminTableWrapClass}>
+              <Table className={adminTableClass}>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Product</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead>Source</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredProducts.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <ProductThumb product={product} />
+                          <div>
+                            <strong className="text-sm text-[#1a1a1a]">{product.title}</strong>
+                            <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-[#888]">
+                              <span>{product.condition}</span>
+                              {product.verified && (
+                                <AdminStatusBadge tone="success" className="gap-1 normal-case">
+                                  <BadgeCheck size={12} aria-hidden="true" />
+                                  Verified
+                                </AdminStatusBadge>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className="admin-products-category-pill">
-                        {getCategoryLabel(categories, product.category)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <strong className="admin-products-price">
-                        {formatINR(product.rentalPrice)}
-                      </strong>
-                      <span className="admin-products-period">/{product.period}</span>
-                    </TableCell>
-                    <TableCell>{product.location}</TableCell>
-                    <TableCell>
-                      <Badge className={`admin-products-source admin-products-source--${product.source}`}>
-                        {product.source === 'catalog' ? 'Catalog' : 'Admin'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={`admin-products-status admin-products-status--${product.status}`}>
-                        {product.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="admin-products-row-actions">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon-sm"
-                          className="admin-products-icon-btn"
-                          aria-label={`Edit ${product.title}`}
-                          onClick={() => setProductModal({ mode: 'edit', product })}
-                        >
-                          <Pencil size={16} />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon-sm"
-                          className="admin-products-icon-btn admin-products-icon-btn--danger"
-                          aria-label={`Delete ${product.title}`}
-                          onClick={() => handleDeleteProduct(product)}
-                        >
-                          <Trash2 size={16} />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-
-            {filteredProducts.length === 0 && (
-              <p className="admin-products-empty">No products match your search.</p>
-            )}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="categories">
-          <div className="admin-products-table-wrap">
-            <Table className="admin-products-table">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Category</TableHead>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Products</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredCategories.map((category) => {
-                  const count = products.filter((product) => product.category === category.id).length
-
-                  return (
-                    <TableRow key={category.id}>
-                      <TableCell>
-                        <div className="admin-products-category-cell">
-                          <span className="admin-products-category-icon" aria-hidden="true">
-                            {category.label.slice(0, 1)}
-                          </span>
-                          <strong>{category.label}</strong>
-                        </div>
                       </TableCell>
                       <TableCell>
-                        <code className="admin-products-code">{category.id}</code>
+                        <AdminStatusBadge tone="neutral" className="normal-case">
+                          {getCategoryLabel(categories, product.category)}
+                        </AdminStatusBadge>
                       </TableCell>
-                      <TableCell>{category.description || '—'}</TableCell>
-                      <TableCell>{count}</TableCell>
                       <TableCell>
-                        <div className="admin-products-row-actions">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon-sm"
-                            className="admin-products-icon-btn"
-                            aria-label={`Edit ${category.label}`}
-                            onClick={() => setCategoryModal({ mode: 'edit', category })}
+                        <strong className="text-sm text-[#1a1a1a]">
+                          {formatINR(product.rentalPrice)}
+                        </strong>
+                        <span className="text-xs text-[#888]">/{product.period}</span>
+                      </TableCell>
+                      <TableCell>{product.location}</TableCell>
+                      <TableCell>
+                        <AdminStatusBadge tone={product.source === 'catalog' ? 'info' : 'dark'}>
+                          {product.source === 'catalog' ? 'Catalog' : 'Admin'}
+                        </AdminStatusBadge>
+                      </TableCell>
+                      <TableCell>
+                        <AdminStatusBadge tone={getProductStatusTone(product.status)}>
+                          {product.status}
+                        </AdminStatusBadge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1.5">
+                          <AdminIconButton
+                            aria-label={`Edit ${product.title}`}
+                            onClick={() => setProductModal({ mode: 'edit', product })}
                           >
                             <Pencil size={16} />
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon-sm"
-                            className="admin-products-icon-btn admin-products-icon-btn--danger"
-                            aria-label={`Delete ${category.label}`}
-                            onClick={() => handleDeleteCategory(category)}
+                          </AdminIconButton>
+                          <AdminIconButton
+                            danger
+                            aria-label={`Delete ${product.title}`}
+                            onClick={() => handleDeleteProduct(product)}
                           >
                             <Trash2 size={16} />
-                          </Button>
+                          </AdminIconButton>
                         </div>
                       </TableCell>
                     </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
+                  ))}
+                </TableBody>
+              </Table>
 
-            {filteredCategories.length === 0 && (
-              <p className="admin-products-empty">No categories match your search.</p>
-            )}
-          </div>
-        </TabsContent>
+              {filteredProducts.length === 0 && (
+                <AdminEmptyState>No products match your search.</AdminEmptyState>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="categories" className="mt-0">
+            <div className={adminTableWrapClass}>
+              <Table className={adminTableClass}>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Category</TableHead>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Products</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredCategories.map((category) => {
+                    const count = products.filter((product) => product.category === category.id).length
+
+                    return (
+                      <TableRow key={category.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-2.5">
+                            <span
+                              className="inline-flex size-8 items-center justify-center border border-[#e5e5e5] bg-[#fafafa] text-xs font-bold text-[#1a1a1a]"
+                              aria-hidden="true"
+                            >
+                              {category.label.slice(0, 1)}
+                            </span>
+                            <strong className="text-sm text-[#1a1a1a]">{category.label}</strong>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <code className="border border-[#e5e5e5] bg-[#f5f5f5] px-1.5 py-0.5 font-mono text-xs text-[#666]">
+                            {category.id}
+                          </code>
+                        </TableCell>
+                        <TableCell>{category.description || '—'}</TableCell>
+                        <TableCell>{count}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1.5">
+                            <AdminIconButton
+                              aria-label={`Edit ${category.label}`}
+                              onClick={() => setCategoryModal({ mode: 'edit', category })}
+                            >
+                              <Pencil size={16} />
+                            </AdminIconButton>
+                            <AdminIconButton
+                              danger
+                              aria-label={`Delete ${category.label}`}
+                              onClick={() => handleDeleteCategory(category)}
+                            >
+                              <Trash2 size={16} />
+                            </AdminIconButton>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+
+              {filteredCategories.length === 0 && (
+                <AdminEmptyState>No categories match your search.</AdminEmptyState>
+              )}
+            </div>
+          </TabsContent>
         </Tabs>
-      </section>
+      </AdminPanel>
 
       <ProductFormModal
         open={Boolean(productModal)}
@@ -373,7 +378,7 @@ function AdminProductsPage() {
           setCategoryModal(null)
         }}
       />
-    </div>
+    </AdminPage>
   )
 }
 

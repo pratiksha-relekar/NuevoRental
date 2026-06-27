@@ -1,9 +1,7 @@
 import { useState } from 'react'
 import SpotlightCard from '../components/SpotlightCard'
-import { buttonVariants } from '@/components/ui/button'
 import { Button } from '@/components/ui/button'
 import { LinkButton } from '@/components/ui/link-button'
-import { cn } from '@/lib/utils'
 const QUICK_STATS = [
   { value: '< 24h', label: 'Ticket Response' },
   { value: '48hr', label: 'Replacement SLA' },
@@ -271,12 +269,13 @@ function SupportPage() {
             </p>
           </div>
           <div className="support-cta-actions">
-            <a
-              href="tel:8080808964"
-              className={cn(buttonVariants({ variant: 'default' }), 'support-btn support-btn--primary')}
+            <Button
+              render={<a href="tel:8080808964" />}
+              variant="default"
+              className="support-btn support-btn--primary"
             >
               Call 8080808964
-            </a>
+            </Button>
             <LinkButton to="/kyc" variant="outline" className="support-btn support-btn--ghost">
               View KYC Guide
             </LinkButton>

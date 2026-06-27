@@ -125,7 +125,7 @@ function HeaderSearch() {
                     <Button
                       type="button"
                       variant="outline"
-                      className={`header-search-popular-btn${activeIndex === index ? ' is-active' : ''}`}
+                      className={`header-search-popular-btn h-auto w-full justify-start rounded-none border-[#e5e5e5] bg-white px-3 py-2.5 text-sm font-medium text-[#1a1a1a] hover:border-[#1a1a1a] hover:bg-[#1a1a1a] hover:text-white [&_svg]:text-[#888] hover:[&_svg]:text-white${activeIndex === index ? ' is-active border-[#1a1a1a] bg-[#1a1a1a] text-white [&_svg]:text-white' : ''}`}
                       onMouseDown={(event) => event.preventDefault()}
                       onClick={() => goToSearch(term)}
                     >

@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
-import { buttonVariants } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 import { LinkButton } from '@/components/ui/link-button'
-import { cn } from '@/lib/utils'
 const STATS = [
   { value: '500+', label: 'Corporate Clients' },
   { value: '10K+', label: 'Devices Deployed' },
@@ -309,12 +308,13 @@ function CorporatePage() {
             <LinkButton to="/contact" variant="default" className="corporate-btn corporate-btn--primary">
               Request Quote
             </LinkButton>
-            <a
-              href="tel:8080808964"
-              className={cn(buttonVariants({ variant: 'outline' }), 'corporate-btn corporate-btn--ghost')}
+            <Button
+              render={<a href="tel:8080808964" />}
+              variant="outline"
+              className="corporate-btn corporate-btn--ghost"
             >
               Talk to Expert
-            </a>
+            </Button>
             <LinkButton to="/rent-products" variant="outline" className="corporate-btn corporate-btn--outline">
               Browse Products
             </LinkButton>
