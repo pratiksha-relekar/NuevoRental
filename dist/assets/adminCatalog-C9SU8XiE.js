@@ -1,1 +1,0 @@
-import{a as e}from"./adminCatalog-DQQcXt5t.js";export{e as deleteAdminCatalog};
