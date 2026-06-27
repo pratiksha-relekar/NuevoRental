@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { checkPincodeAvailability, SERVICEABLE_CITIES } from '../data/serviceablePincodes'
-import '../styles/pageAnimations.css'
-import './LocationsPage.css'
-
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { cn } from '@/lib/utils'
 function LocationsPage() {
   const [pinCode, setPinCode] = useState('')
   const [status, setStatus] = useState(null)
@@ -49,7 +50,7 @@ function LocationsPage() {
             <p className="locations-pincode-text">Enter your pin code to check availability.</p>
 
             <form className="locations-pincode-form" onSubmit={handleCheck} noValidate>
-              <input
+              <Input
                 type="text"
                 inputMode="numeric"
                 maxLength={6}
@@ -59,25 +60,26 @@ function LocationsPage() {
                   setStatus(null)
                 }}
                 placeholder="Enter pin code"
-                className={`locations-pincode-input${status?.type === 'error' ? ' is-error' : ''}`}
+                className={cn('locations-pincode-input', status?.type === 'error' && 'is-error')}
                 aria-label="Enter your pin code"
                 aria-invalid={status?.type === 'error' ? 'true' : 'false'}
                 aria-describedby={status ? 'pincode-status' : undefined}
               />
-              <button type="submit" className="locations-pincode-btn">
+              <Button type="submit" variant="default" className="locations-pincode-btn">
                 Check
-              </button>
+              </Button>
             </form>
 
             {status && (
-              <p
+              <Alert
                 id="pincode-status"
                 className={`locations-pincode-status locations-pincode-status--${status.type}`}
+                variant={status.type === 'error' ? 'destructive' : 'default'}
                 role={status.type === 'error' ? 'alert' : 'status'}
                 aria-live="polite"
               >
-                {status.message}
-              </p>
+                <AlertDescription>{status.message}</AlertDescription>
+              </Alert>
             )}
           </div>
         </div>

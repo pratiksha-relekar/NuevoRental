@@ -510,8 +510,29 @@ export const RENTAL_PRODUCTS = [
   },
 ]
 
+const SEED_IMAGES_BY_ID = Object.fromEntries(
+  RENTAL_PRODUCTS.map((product) => [Number(product.id), product.image]),
+)
+
+function isUsableImageSrc(value) {
+  return typeof value === 'string' && value.trim().length > 0
+}
+
 export function getProductImage(product) {
-  if (product?.imageUrl) return product.imageUrl
-  if (typeof product?.image === 'string' && product.image) return product.image
-  return product?.image ?? CATEGORY_IMAGES[product?.category] ?? laptopAsus
+  if (!product) return laptopAsus
+
+  const imageUrl = product.imageUrl?.trim()
+  if (isUsableImageSrc(imageUrl)) return imageUrl
+
+  if (typeof product.image === 'string') {
+    const image = product.image.trim()
+    if (image) return image
+  } else if (product.image) {
+    return product.image
+  }
+
+  const productId = Number(product.id ?? product.productId)
+  if (SEED_IMAGES_BY_ID[productId]) return SEED_IMAGES_BY_ID[productId]
+
+  return CATEGORY_IMAGES[product.category] ?? laptopAsus
 }

@@ -1,13 +1,13 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { CATEGORIES } from '../data/categories'
 import { useCartWishlist } from '../context/CartWishlistContext'
 import { useAuth } from '../context/AuthContext'
 import Logo from './Logo'
 import HeaderSearch from './HeaderSearch'
-import './Header.css'
-
 const LOCATIONS = [
   'Pune',
   'Mumbai',
@@ -335,8 +335,9 @@ function Header() {
 
           <div className="header-search-area">
             <div className={`header-dropdown header-location${openMenu === 'location' ? ' is-open' : ''}`}>
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 className="header-location-btn"
                 onClick={(e) => openOnly('location', e)}
                 aria-expanded={openMenu === 'location'}
@@ -348,13 +349,14 @@ function Header() {
                   <span className="header-location-value">{location}</span>
                 </span>
                 <ChevronDown className="header-chevron" />
-              </button>
+              </Button>
               {!isMobile && openMenu === 'location' && (
                 <ul className="header-dropdown-menu header-dropdown-menu--desktop" role="listbox" aria-label="Select location">
                   {LOCATIONS.map((city) => (
                     <li key={city}>
-                      <button
+                      <Button
                         type="button"
+                        variant="outline"
                         role="option"
                         aria-selected={location === city}
                         className={location === city ? 'is-selected' : undefined}
@@ -364,7 +366,7 @@ function Header() {
                         }}
                       >
                         {city}
-                      </button>
+                      </Button>
                     </li>
                   ))}
                 </ul>
@@ -382,11 +384,11 @@ function Header() {
             >
               <HeartIcon />
               {wishlistCount > 0 && (
-                <span
+                <Badge
                   className={`header-action-badge header-action-badge--wishlist${badgePulse.wishlist ? ' header-action-badge--pulse' : ''}`}
                 >
                   {wishlistCount}
-                </span>
+                </Badge>
               )}
             </Link>
             <Link
@@ -396,18 +398,19 @@ function Header() {
             >
               <CartIcon />
               {cartCount > 0 && (
-                <span
+                <Badge
                   className={`header-action-badge${badgePulse.cart ? ' header-action-badge--pulse' : ''}`}
                 >
                   {cartCount}
-                </span>
+                </Badge>
               )}
             </Link>
             {isAuthenticated ? (
               <div className={`header-profile${profileOpen ? ' is-open' : ''}`}>
-                <button
+                <Button
                   ref={profileTriggerRef}
                   type="button"
+                  variant="outline"
                   className="header-account header-profile-trigger"
                   onClick={(e) => openOnly('account', e)}
                   aria-expanded={profileOpen}
@@ -419,12 +422,13 @@ function Header() {
                     <span className="header-account-label">{user.displayName}</span>
                   </span>
                   <ChevronDown className="header-chevron" />
-                </button>
+                </Button>
 
                 {profileOpen && profilePopover && createPortal(
                   <>
-                    <button
+                    <Button
                       type="button"
+                      variant="outline"
                       className="header-profile-scrim"
                       onClick={closeMenus}
                       aria-label="Close account menu"
@@ -451,24 +455,26 @@ function Header() {
                         </div>
                       </div>
                       <div className="header-profile-popover-divider" />
-                      <button
+                      <Button
                         type="button"
+                        variant="outline"
                         role="menuitem"
                         className="header-profile-popover-link"
                         onClick={handleDashboard}
                       >
                         <DashboardMenuIcon />
                         My Dashboard
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         type="button"
+                        variant="outline"
                         role="menuitem"
                         className="header-profile-popover-link header-profile-popover-link--logout"
                         onClick={handleLogout}
                       >
                         <LogoutMenuIcon />
                         Logout
-                      </button>
+                      </Button>
                     </div>
                   </>,
                   document.body,
@@ -489,8 +495,9 @@ function Header() {
         <div className="header-bottom-scroll">
           <div className="header-bottom">
             <div className={`header-dropdown header-categories${openMenu === 'categories' ? ' is-open' : ''}`}>
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 className="header-categories-btn"
                 onClick={(e) => openOnly('categories', e)}
                 aria-expanded={openMenu === 'categories'}
@@ -499,7 +506,7 @@ function Header() {
                 <MenuIcon />
                 Browse Categories
                 <ChevronDown className="header-chevron" />
-              </button>
+              </Button>
               {!isMobile && openMenu === 'categories' && (
                 <ul className="header-dropdown-menu header-dropdown-menu--desktop header-categories-menu">
                   <li>
@@ -547,8 +554,9 @@ function Header() {
                       key={item.id}
                       className={`header-nav-item header-dropdown header-nav-dropdown${openMenu === item.id ? ' is-open' : ''}`}
                     >
-                      <button
+                      <Button
                         type="button"
+                        variant="outline"
                         className="header-nav-link header-nav-dropdown-btn"
                         onClick={(e) => openOnly(item.id, e)}
                         aria-expanded={openMenu === item.id}
@@ -556,7 +564,7 @@ function Header() {
                       >
                         {item.label}
                         <ChevronDown className="header-chevron" />
-                      </button>
+                      </Button>
                       {!isMobile && openMenu === item.id && (
                         <ul className="header-dropdown-menu header-dropdown-menu--desktop header-nav-dropdown-menu">
                           {item.links.map((link) => (
@@ -583,8 +591,9 @@ function Header() {
               <ul className="header-mobile-panel-list">
                 {LOCATIONS.map((city) => (
                   <li key={city}>
-                    <button
+                    <Button
                       type="button"
+                      variant="outline"
                       className={location === city ? 'is-selected' : undefined}
                       onClick={() => {
                         setLocation(city)
@@ -592,7 +601,7 @@ function Header() {
                       }}
                     >
                       {city}
-                    </button>
+                    </Button>
                   </li>
                 ))}
               </ul>

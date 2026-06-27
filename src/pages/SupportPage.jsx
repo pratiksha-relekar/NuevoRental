@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import SpotlightCard from '../components/SpotlightCard'
-import '../styles/pageAnimations.css'
-import './SupportPage.css'
-
+import { buttonVariants } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
+import { LinkButton } from '@/components/ui/link-button'
+import { cn } from '@/lib/utils'
 const QUICK_STATS = [
   { value: '< 24h', label: 'Ticket Response' },
   { value: '48hr', label: 'Replacement SLA' },
@@ -126,9 +126,10 @@ function FaqAccordion({ items }) {
             className={`support-faq-item support-reveal${isOpen ? ' support-faq-item--open' : ''}`}
             style={{ '--support-delay': `${0.05 + index * 0.04}s` }}
           >
-            <button
+            <Button
               id={buttonId}
               type="button"
+              variant="ghost"
               className="support-faq-question"
               aria-expanded={isOpen}
               aria-controls={panelId}
@@ -136,7 +137,7 @@ function FaqAccordion({ items }) {
             >
               <span>{item.question}</span>
               <span className="support-faq-icon" aria-hidden="true">{isOpen ? '−' : '+'}</span>
-            </button>
+            </Button>
             <div
               id={panelId}
               role="region"
@@ -196,12 +197,12 @@ function SupportPage() {
             </p>
           </div>
           <div className="support-intro-actions">
-            <Link to="/dashboard" className="support-btn support-btn--primary">
+            <LinkButton to="/dashboard" variant="default" className="support-btn support-btn--primary">
               Raise Support Ticket
-            </Link>
-            <Link to="/contact" className="support-btn support-btn--ghost">
+            </LinkButton>
+            <LinkButton to="/contact" variant="outline" className="support-btn support-btn--ghost">
               Contact Support
-            </Link>
+            </LinkButton>
           </div>
         </div>
 
@@ -270,12 +271,15 @@ function SupportPage() {
             </p>
           </div>
           <div className="support-cta-actions">
-            <a href="tel:8080808964" className="support-btn support-btn--primary">
+            <a
+              href="tel:8080808964"
+              className={cn(buttonVariants({ variant: 'default' }), 'support-btn support-btn--primary')}
+            >
               Call 8080808964
             </a>
-            <Link to="/kyc" className="support-btn support-btn--ghost">
+            <LinkButton to="/kyc" variant="outline" className="support-btn support-btn--ghost">
               View KYC Guide
-            </Link>
+            </LinkButton>
           </div>
         </SpotlightCard>
       </div>

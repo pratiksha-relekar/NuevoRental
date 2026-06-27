@@ -1,6 +1,4 @@
 import { BRAND_ICONS } from './brandIcons'
-import './PopularBrandsSection.css'
-
 function BrandMark({ brand }) {
   const Icon = BRAND_ICONS[brand.id]
 

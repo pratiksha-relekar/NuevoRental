@@ -1,9 +1,14 @@
 import { useRef, useState } from 'react'
 import { Download, X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { InvoiceDocument } from './InvoiceDocument'
 import { downloadInvoicePdf } from '../../utils/downloadInvoicePdf'
-import './InvoiceViewModal.css'
-
 export function InvoiceViewModal({ invoice, onClose }) {
   const invoiceRef = useRef(null)
   const [isDownloading, setIsDownloading] = useState(false)
@@ -25,35 +30,39 @@ export function InvoiceViewModal({ invoice, onClose }) {
   }
 
   return (
-    <div className="invoice-view-modal-root" role="presentation">
-      <button type="button" className="invoice-view-modal-scrim" onClick={onClose} aria-label="Close invoice" />
-      <div
+    <Dialog open={Boolean(invoice)} onOpenChange={(nextOpen) => { if (!nextOpen) onClose() }}>
+      <DialogContent
         className="invoice-view-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="invoice-view-title"
+        showCloseButton={false}
       >
-        <div className="invoice-view-modal-toolbar">
+        <DialogHeader className="invoice-view-modal-toolbar">
           <div>
             <span className="invoice-view-modal-eyebrow">{invoice.orderId}</span>
-            <h2 id="invoice-view-title">{invoice.id}</h2>
+            <DialogTitle id="invoice-view-title">{invoice.id}</DialogTitle>
           </div>
 
           <div className="invoice-view-modal-actions">
-            <button
+            <Button
               type="button"
+              variant="default"
               className="invoice-view-modal-download"
               onClick={handleDownload}
               disabled={isDownloading}
             >
               <Download size={16} aria-hidden="true" />
               {isDownloading ? 'Preparing PDF…' : 'Download PDF'}
-            </button>
-            <button type="button" className="invoice-view-modal-close" onClick={onClose} aria-label="Close">
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="invoice-view-modal-close"
+              onClick={onClose}
+              aria-label="Close"
+            >
               <X size={18} />
-            </button>
+            </Button>
           </div>
-        </div>
+        </DialogHeader>
 
         {downloadError && (
           <p className="invoice-view-modal-error" role="alert">{downloadError}</p>
@@ -62,7 +71,7 @@ export function InvoiceViewModal({ invoice, onClose }) {
         <div className="invoice-view-modal-preview">
           <InvoiceDocument ref={invoiceRef} invoice={invoice} />
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

@@ -8,8 +8,18 @@ import {
   toCountdownInputValue,
   WeeklyOfferFormModal,
 } from '../components/WeeklyOfferFormModal'
-import './AdminWeeklyOffersPage.css'
-
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 function AdminWeeklyOffersPage() {
   const { products, categories } = useCatalog()
   const {
@@ -81,7 +91,7 @@ function AdminWeeklyOffersPage() {
             offers. Default catalog deals stay available until you edit or hide them.
           </p>
         </div>
-        <button
+        <Button
           type="button"
           className="admin-weekly-offers-refresh-btn"
           onClick={handleRefresh}
@@ -89,7 +99,7 @@ function AdminWeeklyOffersPage() {
         >
           <RefreshCw size={16} className={isRefreshing ? 'is-spinning' : ''} aria-hidden="true" />
           {isRefreshing ? 'Syncing…' : 'Sync offers'}
-        </button>
+        </Button>
       </header>
 
       <section className="admin-weekly-offers-timer-card">
@@ -104,17 +114,17 @@ function AdminWeeklyOffersPage() {
         </div>
 
         <form className="admin-weekly-offers-timer-form" onSubmit={handleSaveTimer}>
-          <label>
+          <Label>
             <span>Ends on</span>
-            <input
+            <Input
               type="datetime-local"
               value={timerValue}
               onChange={(e) => setTimerValue(e.target.value)}
             />
-          </label>
-          <button type="submit" disabled={timerSaving}>
+          </Label>
+          <Button type="submit" disabled={timerSaving}>
             {timerSaving ? 'Saving…' : 'Save timer'}
-          </button>
+          </Button>
         </form>
 
         {timerMessage && <p className="admin-weekly-offers-timer-message">{timerMessage}</p>}
@@ -126,32 +136,32 @@ function AdminWeeklyOffersPage() {
             <h2>Offer products</h2>
             <p>{deals.length} active offer{deals.length === 1 ? '' : 's'} on the homepage.</p>
           </div>
-          <button
+          <Button
             type="button"
             className="admin-weekly-offers-add-btn"
             onClick={() => setOfferModal({ mode: 'create' })}
           >
             <Plus size={16} aria-hidden="true" />
             Add offer
-          </button>
+          </Button>
         </div>
 
         <div className="admin-weekly-offers-table-wrap">
-          <table className="admin-weekly-offers-table">
-            <thead>
-              <tr>
-                <th scope="col">Product</th>
-                <th scope="col">Discount</th>
-                <th scope="col">Offer price</th>
-                <th scope="col">Stock</th>
-                <th scope="col">Source</th>
-                <th scope="col" className="admin-weekly-offers-col-action">Action</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table className="admin-weekly-offers-table">
+            <TableHeader>
+              <TableRow>
+                <TableHead scope="col">Product</TableHead>
+                <TableHead scope="col">Discount</TableHead>
+                <TableHead scope="col">Offer price</TableHead>
+                <TableHead scope="col">Stock</TableHead>
+                <TableHead scope="col">Source</TableHead>
+                <TableHead scope="col" className="admin-weekly-offers-col-action">Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {deals.map((deal) => (
-                <tr key={deal.id}>
-                  <td>
+                <TableRow key={deal.id}>
+                  <TableCell>
                     <div className="admin-weekly-offers-product">
                       <img src={deal.image} alt="" />
                       <div>
@@ -159,40 +169,44 @@ function AdminWeeklyOffersPage() {
                         <span>{deal.id}</span>
                       </div>
                     </div>
-                  </td>
-                  <td>{deal.discountPercent}% OFF</td>
-                  <td>
+                  </TableCell>
+                  <TableCell>{deal.discountPercent}% OFF</TableCell>
+                  <TableCell>
                     <strong>{formatINR(deal.offerPrice)}</strong>
                     <span className="admin-weekly-offers-original">{formatINR(deal.originalPrice)}</span>
-                  </td>
-                  <td>{deal.inStock ? `In stock (${deal.stock})` : 'Hidden'}</td>
-                  <td>
-                    <span className={`admin-weekly-offers-source${storedIds.has(deal.id) ? ' is-custom' : ''}`}>
+                  </TableCell>
+                  <TableCell>{deal.inStock ? `In stock (${deal.stock})` : 'Hidden'}</TableCell>
+                  <TableCell>
+                    <Badge className={`admin-weekly-offers-source${storedIds.has(deal.id) ? ' is-custom' : ''}`}>
                       {storedIds.has(deal.id) ? 'Admin updated' : 'Default'}
-                    </span>
-                  </td>
-                  <td className="admin-weekly-offers-col-action">
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="admin-weekly-offers-col-action">
                     <div className="admin-weekly-offers-actions">
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="icon-sm"
                         aria-label={`Edit ${deal.title}`}
                         onClick={() => setOfferModal({ mode: 'edit', deal })}
                       >
                         <Pencil size={15} />
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="icon-sm"
                         aria-label={`Remove ${deal.title}`}
                         onClick={() => handleDelete(deal)}
                       >
                         <Trash2 size={15} />
-                      </button>
+                      </Button>
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </section>
 

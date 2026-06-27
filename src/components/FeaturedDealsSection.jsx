@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { LinkButton } from '@/components/ui/link-button'
 import { DEAL_FILTERS, filterFeaturedDeals, getTimeLeft } from '../data/weeklyOffersStorage'
 import { useWeeklyOffers } from '../context/WeeklyOffersContext'
 import GlareHover from './GlareHover'
-import './FeaturedDealsSection.css'
-
 function pad(value) {
   return String(value).padStart(2, '0')
 }
@@ -47,7 +47,7 @@ function DealCard({ deal }) {
     >
       <article className="deal-card">
         <div className={`deal-card-image-wrap${deal.category === 'desktops' ? ' deal-card-image-wrap--desktop' : ''}${deal.category === 'laptops' ? ' deal-card-image-wrap--laptop' : ''}`}>
-          <span className="deal-card-badge">{deal.discountPercent}% OFF</span>
+          <Badge className="deal-card-badge">{deal.discountPercent}% OFF</Badge>
           <img
             src={deal.image}
             alt={deal.title}
@@ -81,16 +81,17 @@ function DealCard({ deal }) {
           </p>
 
           {deal.inStock ? (
-            <Link
+            <LinkButton
               to={`/product/${deal.productId}?deal=${deal.id}`}
+              variant="default"
               className="deal-card-btn deal-card-btn--active"
             >
               Rent Now
-            </Link>
+            </LinkButton>
           ) : (
-            <button type="button" className="deal-card-btn" disabled>
+            <Button type="button" variant="outline" className="deal-card-btn" disabled>
               Out of Stock
-            </button>
+            </Button>
           )}
         </div>
       </article>
@@ -126,9 +127,9 @@ function FeaturedDealsSection() {
             <h2 id="featured-deals-heading" className="featured-deals-title">
               {config.sectionTitle || 'Weekly Best Deals'}
             </h2>
-            <Link to={config.viewAllPath || '/pricing'} className="featured-deals-view-all">
+            <LinkButton to={config.viewAllPath || '/pricing'} variant="outline" className="featured-deals-view-all">
               View all offers →
-            </Link>
+            </LinkButton>
           </div>
 
           <div className="featured-deals-timer" aria-live="polite">
@@ -155,28 +156,30 @@ function FeaturedDealsSection() {
 
         <div className="featured-deals-filters" role="tablist" aria-label="Deal filters">
           {DEAL_FILTERS.map((filter) => (
-            <button
+            <Button
               key={filter.id}
               type="button"
+              variant="outline"
               role="tab"
               aria-selected={activeFilter === filter.id}
               className={`featured-deals-filter${activeFilter === filter.id ? ' featured-deals-filter--active' : ''}`}
               onClick={() => setActiveFilter(filter.id)}
             >
               {filter.label}
-            </button>
+            </Button>
           ))}
         </div>
 
         <div className="featured-deals-carousel-wrap">
-          <button
+          <Button
             type="button"
+            variant="outline"
             className="featured-deals-nav featured-deals-nav--prev"
             onClick={() => scroll(-1)}
             aria-label="Scroll deals left"
           >
             ‹
-          </button>
+          </Button>
 
           <div className="featured-deals-grid" ref={scrollRef}>
             {filteredDeals.map((deal) => (
@@ -184,14 +187,15 @@ function FeaturedDealsSection() {
             ))}
           </div>
 
-          <button
+          <Button
             type="button"
+            variant="outline"
             className="featured-deals-nav featured-deals-nav--next"
             onClick={() => scroll(1)}
             aria-label="Scroll deals right"
           >
             ›
-          </button>
+          </Button>
         </div>
       </div>
     </section>

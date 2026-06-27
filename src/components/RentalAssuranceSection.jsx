@@ -8,9 +8,7 @@ import {
   Truck,
 } from 'lucide-react'
 import { AnimatedBeam } from './ui/animated-beam'
-import { Card, CardHeader, CardTitle } from './ui/card'
-import './RentalAssuranceSection.css'
-
+import { Card, CardHeader, CardTitle } from './ui/assurance-card'
 const PROCESS_STEPS = [
   {
     id: 'order',

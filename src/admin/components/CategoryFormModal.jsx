@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
 import { slugifyCategoryId } from '../../data/catalogStorage'
-import './ProductFormModal.css'
-
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 const EMPTY_FORM = {
   id: '',
   label: '',
@@ -17,8 +20,6 @@ export function CategoryFormModal({ open, category, onClose, onSave }) {
     setForm(category ? { ...EMPTY_FORM, ...category } : EMPTY_FORM)
   }, [open, category])
 
-  if (!open) return null
-
   const updateField = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }))
   }
@@ -32,60 +33,63 @@ export function CategoryFormModal({ open, category, onClose, onSave }) {
   }
 
   return (
-    <div className="admin-modal-root" role="presentation">
-      <button type="button" className="admin-modal-scrim" onClick={onClose} aria-label="Close modal" />
-      <div className="admin-modal-card admin-product-modal" role="dialog" aria-modal="true" aria-labelledby="category-modal-title">
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DialogContent
+        className="admin-modal-card admin-product-modal"
+        showCloseButton={false}
+        aria-labelledby="category-modal-title"
+      >
         <div className="admin-modal-header">
           <h2 id="category-modal-title">{category ? 'Edit category' : 'Add category'}</h2>
-          <button type="button" className="admin-modal-close" onClick={onClose} aria-label="Close">
+          <Button type="button" variant="ghost" className="admin-modal-close" onClick={onClose} aria-label="Close">
             <X size={18} />
-          </button>
+          </Button>
         </div>
 
         <form className="admin-modal-form" onSubmit={handleSubmit}>
-          <label className="admin-modal-field admin-modal-field--full">
+          <Label className="admin-modal-field admin-modal-field--full">
             <span>Category name</span>
-            <input
+            <Input
               type="text"
               value={form.label}
               onChange={(e) => updateField('label', e.target.value)}
               placeholder="e.g. Gaming Laptops"
               required
             />
-          </label>
+          </Label>
 
           {!category && (
-            <label className="admin-modal-field admin-modal-field--full">
+            <Label className="admin-modal-field admin-modal-field--full">
               <span>Category ID</span>
-              <input
+              <Input
                 type="text"
                 value={form.id || slugifyCategoryId(form.label)}
                 onChange={(e) => updateField('id', slugifyCategoryId(e.target.value))}
                 placeholder="gaming-laptops"
               />
-            </label>
+            </Label>
           )}
 
-          <label className="admin-modal-field admin-modal-field--full">
+          <Label className="admin-modal-field admin-modal-field--full">
             <span>Description (optional)</span>
-            <textarea
+            <Textarea
               rows={3}
               value={form.description}
               onChange={(e) => updateField('description', e.target.value)}
               placeholder="Describe what products belong in this category"
             />
-          </label>
+          </Label>
 
           <div className="admin-modal-footer">
-            <button type="button" className="admin-modal-btn admin-modal-btn--ghost" onClick={onClose}>
+            <Button type="button" variant="outline" className="admin-modal-btn admin-modal-btn--ghost" onClick={onClose}>
               Cancel
-            </button>
-            <button type="submit" className="admin-modal-btn admin-modal-btn--primary">
+            </Button>
+            <Button type="submit" className="admin-modal-btn admin-modal-btn--primary">
               {category ? 'Save category' : 'Add category'}
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

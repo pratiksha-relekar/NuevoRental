@@ -3,9 +3,8 @@ import { Link } from 'react-router-dom'
 import { FileImage, ShieldCheck, X } from 'lucide-react'
 import { buildKycDetail, getKycDocumentPreview, loadAdminKycUserDetail } from '../../data/kycStorage'
 import { formatKycStatus } from '../../data/userStorage'
-import './ProductFormModal.css'
-import './UserDetailModal.css'
-
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
 function KycDocumentThumb({ label, document }) {
   const preview = getKycDocumentPreview(document)
 
@@ -56,9 +55,12 @@ export function UserDetailModal({ user, onClose }) {
   const kyc = kycUser?.kyc ?? buildKycDetail(null)
 
   return (
-    <div className="admin-modal-root admin-modal-root--wide" role="presentation">
-      <button type="button" className="admin-modal-scrim" onClick={onClose} aria-label="Close modal" />
-      <div className="admin-user-detail-modal admin-user-detail-modal--wide" role="dialog" aria-modal="true" aria-labelledby="user-detail-title">
+    <Dialog open onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DialogContent
+        className="admin-user-detail-modal admin-user-detail-modal--wide admin-modal-root--wide"
+        showCloseButton={false}
+        aria-labelledby="user-detail-title"
+      >
         <div className="admin-user-detail-header">
           <div className="admin-user-detail-profile">
             <span className="admin-user-detail-avatar" aria-hidden="true">
@@ -69,9 +71,9 @@ export function UserDetailModal({ user, onClose }) {
               <p>{user.email}</p>
             </div>
           </div>
-          <button type="button" className="admin-user-detail-close" onClick={onClose} aria-label="Close">
+          <Button type="button" variant="ghost" className="admin-user-detail-close" onClick={onClose} aria-label="Close">
             <X size={18} />
-          </button>
+          </Button>
         </div>
 
         <div className="admin-user-detail-grid">
@@ -155,7 +157,7 @@ export function UserDetailModal({ user, onClose }) {
             <p>{user.aboutMe}</p>
           </div>
         )}
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

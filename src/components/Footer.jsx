@@ -1,7 +1,5 @@
 import { Link } from 'react-router-dom'
 import BrandLogo from './BrandLogo'
-import './Footer.css'
-
 const FOOTER_LINKS = [
   { label: 'About Nuevo Rental', to: '/about' },
   { label: 'Rent Products', to: '/rent-products' },

@@ -14,8 +14,9 @@ import { getAdminOrderStats, loadAdminOrders } from '../../data/orderStorage'
 import { formatINR } from '../../utils/cartSummary'
 import { AdminTrendChart } from '../components/AdminTrendChart'
 import { AdminRevenueSection } from '../components/AdminRevenueSection'
-import './AdminDashboardPage.css'
-
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 const DASHBOARD_STAT_CARDS = [
   {
     id: 'orders',
@@ -166,7 +167,7 @@ function AdminDashboardPage() {
           const Icon = card.icon
 
           return (
-            <article key={card.id} className="admin-stat-card">
+            <Card key={card.id} className="admin-stat-card">
               <div className="admin-stat-card-head">
                 <span className="admin-stat-card-icon" aria-hidden="true">
                   <Icon size={18} strokeWidth={1.8} />
@@ -179,13 +180,13 @@ function AdminDashboardPage() {
               </strong>
 
               <div className="admin-stat-card-trend">
-                <span className="admin-stat-trend-badge">
+                <Badge className="admin-stat-trend-badge">
                   <TrendingUp size={12} strokeWidth={2.4} aria-hidden="true" />
                   {card.trend}%
-                </span>
+                </Badge>
                 <span className="admin-stat-trend-note">vs last 7 days</span>
               </div>
-            </article>
+            </Card>
           )
         })}
       </div>
@@ -202,7 +203,7 @@ function AdminDashboardPage() {
         <h3>Management modules</h3>
         <div className="admin-module-grid">
           {ADMIN_MODULES.map((module) => (
-            <article
+            <Card
               key={module.id}
               id={module.id}
               className={`admin-module-card admin-module-card--${module.accent}`}
@@ -215,10 +216,10 @@ function AdminDashboardPage() {
                 </span>
               </div>
               <p>{module.description}</p>
-              <button type="button" className="admin-module-btn" disabled>
+              <Button type="button" className="admin-module-btn" disabled>
                 Open module (coming soon)
-              </button>
-            </article>
+              </Button>
+            </Card>
           ))}
         </div>
       </section>

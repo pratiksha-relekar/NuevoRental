@@ -22,10 +22,14 @@ function getDefaultCountdownEndsAt() {
   return target.toISOString()
 }
 
+function isUsableImageSrc(value) {
+  return typeof value === 'string' && value.trim().length > 0
+}
+
 function resolveDealImage(deal, products) {
-  if (deal.imageDataUrl) return deal.imageDataUrl
-  if (deal.image) return deal.image
-  if (deal.imageUrl) return deal.imageUrl
+  if (isUsableImageSrc(deal.imageDataUrl)) return deal.imageDataUrl
+  if (isUsableImageSrc(deal.image)) return deal.image.trim()
+  if (isUsableImageSrc(deal.imageUrl)) return deal.imageUrl.trim()
 
   const product = products.find((item) => Number(item.id) === Number(deal.productId))
   return product ? getProductImage(product) : ''

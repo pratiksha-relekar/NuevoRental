@@ -13,8 +13,25 @@ import { getProductImage } from '../../data/products'
 import { formatINR } from '../../utils/cartSummary'
 import { CategoryFormModal } from '../components/CategoryFormModal'
 import { ProductFormModal } from '../components/ProductFormModal'
-import './AdminProductsPage.css'
-
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 function getCategoryLabel(categories, categoryId) {
   return categories.find((category) => category.id === categoryId)?.label ?? categoryId
 }
@@ -111,32 +128,25 @@ function AdminProductsPage() {
       </header>
 
       <section className="admin-products-panel">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
         <div className="admin-products-toolbar">
-          <div className="admin-products-tabs">
-            <button
-              type="button"
-              className={`admin-products-tab${activeTab === 'products' ? ' is-active' : ''}`}
-              onClick={() => setActiveTab('products')}
-            >
+          <TabsList className="admin-products-tabs">
+            <TabsTrigger value="products" className={`admin-products-tab${activeTab === 'products' ? ' is-active' : ''}`}>
               <Package size={16} aria-hidden="true" />
               Products
               <span className="admin-products-tab-count">{products.length}</span>
-            </button>
-            <button
-              type="button"
-              className={`admin-products-tab${activeTab === 'categories' ? ' is-active' : ''}`}
-              onClick={() => setActiveTab('categories')}
-            >
+            </TabsTrigger>
+            <TabsTrigger value="categories" className={`admin-products-tab${activeTab === 'categories' ? ' is-active' : ''}`}>
               <FolderOpen size={16} aria-hidden="true" />
               Categories
               <span className="admin-products-tab-count">{categories.length}</span>
-            </button>
-          </div>
+            </TabsTrigger>
+          </TabsList>
 
           <div className="admin-products-actions">
             <label className="admin-products-search">
               <Search size={16} aria-hidden="true" />
-              <input
+              <Input
                 type="search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -145,22 +155,22 @@ function AdminProductsPage() {
             </label>
 
             {activeTab === 'products' && (
-              <select
-                className="admin-products-filter"
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                aria-label="Filter by category"
-              >
-                <option value="all">All categories</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.label}
-                  </option>
-                ))}
-              </select>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="admin-products-filter" aria-label="Filter by category">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All categories</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             )}
 
-            <button
+            <Button
               type="button"
               className="admin-products-add-btn"
               onClick={() =>
@@ -171,28 +181,28 @@ function AdminProductsPage() {
             >
               <Plus size={16} aria-hidden="true" />
               {activeTab === 'products' ? 'Add product' : 'Add category'}
-            </button>
+            </Button>
           </div>
         </div>
 
-        {activeTab === 'products' ? (
+        <TabsContent value="products">
           <div className="admin-products-table-wrap">
-            <table className="admin-products-table">
-              <thead>
-                <tr>
-                  <th>Product</th>
-                  <th>Category</th>
-                  <th>Price</th>
-                  <th>Location</th>
-                  <th>Source</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table className="admin-products-table">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Product</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Price</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Source</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {filteredProducts.map((product) => (
-                  <tr key={product.id}>
-                    <td>
+                  <TableRow key={product.id}>
+                    <TableCell>
                       <div className="admin-products-product-cell">
                         <ProductThumb product={product} />
                         <div>
@@ -200,128 +210,139 @@ function AdminProductsPage() {
                           <div className="admin-products-product-meta">
                             <span>{product.condition}</span>
                             {product.verified && (
-                              <span className="admin-products-verified">
+                              <Badge className="admin-products-verified">
                                 <BadgeCheck size={12} aria-hidden="true" />
                                 Verified
-                              </span>
+                              </Badge>
                             )}
                           </div>
                         </div>
                       </div>
-                    </td>
-                    <td>
-                      <span className="admin-products-category-pill">
+                    </TableCell>
+                    <TableCell>
+                      <Badge className="admin-products-category-pill">
                         {getCategoryLabel(categories, product.category)}
-                      </span>
-                    </td>
-                    <td>
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
                       <strong className="admin-products-price">
                         {formatINR(product.rentalPrice)}
                       </strong>
                       <span className="admin-products-period">/{product.period}</span>
-                    </td>
-                    <td>{product.location}</td>
-                    <td>
-                      <span className={`admin-products-source admin-products-source--${product.source}`}>
+                    </TableCell>
+                    <TableCell>{product.location}</TableCell>
+                    <TableCell>
+                      <Badge className={`admin-products-source admin-products-source--${product.source}`}>
                         {product.source === 'catalog' ? 'Catalog' : 'Admin'}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`admin-products-status admin-products-status--${product.status}`}>
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={`admin-products-status admin-products-status--${product.status}`}>
                         {product.status}
-                      </span>
-                    </td>
-                    <td>
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
                       <div className="admin-products-row-actions">
-                        <button
+                        <Button
                           type="button"
+                          variant="ghost"
+                          size="icon-sm"
                           className="admin-products-icon-btn"
                           aria-label={`Edit ${product.title}`}
                           onClick={() => setProductModal({ mode: 'edit', product })}
                         >
                           <Pencil size={16} />
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                           type="button"
+                          variant="ghost"
+                          size="icon-sm"
                           className="admin-products-icon-btn admin-products-icon-btn--danger"
                           aria-label={`Delete ${product.title}`}
                           onClick={() => handleDeleteProduct(product)}
                         >
                           <Trash2 size={16} />
-                        </button>
+                        </Button>
                       </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
 
             {filteredProducts.length === 0 && (
               <p className="admin-products-empty">No products match your search.</p>
             )}
           </div>
-        ) : (
+        </TabsContent>
+
+        <TabsContent value="categories">
           <div className="admin-products-table-wrap">
-            <table className="admin-products-table">
-              <thead>
-                <tr>
-                  <th>Category</th>
-                  <th>ID</th>
-                  <th>Description</th>
-                  <th>Products</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table className="admin-products-table">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Category</TableHead>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Products</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {filteredCategories.map((category) => {
                   const count = products.filter((product) => product.category === category.id).length
 
                   return (
-                    <tr key={category.id}>
-                      <td>
+                    <TableRow key={category.id}>
+                      <TableCell>
                         <div className="admin-products-category-cell">
                           <span className="admin-products-category-icon" aria-hidden="true">
                             {category.label.slice(0, 1)}
                           </span>
                           <strong>{category.label}</strong>
                         </div>
-                      </td>
-                      <td>
+                      </TableCell>
+                      <TableCell>
                         <code className="admin-products-code">{category.id}</code>
-                      </td>
-                      <td>{category.description || '—'}</td>
-                      <td>{count}</td>
-                      <td>
+                      </TableCell>
+                      <TableCell>{category.description || '—'}</TableCell>
+                      <TableCell>{count}</TableCell>
+                      <TableCell>
                         <div className="admin-products-row-actions">
-                          <button
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="icon-sm"
                             className="admin-products-icon-btn"
                             aria-label={`Edit ${category.label}`}
                             onClick={() => setCategoryModal({ mode: 'edit', category })}
                           >
                             <Pencil size={16} />
-                          </button>
-                          <button
+                          </Button>
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="icon-sm"
                             className="admin-products-icon-btn admin-products-icon-btn--danger"
                             aria-label={`Delete ${category.label}`}
                             onClick={() => handleDeleteCategory(category)}
                           >
                             <Trash2 size={16} />
-                          </button>
+                          </Button>
                         </div>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   )
                 })}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
 
             {filteredCategories.length === 0 && (
               <p className="admin-products-empty">No categories match your search.</p>
             )}
           </div>
-        )}
+        </TabsContent>
+        </Tabs>
       </section>
 
       <ProductFormModal

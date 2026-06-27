@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
 import { HERO_CAROUSEL_SLIDES } from '../constants/heroCarouselSlides'
-import './HeroCarouselCard.css'
-
 const AUTO_PLAY_MS = 1800
 
 function formatPrice(amount) {
@@ -71,10 +70,12 @@ function HeroCarouselCard() {
           const isActive = index === activeIndex
 
           return (
-            <button
+            <Button
               key={item.id}
               type="button"
               role="tab"
+              variant="ghost"
+              size="icon-xs"
               className={`hero-carousel-dot${isActive ? ' hero-carousel-dot--active' : ''}`}
               aria-label={`Show ${item.title}`}
               aria-selected={isActive}

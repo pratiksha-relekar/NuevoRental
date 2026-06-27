@@ -10,8 +10,6 @@ import {
 } from 'react'
 import { PanelLeft } from 'lucide-react'
 import { cn } from '../../lib/utils'
-import './sidebar.css'
-
 const SIDEBAR_KEYBOARD_SHORTCUT = 'b'
 const SIDEBAR_WIDTH = '16rem'
 const SIDEBAR_WIDTH_ICON = '4rem'

@@ -1,7 +1,7 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
+import { LinkButton } from '@/components/ui/link-button'
 import { useAuth } from '../context/AuthContext'
-import './TopBar.css'
-
 function ChevronDown() {
   return (
     <svg width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true">
@@ -62,29 +62,29 @@ function TopBar() {
         <div className="top-bar-right">
           {isAuthenticated ? (
             <>
-              <Link to="/dashboard" className="top-bar-link">
+              <LinkButton to="/dashboard" variant="outline" className="top-bar-link">
                 <UserIcon />
                 {user.displayName}
-              </Link>
+              </LinkButton>
               <span className="top-bar-divider" />
-              <button type="button" className="top-bar-link top-bar-logout" onClick={handleLogout}>
+              <Button type="button" variant="outline" className="top-bar-link top-bar-logout" onClick={handleLogout}>
                 Logout
-              </button>
+              </Button>
             </>
           ) : (
-            <Link to="/login" className="top-bar-link">
+            <LinkButton to="/login" variant="outline" className="top-bar-link">
               <UserIcon />
               Login / Register
-            </Link>
+            </LinkButton>
           )}
           <span className="top-bar-divider" />
-          <button type="button" className="top-bar-select">
+          <Button type="button" variant="outline" className="top-bar-select">
             EN <ChevronDown />
-          </button>
+          </Button>
           <span className="top-bar-divider" />
-          <button type="button" className="top-bar-select">
+          <Button type="button" variant="outline" className="top-bar-select">
             IND <ChevronDown />
-          </button>
+          </Button>
           <span className="top-bar-divider" />
           <a href="#wishlist" className="top-bar-icon-link" aria-label="Wishlist">
             <HeartIcon />

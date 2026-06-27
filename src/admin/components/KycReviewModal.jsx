@@ -15,9 +15,10 @@ import { getKycDocumentPreview } from '../../data/kycStorage'
 import { formatINR } from '../../utils/cartSummary'
 import { formatKycStatus } from '../../data/userStorage'
 import { getProductImage } from '../../data/products'
-import './ProductFormModal.css'
-import './KycReviewModal.css'
-
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
 function DocumentCard({ label, document }) {
   const preview = getKycDocumentPreview(document)
 
@@ -50,9 +51,12 @@ export function KycReviewModal({ user, loading = false, onClose, onApprove, onRe
   )
 
   return (
-    <div className="admin-modal-root admin-modal-root--wide" role="presentation">
-      <button type="button" className="admin-modal-scrim" onClick={onClose} aria-label="Close modal" />
-      <div className="admin-kyc-review-modal" role="dialog" aria-modal="true" aria-labelledby="kyc-review-title">
+    <Dialog open onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DialogContent
+        className="admin-kyc-review-modal admin-modal-root--wide"
+        showCloseButton={false}
+        aria-labelledby="kyc-review-title"
+      >
         <div className="admin-kyc-review-header">
           <div className="admin-kyc-review-profile">
             <span className="admin-kyc-review-avatar" aria-hidden="true">
@@ -70,34 +74,36 @@ export function KycReviewModal({ user, loading = false, onClose, onApprove, onRe
               <p>{user.email}</p>
             </div>
           </div>
-          <button type="button" className="admin-kyc-review-close" onClick={onClose} aria-label="Close">
+          <Button type="button" variant="ghost" className="admin-kyc-review-close" onClick={onClose} aria-label="Close">
             <X size={18} />
-          </button>
+          </Button>
         </div>
 
         {loading && (
-          <p className="admin-kyc-review-loading">Loading latest KYC documents from Firestore...</p>
+          <Alert className="admin-kyc-review-loading">
+            <AlertDescription>Loading latest KYC documents from Firestore...</AlertDescription>
+          </Alert>
         )}
 
         <div className="admin-kyc-review-badges">
-          <span className={`admin-kyc-review-status admin-kyc-review-status--${user.kycStatus}`}>
+          <Badge className={`admin-kyc-review-status admin-kyc-review-status--${user.kycStatus}`}>
             <ShieldCheck size={14} aria-hidden="true" />
             {formatKycStatus(user.kycStatus)}
-          </span>
+          </Badge>
           {user.isOnline && (
-            <span className="admin-kyc-review-badge admin-kyc-review-badge--online">
+            <Badge className="admin-kyc-review-badge admin-kyc-review-badge--online">
               <Wifi size={14} aria-hidden="true" />
               Active session
-            </span>
+            </Badge>
           )}
-          <span className="admin-kyc-review-badge">
+          <Badge className="admin-kyc-review-badge">
             {user.provider === 'google' ? 'Google sign-in' : 'Email sign-in'}
-          </span>
+          </Badge>
           {user.pendingOrderCount > 0 && (
-            <span className="admin-kyc-review-badge admin-kyc-review-badge--orders">
+            <Badge className="admin-kyc-review-badge admin-kyc-review-badge--orders">
               <ShoppingBag size={14} aria-hidden="true" />
               {user.pendingOrderCount} order{user.pendingOrderCount === 1 ? '' : 's'} awaiting KYC
-            </span>
+            </Badge>
           )}
         </div>
 
@@ -244,16 +250,17 @@ export function KycReviewModal({ user, loading = false, onClose, onApprove, onRe
               {pendingOrders.length === 1 ? '' : 's'} for dispatch.
             </p>
             <div className="admin-kyc-review-action-btns">
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 className="admin-kyc-review-btn admin-kyc-review-btn--reject"
                 onClick={() => onReject(user)}
                 disabled={loading}
               >
                 <XCircle size={16} aria-hidden="true" />
                 Reject KYC
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 className="admin-kyc-review-btn admin-kyc-review-btn--approve"
                 onClick={() => onApprove(user)}
@@ -261,18 +268,20 @@ export function KycReviewModal({ user, loading = false, onClose, onApprove, onRe
               >
                 <CheckCircle2 size={16} aria-hidden="true" />
                 Approve KYC
-              </button>
+              </Button>
             </div>
           </div>
         )}
 
         {user.kycStatus === 'approved' && (
-          <div className="admin-kyc-review-approved-banner">
+          <Alert className="admin-kyc-review-approved-banner">
             <CheckCircle2 size={18} aria-hidden="true" />
-            KYC verified on {kyc.completedLabel}. Customer can rent any product on Nuevo Rental.
-          </div>
+            <AlertDescription>
+              KYC verified on {kyc.completedLabel}. Customer can rent any product on Nuevo Rental.
+            </AlertDescription>
+          </Alert>
         )}
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

@@ -2,8 +2,6 @@ import { forwardRef } from 'react'
 import BrandLogo from '../BrandLogo'
 import { formatINR } from '../../utils/cartSummary'
 import { INVOICE_STATUS_LABELS } from '../../data/invoiceStorage'
-import './InvoiceDocument.css'
-
 function lineDiscountPercent(item) {
   const listPrice = item.originalPrice ?? item.rentalPrice ?? item.unitPrice ?? 0
   const unitPrice = item.unitPrice ?? 0

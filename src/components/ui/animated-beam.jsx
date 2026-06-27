@@ -1,8 +1,6 @@
 import { useEffect, useId, useState } from 'react'
 import { motion } from 'motion/react'
 import { cn } from '../../lib/utils'
-import './animated-beam.css'
-
 export function AnimatedBeam({
   className,
   containerRef,

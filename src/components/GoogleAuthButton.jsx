@@ -1,3 +1,5 @@
+import { Button } from '@/components/ui/button'
+
 function GoogleIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
@@ -23,10 +25,16 @@ function GoogleIcon() {
 
 function GoogleAuthButton({ label = 'Continue with Google', onClick, disabled = false }) {
   return (
-    <button type="button" className="auth-google-btn" onClick={onClick} disabled={disabled}>
+    <Button
+      type="button"
+      variant="outline"
+      onClick={onClick}
+      disabled={disabled}
+      className="h-[50px] w-full rounded-none border-[1.5px] border-[#d8d8d8] bg-white text-[15px] font-semibold text-[#1a1a1a] shadow-none hover:border-[#1a1a1a] hover:bg-[#fafafa] md:h-12 md:text-sm"
+    >
       <GoogleIcon />
       {label}
-    </button>
+    </Button>
   )
 }
 

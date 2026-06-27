@@ -21,8 +21,18 @@ import {
   getTopProductListings,
 } from '../../data/contentStorage'
 import { formatINR } from '../../utils/cartSummary'
-import './AdminContentPage.css'
-
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { buttonVariants } from '@/components/ui/button'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { cn } from '@/lib/utils'
 const SECTION_ICONS = {
   homepage: Sparkles,
   'rent-products': Package,
@@ -36,7 +46,7 @@ function ContentSectionCard({ section, index, reduceMotion }) {
   const Icon = SECTION_ICONS[section.id] ?? Layers
 
   return (
-    <motion.article
+    <motion.div
       className={`admin-content-section-card admin-content-section-card--${section.accent}`}
       initial={reduceMotion ? false : { opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
@@ -56,7 +66,7 @@ function ContentSectionCard({ section, index, reduceMotion }) {
       <p>{section.description}</p>
       <div className="admin-content-section-actions">
         {section.adminPath && (
-          <Link to={section.adminPath} className="admin-content-section-btn">
+          <Link to={section.adminPath} className={cn(buttonVariants(), 'admin-content-section-btn')}>
             Manage in admin
           </Link>
         )}
@@ -67,7 +77,7 @@ function ContentSectionCard({ section, index, reduceMotion }) {
           </a>
         )}
       </div>
-    </motion.article>
+    </motion.div>
   )
 }
 
@@ -97,16 +107,16 @@ function AdminContentPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       >
-        <div className="admin-content-alert-copy">
+        <Alert className="admin-content-alert-copy border-0 bg-transparent p-0 shadow-none">
           <span className="admin-content-alert-icon" aria-hidden="true">🏠</span>
           <div>
-            <strong>
+            <AlertTitle>
               {alert.count} rental listing{alert.count === 1 ? '' : 's'} need your attention
-            </strong>
-            <p>{alert.message}</p>
+            </AlertTitle>
+            <AlertDescription>{alert.message}</AlertDescription>
           </div>
-        </div>
-        <Link to="/admin/products" className="admin-content-alert-btn">
+        </Alert>
+        <Link to="/admin/products" className={cn(buttonVariants(), 'admin-content-alert-btn')}>
           Review listings
         </Link>
       </motion.aside>
@@ -190,42 +200,37 @@ function AdminContentPage() {
         </div>
 
         <div className="admin-content-listings-table-wrap">
-          <table className="admin-content-listings-table">
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th>Category</th>
-                <th>Rental price</th>
-                <th>Bookings</th>
-                <th>Views</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {topListings.map((listing, index) => (
-                <motion.tr
-                  key={listing.id}
-                  initial={reduceMotion ? false : { opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.05 * index, duration: 0.35 }}
-                >
-                  <td>
+          <Table className="admin-content-listings-table">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Product</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Rental price</TableHead>
+                <TableHead>Bookings</TableHead>
+                <TableHead>Views</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {topListings.map((listing) => (
+                <TableRow key={listing.id}>
+                  <TableCell>
                     <strong>{listing.title}</strong>
-                    {listing.featured && <span className="admin-content-featured-tag">Featured</span>}
-                  </td>
-                  <td>{listing.category}</td>
-                  <td>{formatINR(listing.rentalPrice)}</td>
-                  <td>{listing.bookings}</td>
-                  <td>{listing.views ?? '—'}</td>
-                  <td>
-                    <span className={`admin-content-listing-status admin-content-listing-status--${listing.status}`}>
+                    {listing.featured && <Badge className="admin-content-featured-tag">Featured</Badge>}
+                  </TableCell>
+                  <TableCell>{listing.category}</TableCell>
+                  <TableCell>{formatINR(listing.rentalPrice)}</TableCell>
+                  <TableCell>{listing.bookings}</TableCell>
+                  <TableCell>{listing.views ?? '—'}</TableCell>
+                  <TableCell>
+                    <Badge className={`admin-content-listing-status admin-content-listing-status--${listing.status}`}>
                       {listing.status}
-                    </span>
-                  </td>
-                </motion.tr>
+                    </Badge>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </section>
     </div>

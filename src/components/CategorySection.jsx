@@ -1,6 +1,5 @@
 import { CATEGORIES } from '../data/categories'
-import './CategorySection.css'
-
+import { Button } from '@/components/ui/button'
 function CategorySection({ activeCategory, onCategoryChange }) {
   const handleClick = (categoryId) => {
     onCategoryChange?.(categoryId)
@@ -19,9 +18,10 @@ function CategorySection({ activeCategory, onCategoryChange }) {
             const isActive = activeCategory === category.id
 
             return (
-              <button
+              <Button
                 key={category.id}
                 type="button"
+                variant="outline"
                 role="listitem"
                 className={`category-item${isActive ? ' category-item--active' : ''}${category.id === 'mobiles' ? ' category-item--mobiles' : ''}`}
                 onClick={() => handleClick(category.id)}
@@ -31,7 +31,7 @@ function CategorySection({ activeCategory, onCategoryChange }) {
                   <img src={category.image} alt="" className="category-circle-img" />
                 </span>
                 <span className="category-label">{category.label}</span>
-              </button>
+              </Button>
             )
           })}
         </div>

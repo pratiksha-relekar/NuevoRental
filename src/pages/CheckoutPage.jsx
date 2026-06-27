@@ -10,13 +10,22 @@ import {
   Truck,
   Wallet,
 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { LinkButton } from '@/components/ui/link-button'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { useAuth } from '../context/AuthContext'
 import { useCartWishlist } from '../context/CartWishlistContext'
 import { useOrders } from '../context/OrdersContext'
 import { computeCartSummary, formatINR } from '../utils/cartSummary'
-import '../styles/pageAnimations.css'
-import './CheckoutPage.css'
-
 const INDIAN_STATES = [
   'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa',
   'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala',
@@ -236,7 +245,7 @@ function CheckoutPage() {
                 </div>
               </div>
 
-              <button
+              <Button
                 type="button"
                 className="checkout-location-btn"
                 onClick={handleUseCurrentLocation}
@@ -244,7 +253,7 @@ function CheckoutPage() {
               >
                 <LocateFixed size={18} aria-hidden="true" />
                 {locationLoading ? 'Detecting location...' : 'Use my current location'}
-              </button>
+              </Button>
 
               {locationMessage && (
                 <p className="checkout-location-msg" role="status">{locationMessage}</p>
@@ -257,87 +266,111 @@ function CheckoutPage() {
               )}
 
               <div className="checkout-form-grid">
-                <label className="checkout-field checkout-field--full">
-                  <span>Full name *</span>
-                  <input
+                <div className="checkout-field checkout-field--full">
+                  <Label htmlFor="checkout-fullName">
+                    <span>Full name *</span>
+                  </Label>
+                  <Input
+                    id="checkout-fullName"
                     type="text"
                     value={address.fullName}
                     onChange={(e) => updateField('fullName', e.target.value)}
                     placeholder="Name on delivery"
                     required
                   />
-                </label>
+                </div>
 
-                <label className="checkout-field">
-                  <span>Mobile number *</span>
-                  <input
+                <div className="checkout-field">
+                  <Label htmlFor="checkout-phone">
+                    <span>Mobile number *</span>
+                  </Label>
+                  <Input
+                    id="checkout-phone"
                     type="tel"
                     value={address.phone}
                     onChange={(e) => updateField('phone', e.target.value)}
                     placeholder="10-digit mobile"
                     required
                   />
-                </label>
+                </div>
 
-                <label className="checkout-field">
-                  <span>Email *</span>
-                  <input
+                <div className="checkout-field">
+                  <Label htmlFor="checkout-email">
+                    <span>Email *</span>
+                  </Label>
+                  <Input
+                    id="checkout-email"
                     type="email"
                     value={address.email}
                     onChange={(e) => updateField('email', e.target.value)}
                     placeholder="you@email.com"
                     required
                   />
-                </label>
+                </div>
 
-                <label className="checkout-field checkout-field--full">
-                  <span>Flat / House no., Building, Street *</span>
-                  <input
+                <div className="checkout-field checkout-field--full">
+                  <Label htmlFor="checkout-addressLine1">
+                    <span>Flat / House no., Building, Street *</span>
+                  </Label>
+                  <Input
+                    id="checkout-addressLine1"
                     type="text"
                     value={address.addressLine1}
                     onChange={(e) => updateField('addressLine1', e.target.value)}
                     placeholder="House number, street, area"
                     required
                   />
-                </label>
+                </div>
 
-                <label className="checkout-field checkout-field--full">
-                  <span>Area, Colony, Sector (optional)</span>
-                  <input
+                <div className="checkout-field checkout-field--full">
+                  <Label htmlFor="checkout-addressLine2">
+                    <span>Area, Colony, Sector (optional)</span>
+                  </Label>
+                  <Input
+                    id="checkout-addressLine2"
                     type="text"
                     value={address.addressLine2}
                     onChange={(e) => updateField('addressLine2', e.target.value)}
                     placeholder="Apartment, suite, floor"
                   />
-                </label>
+                </div>
 
-                <label className="checkout-field">
-                  <span>City *</span>
-                  <input
+                <div className="checkout-field">
+                  <Label htmlFor="checkout-city">
+                    <span>City *</span>
+                  </Label>
+                  <Input
+                    id="checkout-city"
                     type="text"
                     value={address.city}
                     onChange={(e) => updateField('city', e.target.value)}
                     placeholder="City"
                     required
                   />
-                </label>
+                </div>
 
-                <label className="checkout-field">
-                  <span>State *</span>
-                  <select
-                    value={address.state}
-                    onChange={(e) => updateField('state', e.target.value)}
-                    required
-                  >
-                    {INDIAN_STATES.map((state) => (
-                      <option key={state} value={state}>{state}</option>
-                    ))}
-                  </select>
-                </label>
+                <div className="checkout-field">
+                  <Label htmlFor="checkout-state">
+                    <span>State *</span>
+                  </Label>
+                  <Select value={address.state} onValueChange={(value) => updateField('state', value)} required>
+                    <SelectTrigger id="checkout-state" className="w-full">
+                      <SelectValue placeholder="Select state" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {INDIAN_STATES.map((state) => (
+                        <SelectItem key={state} value={state}>{state}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                <label className="checkout-field">
-                  <span>PIN code *</span>
-                  <input
+                <div className="checkout-field">
+                  <Label htmlFor="checkout-pincode">
+                    <span>PIN code *</span>
+                  </Label>
+                  <Input
+                    id="checkout-pincode"
                     type="text"
                     inputMode="numeric"
                     maxLength={6}
@@ -346,30 +379,33 @@ function CheckoutPage() {
                     placeholder="6-digit PIN"
                     required
                   />
-                </label>
+                </div>
 
-                <label className="checkout-field">
-                  <span>Landmark (optional)</span>
-                  <input
+                <div className="checkout-field">
+                  <Label htmlFor="checkout-landmark">
+                    <span>Landmark (optional)</span>
+                  </Label>
+                  <Input
+                    id="checkout-landmark"
                     type="text"
                     value={address.landmark}
                     onChange={(e) => updateField('landmark', e.target.value)}
                     placeholder="Near metro, mall, etc."
                   />
-                </label>
+                </div>
 
                 <div className="checkout-field checkout-field--full">
                   <span>Address type</span>
                   <div className="checkout-address-types">
                     {['home', 'work'].map((type) => (
-                      <button
+                      <Button
                         key={type}
                         type="button"
                         className={`checkout-type-btn${address.addressType === type ? ' is-active' : ''}`}
                         onClick={() => updateField('addressType', type)}
                       >
                         {type === 'home' ? 'Home' : 'Work'}
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 </div>
@@ -386,39 +422,48 @@ function CheckoutPage() {
               </div>
 
               <div className="checkout-form-grid">
-                <label className="checkout-field">
-                  <span>Preferred delivery date *</span>
-                  <input
+                <div className="checkout-field">
+                  <Label htmlFor="checkout-deliveryDate">
+                    <span>Preferred delivery date *</span>
+                  </Label>
+                  <Input
+                    id="checkout-deliveryDate"
                     type="date"
                     value={address.deliveryDate}
                     min={new Date().toISOString().split('T')[0]}
                     onChange={(e) => updateField('deliveryDate', e.target.value)}
                     required
                   />
-                </label>
+                </div>
 
-                <label className="checkout-field">
-                  <span>Delivery time slot *</span>
-                  <select
-                    value={address.deliverySlot}
-                    onChange={(e) => updateField('deliverySlot', e.target.value)}
-                    required
-                  >
-                    {DELIVERY_SLOTS.map((slot) => (
-                      <option key={slot} value={slot}>{slot}</option>
-                    ))}
-                  </select>
-                </label>
+                <div className="checkout-field">
+                  <Label htmlFor="checkout-deliverySlot">
+                    <span>Delivery time slot *</span>
+                  </Label>
+                  <Select value={address.deliverySlot} onValueChange={(value) => updateField('deliverySlot', value)} required>
+                    <SelectTrigger id="checkout-deliverySlot" className="w-full">
+                      <SelectValue placeholder="Select time slot" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DELIVERY_SLOTS.map((slot) => (
+                        <SelectItem key={slot} value={slot}>{slot}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                <label className="checkout-field checkout-field--full">
-                  <span>Delivery instructions (optional)</span>
-                  <textarea
+                <div className="checkout-field checkout-field--full">
+                  <Label htmlFor="checkout-instructions">
+                    <span>Delivery instructions (optional)</span>
+                  </Label>
+                  <Textarea
+                    id="checkout-instructions"
                     rows={3}
                     value={address.instructions}
                     onChange={(e) => updateField('instructions', e.target.value)}
                     placeholder="Gate code, call before delivery, office reception, etc."
                   />
-                </label>
+                </div>
               </div>
             </section>
 
@@ -439,7 +484,7 @@ function CheckoutPage() {
                       key={method.id}
                       className={`checkout-payment-option${paymentMethod === method.id ? ' is-selected' : ''}`}
                     >
-                      <input
+                      <Input
                         type="radio"
                         name="payment"
                         value={method.id}
@@ -544,17 +589,18 @@ function CheckoutPage() {
               By placing your order, you agree to Nuevo Rental terms and doorstep delivery policy.
             </p>
 
-            <button
+            <Button
               type="submit"
-              className="checkout-btn checkout-btn--primary checkout-btn--block"
+              variant="default"
+              className="w-full"
               disabled={isPlacing}
             >
               {isPlacing ? 'Placing order...' : 'Place your rental order'}
-            </button>
+            </Button>
 
-            <Link to="/cart" className="checkout-btn checkout-btn--ghost checkout-btn--block">
+            <LinkButton to="/cart" variant="outline" className="w-full">
               Back to cart
-            </Link>
+            </LinkButton>
           </aside>
         </form>
       </div>

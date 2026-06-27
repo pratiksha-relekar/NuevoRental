@@ -23,8 +23,18 @@ import {
 } from '../../data/orderStorage'
 import { formatKycStatus } from '../../data/userStorage'
 import { OrderDetailModal } from '../components/OrderDetailModal'
-import './AdminOrdersPage.css'
-
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 const FILTER_TABS = [
   { id: 'all', label: 'All orders' },
   { id: 'today', label: 'Today' },
@@ -38,7 +48,7 @@ function StatCard({ icon: Icon, label, value, note, tone, delay = 0 }) {
   const reduceMotion = useReducedMotion()
 
   return (
-    <motion.article
+    <motion.div
       className={`admin-orders-stat-card admin-orders-stat-card--${tone}`}
       initial={reduceMotion ? false : { opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
@@ -53,7 +63,7 @@ function StatCard({ icon: Icon, label, value, note, tone, delay = 0 }) {
         <strong>{value}</strong>
         <small>{note}</small>
       </div>
-    </motion.article>
+    </motion.div>
   )
 }
 
@@ -154,23 +164,24 @@ function AdminOrdersPage() {
         </div>
 
         <div className="admin-orders-toolbar">
-          <div className="admin-orders-tabs">
-            {FILTER_TABS.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                className={`admin-orders-tab${activeFilter === tab.id ? ' is-active' : ''}`}
-                onClick={() => setActiveFilter(tab.id)}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+          <Tabs value={activeFilter} onValueChange={setActiveFilter}>
+            <TabsList className="admin-orders-tabs">
+              {FILTER_TABS.map((tab) => (
+                <TabsTrigger
+                  key={tab.id}
+                  value={tab.id}
+                  className={`admin-orders-tab${activeFilter === tab.id ? ' is-active' : ''}`}
+                >
+                  {tab.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
 
           <div className="admin-orders-toolbar-filters">
             <label className="admin-orders-search">
               <Search size={16} aria-hidden="true" />
-              <input
+              <Input
                 type="search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -178,19 +189,19 @@ function AdminOrdersPage() {
               />
             </label>
 
-            <select
-              className="admin-orders-filter"
-              value={kycFilter}
-              onChange={(e) => setKycFilter(e.target.value)}
-              aria-label="Filter by KYC status"
-            >
-              <option value="all">All KYC status</option>
-              <option value="approved">Verified</option>
-              <option value="pending">Pending</option>
-              <option value="in_review">In review</option>
-              <option value="rejected">Rejected</option>
-              <option value="not_started">Not started</option>
-            </select>
+            <Select value={kycFilter} onValueChange={setKycFilter}>
+              <SelectTrigger className="admin-orders-filter" aria-label="Filter by KYC status">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All KYC status</SelectItem>
+                <SelectItem value="approved">Verified</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="in_review">In review</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
+                <SelectItem value="not_started">Not started</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -224,19 +235,19 @@ function AdminOrdersPage() {
                     )}
                   </div>
                 </div>
-                <span className={`admin-orders-status admin-orders-status--${order.status}`}>
+                <Badge className={`admin-orders-status admin-orders-status--${order.status}`}>
                   {ADMIN_ORDER_STATUS_LABELS[order.status] ?? order.status}
-                </span>
+                </Badge>
               </div>
 
               <div className="admin-orders-card-meta">
-                <span className={`admin-orders-kyc admin-orders-kyc--${order.kycStatus}`}>
+                <Badge className={`admin-orders-kyc admin-orders-kyc--${order.kycStatus}`}>
                   <ShieldCheck size={12} aria-hidden="true" />
                   {formatKycStatus(order.kycStatus)}
-                </span>
-                <span className={`admin-orders-provider admin-orders-provider--${order.provider}`}>
+                </Badge>
+                <Badge className={`admin-orders-provider admin-orders-provider--${order.provider}`}>
                   {order.provider === 'google' ? 'Google' : 'Email'}
-                </span>
+                </Badge>
                 {order.customerPhone && (
                   <span className="admin-orders-phone">{order.customerPhone}</span>
                 )}
@@ -266,29 +277,33 @@ function AdminOrdersPage() {
               </div>
 
               <div className="admin-orders-card-actions">
-                <label className="admin-orders-status-select">
+                <Label className="admin-orders-status-select">
                   <span>Update status</span>
-                  <select
+                  <Select
                     value={order.status}
-                    onChange={(e) => handleStatusChange(order, e.target.value)}
-                    aria-label={`Update status for ${order.id}`}
+                    onValueChange={(status) => handleStatusChange(order, status)}
                   >
-                    {Object.entries(ADMIN_ORDER_STATUS_LABELS).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                    <SelectTrigger className="w-full" aria-label={`Update status for ${order.id}`}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(ADMIN_ORDER_STATUS_LABELS).map(([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Label>
 
-                <button
+                <Button
                   type="button"
                   className="admin-orders-view-btn"
                   onClick={() => setSelectedOrder(order)}
                 >
                   <Eye size={16} aria-hidden="true" />
                   View details
-                </button>
+                </Button>
               </div>
             </motion.article>
           ))}

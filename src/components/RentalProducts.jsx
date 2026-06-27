@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom'
 import { useMemo, useRef, useState } from 'react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { getProductImage } from '../data/products'
 import { getDefaultProjectPlanId, getProductPlanPricing } from '../data/projectPlans'
 import { useCatalog } from '../context/CatalogContext'
 import { useCartWishlist } from '../context/CartWishlistContext'
-import './RentalProducts.css'
-
 function StarRating({ count = 5 }) {
   return (
     <div className="product-stars" aria-label={`${count} out of 5 stars`}>
@@ -100,7 +100,7 @@ export function ProductCard({ product, durationFilter = 'all' }) {
       <Link to={`/product/${product.id}`} className="product-card-link">
         <div className={`product-card-image${product.category === 'desktops' ? ' product-card-image--desktop' : ''}${product.category === 'laptops' ? ' product-card-image--laptop' : ''}${product.category === 'mobiles' ? ' product-card-image--mobile' : ''}${product.category === 'printers' ? ' product-card-image--printer' : ''}${product.category === 'projectors' ? ' product-card-image--projector' : ''}${product.category === 'wearables' ? ' product-card-image--wearable' : ''}${product.category === 'tvs' ? ' product-card-image--tv' : ''}`}>
           {product.refurbished && (
-            <span className="product-badge">REFURBISHED</span>
+            <Badge className="product-badge">REFURBISHED</Badge>
           )}
 
           <img
@@ -113,15 +113,16 @@ export function ProductCard({ product, durationFilter = 'all' }) {
             <span className="product-action-btn" aria-hidden="true">
               <EyeIcon />
             </span>
-            <button
+            <Button
               type="button"
+              variant="outline"
               className={`product-action-btn product-action-btn--wishlist${wishlisted ? ' product-action-btn--active' : ''}`}
               aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
               aria-pressed={wishlisted}
               onClick={handleWishlist}
             >
               <HeartIcon filled={wishlisted} />
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -139,14 +140,16 @@ export function ProductCard({ product, durationFilter = 'all' }) {
             <span className="product-delivery">
               Delivery {String(product.deliveryDays).padStart(2, '0')} days
             </span>
-            <button
+            <Button
               type="button"
+              variant="default"
+              size="icon-sm"
               className={`product-cart-btn${cartAdded ? ' product-cart-btn--added' : ''}`}
               aria-label={`Add ${product.title} to cart`}
               onClick={handleAddToCart}
             >
               <CartIcon />
-            </button>
+            </Button>
           </div>
         </div>
       </Link>
@@ -190,24 +193,26 @@ function RentalProducts({ activeCategory = 'all' }) {
             <span className="rental-products-line" aria-hidden="true" />
           </div>
           <div className="rental-products-nav">
-            <button
+            <Button
               type="button"
+              variant="outline"
               className="rental-nav-btn"
               onClick={() => scroll(-1)}
               disabled={!canScrollLeft}
               aria-label="Scroll left"
             >
               ‹
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="outline"
               className="rental-nav-btn"
               onClick={() => scroll(1)}
               disabled={!canScrollRight}
               aria-label="Scroll right"
             >
               ›
-            </button>
+            </Button>
           </div>
         </div>
 

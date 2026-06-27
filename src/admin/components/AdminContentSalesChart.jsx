@@ -1,10 +1,15 @@
 import { useMemo, useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { ChevronDown, Coins, IndianRupee, Package, TrendingDown, TrendingUp } from 'lucide-react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { getContentSalesTrend, getContentSummaryStats } from '../../data/contentStorage'
 import { formatINR } from '../../utils/cartSummary'
-import './AdminContentSalesChart.css'
-
 const LINE_COLORS = {
   rentalRevenue: '#2aa89a',
   securityDeposits: '#f5a623',
@@ -94,14 +99,19 @@ export function AdminContentSalesChart() {
     <section className="admin-content-sales-chart" aria-label="Rental sales statistics">
       <div className="admin-content-sales-head">
         <h3>Rental sales statistics</h3>
-        <label className="admin-content-sales-filter">
-          <select value={period} onChange={(e) => setPeriod(e.target.value)} aria-label="Chart period">
-            <option value="3">Last 3 months</option>
-            <option value="6">Last 6 months</option>
-            <option value="12">Last 12 months</option>
-          </select>
+        <div className="admin-content-sales-filter">
+          <Select value={period} onValueChange={setPeriod}>
+            <SelectTrigger className="w-full" aria-label="Chart period">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="3">Last 3 months</SelectItem>
+              <SelectItem value="6">Last 6 months</SelectItem>
+              <SelectItem value="12">Last 12 months</SelectItem>
+            </SelectContent>
+          </Select>
           <ChevronDown size={14} aria-hidden="true" />
-        </label>
+        </div>
       </div>
 
       {isDemo && <span className="admin-content-demo-tag">Sample trend data</span>}

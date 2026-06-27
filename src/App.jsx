@@ -27,8 +27,6 @@ import OrdersPage from './pages/OrdersPage'
 import LoginPage from './pages/LoginPage'
 import SignUpPage from './pages/SignUpPage'
 import { adminRoutes } from './admin/routes'
-import './App.css'
-
 function App() {
   return (
     <FirebaseProvider>
@@ -42,6 +40,8 @@ function App() {
         <CartWishlistProvider>
         <Routes>
           {adminRoutes}
+
+          <Route path="login" element={<LoginPage />} />
 
           <Route element={<SiteLayout />}>
             <Route index element={<HomePage />} />
@@ -60,7 +60,6 @@ function App() {
             <Route path="orders" element={<OrdersPage />} />
             <Route path="wishlist" element={<WishlistPage />} />
             <Route path="search" element={<SearchResultsPage />} />
-            <Route path="login" element={<LoginPage />} />
             <Route path="signup" element={<SignUpPage />} />
           </Route>
         </Routes>

@@ -20,8 +20,11 @@ import {
   formatAdminSessionTime,
   isUsingDefaultAdminPassword,
 } from '../../data/adminStorage'
-import './AdminSettingsPage.css'
-
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 function PasswordField({ label, value, onChange, placeholder, autoComplete }) {
   const [visible, setVisible] = useState(false)
 
@@ -29,21 +32,23 @@ function PasswordField({ label, value, onChange, placeholder, autoComplete }) {
     <label className="admin-settings-field">
       <span>{label}</span>
       <div className="admin-settings-password-wrap">
-        <input
+        <Input
           type={visible ? 'text' : 'password'}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           autoComplete={autoComplete}
         />
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon-sm"
           className="admin-settings-password-toggle"
           onClick={() => setVisible((current) => !current)}
           aria-label={visible ? 'Hide password' : 'Show password'}
         >
           {visible ? <EyeOff size={16} /> : <Eye size={16} />}
-        </button>
+        </Button>
       </div>
     </label>
   )
@@ -168,7 +173,7 @@ function AdminSettingsPage() {
         </div>
       </header>
 
-      <motion.section
+      <motion.div
         className="admin-settings-card"
         initial={reduceMotion ? false : { opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -180,10 +185,10 @@ function AdminSettingsPage() {
             <p>Your name and contact email used across the admin panel.</p>
           </div>
           {!isEditingProfile && (
-            <button type="button" className="admin-settings-edit-btn" onClick={handleStartEdit}>
+            <Button type="button" className="admin-settings-edit-btn" onClick={handleStartEdit}>
               <Pencil size={15} aria-hidden="true" />
               Edit profile
-            </button>
+            </Button>
           )}
         </div>
 
@@ -194,10 +199,10 @@ function AdminSettingsPage() {
             </span>
             <div>
               <strong>{admin.displayName}</strong>
-              <span className="admin-settings-role-badge">
+              <Badge className="admin-settings-role-badge">
                 <Shield size={13} aria-hidden="true" />
                 {formatAdminRole(admin.role)}
-              </span>
+              </Badge>
             </div>
           </div>
           <BrandLogo variant="settings" asLink={false} className="admin-settings-brand-logo-image" />
@@ -209,38 +214,38 @@ function AdminSettingsPage() {
         {isEditingProfile ? (
           <form className="admin-settings-profile-form" onSubmit={handleSaveProfile}>
             <div className="admin-settings-details-grid">
-              <label className="admin-settings-field">
+              <Label className="admin-settings-field">
                 <span>
                   <User size={14} aria-hidden="true" />
                   Display name
                 </span>
-                <input
+                <Input
                   type="text"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="Administrator"
                 />
-              </label>
-              <label className="admin-settings-field">
+              </Label>
+              <Label className="admin-settings-field">
                 <span>
                   <Mail size={14} aria-hidden="true" />
                   Contact email
                 </span>
-                <input
+                <Input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@nuevorental.com"
                 />
-              </label>
+              </Label>
             </div>
             <div className="admin-settings-form-actions">
-              <button type="button" className="admin-settings-btn admin-settings-btn--ghost" onClick={handleCancelEdit}>
+              <Button type="button" variant="outline" className="admin-settings-btn admin-settings-btn--ghost" onClick={handleCancelEdit}>
                 Cancel
-              </button>
-              <button type="submit" className="admin-settings-btn admin-settings-btn--primary">
+              </Button>
+              <Button type="submit" className="admin-settings-btn admin-settings-btn--primary">
                 Save profile
-              </button>
+              </Button>
             </div>
           </form>
         ) : (
@@ -278,9 +283,9 @@ function AdminSettingsPage() {
             </div>
           </dl>
         )}
-      </motion.section>
+      </motion.div>
 
-      <motion.section
+      <motion.div
         className="admin-settings-card"
         initial={reduceMotion ? false : { opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -294,14 +299,14 @@ function AdminSettingsPage() {
         </div>
 
         {usingDefaultPassword && (
-          <div className="admin-settings-warning" role="alert">
+          <Alert className="admin-settings-warning">
             <Lock size={18} aria-hidden="true" />
-            <p>
+            <AlertDescription>
               You&apos;re still using the default password (
               <code>{DEFAULT_ADMIN_SETTINGS.password}</code>). Change it now to secure the Nuevo
               Rental admin panel.
-            </p>
-          </div>
+            </AlertDescription>
+          </Alert>
         )}
 
         {passwordMessage && <p className="admin-settings-success">{passwordMessage}</p>}
@@ -334,18 +339,18 @@ function AdminSettingsPage() {
           </div>
 
           <div className="admin-settings-form-actions admin-settings-form-actions--end">
-            <button
+            <Button
               type="submit"
               className="admin-settings-btn admin-settings-btn--primary"
               disabled={isSavingPassword}
             >
               {isSavingPassword ? 'Updating…' : 'Update password'}
-            </button>
+            </Button>
           </div>
         </form>
-      </motion.section>
+      </motion.div>
 
-      <motion.section
+      <motion.div
         className="admin-settings-card admin-settings-card--session"
         initial={reduceMotion ? false : { opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -358,7 +363,7 @@ function AdminSettingsPage() {
           </div>
         </div>
 
-        <button
+        <Button
           type="button"
           className="admin-settings-signout-btn"
           onClick={() => {
@@ -368,7 +373,7 @@ function AdminSettingsPage() {
         >
           <LogOut size={16} aria-hidden="true" />
           Sign out
-        </button>
+        </Button>
 
         <dl className="admin-settings-session-grid">
           <div>
@@ -388,7 +393,7 @@ function AdminSettingsPage() {
             </dd>
           </div>
         </dl>
-      </motion.section>
+      </motion.div>
     </div>
   )
 }

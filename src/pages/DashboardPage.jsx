@@ -6,9 +6,13 @@ import { useKyc } from '../context/KycContext'
 import { useOrders, getOrderStatusLabel } from '../context/OrdersContext'
 import { KYC_STEP_STATUS, KYC_STEPS } from '../data/kycSteps'
 import { formatINR } from '../utils/cartSummary'
-import '../styles/pageAnimations.css'
-import './DashboardPage.css'
-
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { LinkButton } from '@/components/ui/link-button'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 const NAV_ITEMS = [
   { id: 'profile', label: 'Profile details', icon: 'user' },
   { id: 'settings', label: 'Account settings', icon: 'settings' },
@@ -262,12 +266,12 @@ function DashboardPage() {
         </header>
 
         {verificationNotice && (
-          <div className={`account-kyc-notice${kycState.status === 'approved' ? ' account-kyc-notice--approved' : ''}`}>
-            <p>{verificationNotice.message}</p>
-            <button type="button" className="account-edit-btn" onClick={() => void dismissVerificationNotice()}>
+          <Alert className={`account-kyc-notice${kycState.status === 'approved' ? ' account-kyc-notice--approved' : ''}`}>
+            <AlertDescription>{verificationNotice.message}</AlertDescription>
+            <Button type="button" variant="outline" className="account-edit-btn" onClick={() => void dismissVerificationNotice()}>
               Dismiss
-            </button>
-          </div>
+            </Button>
+          </Alert>
         )}
 
         <div className="account-layout">
@@ -280,7 +284,7 @@ function DashboardPage() {
                 <p className="account-user-name">{user.displayName}</p>
                 <p className="account-user-email">{maskEmail(user.email)}</p>
               </div>
-              <span className="account-badge">RENTER</span>
+              <Badge className="account-badge">RENTER</Badge>
             </div>
 
             <nav className="account-nav" aria-label="Account navigation">
@@ -293,9 +297,10 @@ function DashboardPage() {
                 const isActive = activeView === item.id
 
                 return (
-                  <button
+                  <Button
                     key={item.id}
                     type="button"
+                    variant="ghost"
                     className={`account-nav-item${isActive ? ' is-active' : ''}${item.danger ? ' is-danger' : ''}`}
                     onClick={() => handleNavClick(item)}
                     aria-current={isActive ? 'page' : undefined}
@@ -303,9 +308,9 @@ function DashboardPage() {
                     <Icon />
                     <span>{item.label}</span>
                     {item.badgeKey && badges[item.badgeKey] > 0 && (
-                      <span className="account-nav-badge">{badges[item.badgeKey]}</span>
+                      <Badge className="account-nav-badge">{badges[item.badgeKey]}</Badge>
                     )}
-                  </button>
+                  </Button>
                 )
               })}
             </nav>
@@ -322,73 +327,74 @@ function DashboardPage() {
                     </p>
                   </div>
                   {!isEditing && (
-                    <button
+                    <Button
                       type="button"
+                      variant="outline"
                       className="account-edit-btn"
                       onClick={() => setIsEditing(true)}
                     >
                       <EditIcon />
                       Edit profile
-                    </button>
+                    </Button>
                   )}
                 </div>
 
                 {isEditing ? (
                   <form className="account-edit-form" onSubmit={handleSaveProfile}>
                     <div className="account-edit-grid">
-                      <label className="account-field">
+                      <Label className="account-field">
                         <span>First name</span>
-                        <input
+                        <Input
                           type="text"
                           value={form.firstName}
                           onChange={(e) => setForm((prev) => ({ ...prev, firstName: e.target.value }))}
                           placeholder="First name"
                         />
-                      </label>
-                      <label className="account-field">
+                      </Label>
+                      <Label className="account-field">
                         <span>Last name</span>
-                        <input
+                        <Input
                           type="text"
                           value={form.lastName}
                           onChange={(e) => setForm((prev) => ({ ...prev, lastName: e.target.value }))}
                           placeholder="Last name"
                         />
-                      </label>
-                      <label className="account-field">
+                      </Label>
+                      <Label className="account-field">
                         <span>Phone</span>
-                        <input
+                        <Input
                           type="tel"
                           value={form.phone}
                           onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
                           placeholder="+91 98765 43210"
                         />
-                      </label>
-                      <label className="account-field">
+                      </Label>
+                      <Label className="account-field">
                         <span>Location</span>
-                        <input
+                        <Input
                           type="text"
                           value={form.location}
                           onChange={(e) => setForm((prev) => ({ ...prev, location: e.target.value }))}
                           placeholder="City, State"
                         />
-                      </label>
-                      <label className="account-field account-field--full">
+                      </Label>
+                      <Label className="account-field account-field--full">
                         <span>About me</span>
-                        <textarea
+                        <Textarea
                           rows={4}
                           value={form.aboutMe}
                           onChange={(e) => setForm((prev) => ({ ...prev, aboutMe: e.target.value }))}
                           placeholder="Share delivery preferences or rental needs."
                         />
-                      </label>
+                      </Label>
                     </div>
                     <div className="account-edit-actions">
-                      <button type="button" className="account-btn account-btn--ghost" onClick={handleCancelEdit}>
+                      <Button type="button" variant="outline" className="account-btn account-btn--ghost" onClick={handleCancelEdit}>
                         Cancel
-                      </button>
-                      <button type="submit" className="account-btn account-btn--primary">
+                      </Button>
+                      <Button type="submit" variant="default" className="account-btn account-btn--primary">
                         Save changes
-                      </button>
+                      </Button>
                     </div>
                   </form>
                 ) : (
@@ -400,8 +406,8 @@ function DashboardPage() {
                       <div className="account-profile-hero-text">
                         <h3>{user.displayName}</h3>
                         <div className="account-profile-badges">
-                          <span className="account-badge">RENTER</span>
-                          <span className="account-badge account-badge--muted">{providerLabel}</span>
+                          <Badge className="account-badge">RENTER</Badge>
+                          <Badge className="account-badge account-badge--muted">{providerLabel}</Badge>
                         </div>
                         <p className="account-member-since">
                           <CalendarIcon />
@@ -494,16 +500,16 @@ function DashboardPage() {
                   <div className="account-support-card">
                     <h3>Support centre</h3>
                     <p>Browse FAQs on orders, KYC, extensions, and doorstep pickup.</p>
-                    <Link to="/support" className="account-btn account-btn--primary account-btn--inline">
+                    <LinkButton to="/support" variant="default" className="account-btn account-btn--primary account-btn--inline">
                       Open support page
-                    </Link>
+                    </LinkButton>
                   </div>
                   <div className="account-support-card">
                     <h3>Store locations</h3>
                     <p>Find a Nuevo Rental store near you for in-person help.</p>
-                    <Link to="/locations" className="account-btn account-btn--ghost account-btn--inline">
+                    <LinkButton to="/locations" variant="outline" className="account-btn account-btn--ghost account-btn--inline">
                       Find stores
-                    </Link>
+                    </LinkButton>
                   </div>
                 </div>
               </div>
@@ -518,9 +524,9 @@ function DashboardPage() {
                       Track placed rental orders, delivery status, and order history.
                     </p>
                   </div>
-                  <Link to="/orders" className="account-edit-btn">
+                  <LinkButton to="/orders" variant="outline" className="account-edit-btn">
                     View all orders
-                  </Link>
+                  </LinkButton>
                 </div>
 
                 {orders.length > 0 ? (
@@ -541,9 +547,9 @@ function DashboardPage() {
                               }).format(new Date(order.placedAt))}
                             </p>
                           </div>
-                          <span className={`account-order-status account-order-status--${order.status}`}>
+                          <Badge className={`account-order-status account-order-status--${order.status}`}>
                             {getOrderStatusLabel(order)}
-                          </span>
+                          </Badge>
                         </div>
 
                         <ul className="account-order-items">
@@ -594,13 +600,13 @@ function DashboardPage() {
                   <div className="account-empty-state">
                     <p>No orders yet. Add devices to your cart and complete checkout to place a rental order.</p>
                     {cartCount > 0 ? (
-                      <Link to="/checkout" className="account-btn account-btn--primary account-btn--inline">
+                      <LinkButton to="/checkout" variant="default" className="account-btn account-btn--primary account-btn--inline">
                         Complete checkout ({cartCount} item{cartCount !== 1 ? 's' : ''})
-                      </Link>
+                      </LinkButton>
                     ) : (
-                      <Link to="/rent-products" className="account-btn account-btn--primary account-btn--inline">
+                      <LinkButton to="/rent-products" variant="default" className="account-btn account-btn--primary account-btn--inline">
                         Browse rental products
-                      </Link>
+                      </LinkButton>
                     )}
                   </div>
                 )}
@@ -624,25 +630,25 @@ function DashboardPage() {
                       Devices you saved for future rentals.
                     </p>
                   </div>
-                  <Link to="/wishlist" className="account-edit-btn">
+                  <LinkButton to="/wishlist" variant="outline" className="account-edit-btn">
                     Open wishlist
-                  </Link>
+                  </LinkButton>
                 </div>
                 {wishlistCount > 0 ? (
                   <div className="account-summary-card">
                     <p>
                       You have <strong>{wishlistCount}</strong> saved item{wishlistCount !== 1 ? 's' : ''} in your wishlist.
                     </p>
-                    <Link to="/wishlist" className="account-btn account-btn--primary account-btn--inline">
+                    <LinkButton to="/wishlist" variant="default" className="account-btn account-btn--primary account-btn--inline">
                       View saved devices
-                    </Link>
+                    </LinkButton>
                   </div>
                 ) : (
                   <div className="account-empty-state">
                     <p>Your wishlist is empty. Save devices to rent them later.</p>
-                    <Link to="/rent-products" className="account-btn account-btn--primary account-btn--inline">
+                    <LinkButton to="/rent-products" variant="default" className="account-btn account-btn--primary account-btn--inline">
                       Explore products
-                    </Link>
+                    </LinkButton>
                   </div>
                 )}
               </div>
@@ -657,9 +663,9 @@ function DashboardPage() {
                       Track each verification step — documents, OCR, and live face check.
                     </p>
                   </div>
-                  <Link to="/kyc" className="account-edit-btn">
+                  <LinkButton to="/kyc" variant="outline" className="account-edit-btn">
                     {isKycApproved ? 'View KYC' : 'Continue KYC'}
-                  </Link>
+                  </LinkButton>
                 </div>
 
                 <div className={`account-kyc-summary${isKycApproved ? ' account-kyc-summary--approved' : ''}`}>
@@ -708,18 +714,18 @@ function DashboardPage() {
                           <span className="account-kyc-step-label">{step.label}</span>
                           <span className="account-kyc-step-desc">{step.description}</span>
                         </div>
-                        <span className={`account-kyc-step-badge account-kyc-step-badge--${status}`}>
+                        <Badge className={`account-kyc-step-badge account-kyc-step-badge--${status}`}>
                           {statusLabel}
-                        </span>
+                        </Badge>
                       </li>
                     )
                   })}
                 </ul>
 
                 {!isKycApproved && (
-                  <Link to="/kyc" className="account-btn account-btn--primary account-btn--inline">
+                  <LinkButton to="/kyc" variant="default" className="account-btn account-btn--primary account-btn--inline">
                     {kycState.status === 'in_progress' ? 'Continue KYC verification' : 'Start KYC verification'}
-                  </Link>
+                  </LinkButton>
                 )}
               </div>
             )}

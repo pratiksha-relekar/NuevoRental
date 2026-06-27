@@ -3,8 +3,7 @@ import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { ChevronDown, ExternalLink, LogOut, Settings, Shield } from 'lucide-react'
 import { SidebarTrigger } from '../../components/ui/sidebar'
-import './AdminHeader.css'
-
+import { Button } from '@/components/ui/button'
 function getInitials(name) {
   return (
     name
@@ -94,9 +93,10 @@ export function AdminHeader({ admin, onLogout }) {
       </div>
 
       <div className={`admin-profile${open ? ' is-open' : ''}`}>
-        <button
+        <Button
           ref={triggerRef}
           type="button"
+          variant="ghost"
           className="admin-profile-trigger"
           onClick={() => setOpen((prev) => !prev)}
           aria-expanded={open}
@@ -110,12 +110,13 @@ export function AdminHeader({ admin, onLogout }) {
             <span className="admin-profile-name">{admin.displayName}</span>
           </span>
           <ChevronDown className="admin-profile-chevron" size={16} aria-hidden="true" />
-        </button>
+        </Button>
 
         {open && popover && createPortal(
           <>
-            <button
+            <Button
               type="button"
+              variant="ghost"
               className="admin-profile-scrim"
               onClick={() => setOpen(false)}
               aria-label="Close admin menu"
@@ -174,15 +175,16 @@ export function AdminHeader({ admin, onLogout }) {
                 Admin dashboard
               </Link>
 
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 role="menuitem"
                 className="admin-profile-popover-link admin-profile-popover-link--logout"
                 onClick={handleLogout}
               >
                 <LogOut size={18} strokeWidth={2} aria-hidden="true" />
                 Logout
-              </button>
+              </Button>
             </div>
           </>,
           document.body,

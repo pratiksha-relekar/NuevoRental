@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import '../styles/pageAnimations.css'
-import './PricingPage.css'
-
+import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { LinkButton } from '@/components/ui/link-button'
+import { cn } from '@/lib/utils'
 const BILLING_CYCLES = [
   { id: 'weekly', label: 'Weekly', suffix: '/week' },
   { id: 'monthly', label: 'Monthly', suffix: '/month' },
@@ -185,23 +185,22 @@ function PricingPage() {
           </p>
         </header>
 
-        <div className="pricing-toggle-wrap page-animate-item">
-          <div className="pricing-toggle" role="tablist" aria-label="Billing cycle">
-            {BILLING_CYCLES.map((cycle) => (
-              <button
-                key={cycle.id}
-                type="button"
-                role="tab"
-                aria-selected={billingCycle === cycle.id}
-                className={`pricing-toggle-btn${billingCycle === cycle.id ? ' pricing-toggle-btn--active' : ''}`}
-                onClick={() => handleCycleChange(cycle.id)}
-              >
-                {cycle.label}
-                {cycle.id === 'yearly' && <span className="pricing-toggle-save">Save 20%</span>}
-              </button>
-            ))}
+        <Tabs value={billingCycle} onValueChange={handleCycleChange}>
+          <div className="pricing-toggle-wrap page-animate-item">
+            <TabsList className="pricing-toggle" aria-label="Billing cycle">
+              {BILLING_CYCLES.map((cycle) => (
+                <TabsTrigger
+                  key={cycle.id}
+                  value={cycle.id}
+                  className={cn('pricing-toggle-btn', billingCycle === cycle.id && 'pricing-toggle-btn--active')}
+                >
+                  {cycle.label}
+                  {cycle.id === 'yearly' && <span className="pricing-toggle-save">Save 20%</span>}
+                </TabsTrigger>
+              ))}
+            </TabsList>
           </div>
-        </div>
+        </Tabs>
 
         <div className="pricing-cards">
           {PRICING_TIERS.map((tier, index) => {
@@ -214,7 +213,7 @@ function PricingPage() {
                 className={`pricing-card${tier.featured ? ' pricing-card--featured' : ''}`}
                 style={{ '--pricing-card-delay': `${0.15 + index * 0.12}s` }}
               >
-                {tier.featured && <span className="pricing-card-popular">Most Popular</span>}
+                {tier.featured && <Badge className="pricing-card-popular">Most Popular</Badge>}
                 {tier.showCountdown && billingCycle === 'yearly' && (
                   <CountdownBadge targetDate={offerEnd.getTime()} />
                 )}
@@ -228,7 +227,7 @@ function PricingPage() {
                   <div className="pricing-card-price-row">
                     <span className="pricing-card-price">{formatPrice(price.current)}</span>
                     <span className="pricing-card-original">{formatPrice(price.original)}</span>
-                    <span className="pricing-card-discount">{discount}% OFF</span>
+                    <Badge className="pricing-card-discount">{discount}% OFF</Badge>
                   </div>
                   <p className="pricing-card-billing">
                     Billed {activeCycle.label.toLowerCase()}
@@ -236,12 +235,12 @@ function PricingPage() {
                   </p>
                 </div>
 
-                <Link to={tier.cta.to} className="pricing-card-cta">
+                <LinkButton to={tier.cta.to} variant="default" className="pricing-card-cta">
                   <span className="pricing-card-cta-icon" aria-hidden="true">
                     <ArrowIcon />
                   </span>
                   {tier.cta.label}
-                </Link>
+                </LinkButton>
 
                 <ul className="pricing-card-features">
                   {tier.features.map((feature) => (
@@ -270,12 +269,12 @@ function PricingPage() {
         </div>
 
         <div className="pricing-cta page-animate-item">
-          <Link to="/rent-products" className="pricing-btn pricing-btn--primary">
+          <LinkButton to="/rent-products" variant="default" className="pricing-btn pricing-btn--primary">
             Browse All Products
-          </Link>
-          <Link to="/contact" className="pricing-btn pricing-btn--ghost">
+          </LinkButton>
+          <LinkButton to="/contact" variant="outline" className="pricing-btn pricing-btn--ghost">
             Talk to Sales
-          </Link>
+          </LinkButton>
         </div>
       </div>
     </section>

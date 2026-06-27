@@ -1,12 +1,17 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { ProductCard } from '../components/RentalProducts'
 import { useCatalog } from '../context/CatalogContext'
 import { getProductPlanPricing, RENTAL_DURATION_FILTERS } from '../data/projectPlans'
-import '../styles/pageAnimations.css'
-import '../components/RentalProducts.css'
-import './RentProductsPage.css'
-
 const FILTER_LABELS = [
   'Category',
   'City',
@@ -111,106 +116,112 @@ function RentProductsPage() {
           <aside className="rent-products-filters page-animate-item" aria-label="Product filters">
             <div className="rent-products-filters-head">
               <h2>Filters</h2>
-              <button type="button" className="rent-products-reset" onClick={resetFilters}>
+              <Button type="button" variant="outline" className="rent-products-reset" onClick={resetFilters}>
                 Reset
-              </button>
+              </Button>
             </div>
 
             <div className="rent-products-filter-group">
-              <label className="rent-products-filter-label" htmlFor="filter-category">
+              <Label className="rent-products-filter-label" htmlFor="filter-category">
                 <span className="rent-products-filter-check" aria-hidden="true">✓</span>
                 {FILTER_LABELS[0]}
-              </label>
-              <select
-                id="filter-category"
-                value={filters.category}
-                onChange={(e) => updateFilter('category', e.target.value)}
-              >
-                <option value="all">All Categories</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>{cat.label}</option>
-                ))}
-              </select>
+              </Label>
+              <Select value={filters.category} onValueChange={(value) => updateFilter('category', value)}>
+                <SelectTrigger id="filter-category" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>{cat.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="rent-products-filter-group">
-              <label className="rent-products-filter-label" htmlFor="filter-city">
+              <Label className="rent-products-filter-label" htmlFor="filter-city">
                 <span className="rent-products-filter-check" aria-hidden="true">✓</span>
                 {FILTER_LABELS[1]}
-              </label>
-              <select
-                id="filter-city"
-                value={filters.city}
-                onChange={(e) => updateFilter('city', e.target.value)}
-              >
-                {CITIES.map((city) => (
-                  <option key={city} value={city}>{city}</option>
-                ))}
-              </select>
+              </Label>
+              <Select value={filters.city} onValueChange={(value) => updateFilter('city', value)}>
+                <SelectTrigger id="filter-city" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CITIES.map((city) => (
+                    <SelectItem key={city} value={city}>{city}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="rent-products-filter-group">
-              <label className="rent-products-filter-label" htmlFor="filter-duration">
+              <Label className="rent-products-filter-label" htmlFor="filter-duration">
                 <span className="rent-products-filter-check" aria-hidden="true">✓</span>
                 {FILTER_LABELS[2]}
-              </label>
-              <select
-                id="filter-duration"
-                value={filters.duration}
-                onChange={(e) => updateFilter('duration', e.target.value)}
-              >
-                {DURATIONS.map((item) => (
-                  <option key={item.value} value={item.value}>{item.label}</option>
-                ))}
-              </select>
+              </Label>
+              <Select value={filters.duration} onValueChange={(value) => updateFilter('duration', value)}>
+                <SelectTrigger id="filter-duration" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {DURATIONS.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="rent-products-filter-group">
-              <label className="rent-products-filter-label" htmlFor="filter-price">
+              <Label className="rent-products-filter-label" htmlFor="filter-price">
                 <span className="rent-products-filter-check" aria-hidden="true">✓</span>
                 {FILTER_LABELS[3]}
-              </label>
-              <select
-                id="filter-price"
-                value={filters.priceRange}
-                onChange={(e) => updateFilter('priceRange', e.target.value)}
-              >
-                {PRICE_RANGES.map((range) => (
-                  <option key={range.value} value={range.value}>{range.label}</option>
-                ))}
-              </select>
+              </Label>
+              <Select value={filters.priceRange} onValueChange={(value) => updateFilter('priceRange', value)}>
+                <SelectTrigger id="filter-price" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PRICE_RANGES.map((range) => (
+                    <SelectItem key={range.value} value={range.value}>{range.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="rent-products-filter-group">
-              <label className="rent-products-filter-label" htmlFor="filter-brand">
+              <Label className="rent-products-filter-label" htmlFor="filter-brand">
                 <span className="rent-products-filter-check" aria-hidden="true">✓</span>
                 {FILTER_LABELS[4]}
-              </label>
-              <select
-                id="filter-brand"
-                value={filters.brand}
-                onChange={(e) => updateFilter('brand', e.target.value)}
-              >
-                {BRANDS.map((brand) => (
-                  <option key={brand} value={brand}>{brand}</option>
-                ))}
-              </select>
+              </Label>
+              <Select value={filters.brand} onValueChange={(value) => updateFilter('brand', value)}>
+                <SelectTrigger id="filter-brand" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {BRANDS.map((brand) => (
+                    <SelectItem key={brand} value={brand}>{brand}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="rent-products-filter-group">
-              <label className="rent-products-filter-label" htmlFor="filter-specs">
+              <Label className="rent-products-filter-label" htmlFor="filter-specs">
                 <span className="rent-products-filter-check" aria-hidden="true">✓</span>
                 {FILTER_LABELS[5]}
-              </label>
-              <select
-                id="filter-specs"
-                value={filters.specs}
-                onChange={(e) => updateFilter('specs', e.target.value)}
-              >
-                {SPECS.map((spec) => (
-                  <option key={spec} value={spec}>{spec}</option>
-                ))}
-              </select>
+              </Label>
+              <Select value={filters.specs} onValueChange={(value) => updateFilter('specs', value)}>
+                <SelectTrigger id="filter-specs" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SPECS.map((spec) => (
+                    <SelectItem key={spec} value={spec}>{spec}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </aside>
 
@@ -235,7 +246,7 @@ function RentProductsPage() {
               ) : (
                 <div className="rent-products-empty page-animate-item">
                   <p>No products match your filters.</p>
-                  <button type="button" onClick={resetFilters}>Clear all filters</button>
+                  <Button type="button" variant="outline" onClick={resetFilters}>Clear all filters</Button>
                 </div>
               )}
             </div>

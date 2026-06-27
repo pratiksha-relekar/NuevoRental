@@ -2,9 +2,19 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Camera, ImagePlus, Trash2, Upload, X } from 'lucide-react'
 import { compressFileToWeeklyOfferDataUrl } from '../../backend/storage/imageStorage'
 import { getProductImage } from '../../data/products'
-import './ProductFormModal.css'
-import './WeeklyOfferFormModal.css'
-
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 const EMPTY_FORM = {
   productId: '',
   title: '',
@@ -81,27 +91,30 @@ function OfferImageUpload({
         </div>
 
         <div className="admin-image-upload-actions">
-          <button
+          <Button
             type="button"
+            variant="outline"
             className="admin-image-upload-btn"
             disabled={processing}
             onClick={() => deviceInputRef.current?.click()}
           >
             <Upload size={16} aria-hidden="true" />
             Upload from device
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="outline"
             className="admin-image-upload-btn admin-image-upload-btn--camera"
             disabled={processing}
             onClick={() => cameraInputRef.current?.click()}
           >
             <Camera size={16} aria-hidden="true" />
             Take photo
-          </button>
+          </Button>
           {preview && (
-            <button
+            <Button
               type="button"
+              variant="outline"
               className="admin-image-upload-btn admin-image-upload-btn--danger"
               disabled={processing}
               onClick={() => {
@@ -111,7 +124,7 @@ function OfferImageUpload({
             >
               <Trash2 size={16} aria-hidden="true" />
               Remove image
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -289,12 +302,10 @@ export function WeeklyOfferFormModal({ deal, products, categories, onClose, onSa
   }
 
   return (
-    <div className="admin-modal-root admin-modal-root--wide" role="presentation">
-      <button type="button" className="admin-modal-scrim" onClick={onClose} aria-label="Close modal" />
-      <div
-        className="weekly-offer-form-modal admin-modal-card"
-        role="dialog"
-        aria-modal="true"
+    <Dialog open onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DialogContent
+        className="weekly-offer-form-modal admin-modal-card admin-modal-root--wide"
+        showCloseButton={false}
         aria-labelledby="weekly-offer-form-title"
       >
         <div className="weekly-offer-form-head admin-modal-header">
@@ -302,57 +313,60 @@ export function WeeklyOfferFormModal({ deal, products, categories, onClose, onSa
             <span className="weekly-offer-form-eyebrow">Weekly Best Deals</span>
             <h2 id="weekly-offer-form-title">{deal?.id ? 'Edit offer' : 'Add offer'}</h2>
           </div>
-          <button type="button" className="weekly-offer-form-close admin-modal-close" onClick={onClose} aria-label="Close">
+          <Button type="button" variant="ghost" className="weekly-offer-form-close admin-modal-close" onClick={onClose} aria-label="Close">
             <X size={18} />
-          </button>
+          </Button>
         </div>
 
-        {error && <p className="weekly-offer-form-error" role="alert">{error}</p>}
+        {error && (
+          <Alert className="weekly-offer-form-error">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
         <form className="weekly-offer-form admin-modal-form" onSubmit={handleSubmit}>
           <div className="weekly-offer-form-grid">
-            <label className="weekly-offer-form-field">
+            <Label className="weekly-offer-form-field">
               <span>Category</span>
-              <select
-                value={form.category}
-                onChange={(e) => handleCategoryChange(e.target.value)}
-                required
-              >
-                {categoryOptions.map((category) => (
-                  <option key={category.id} value={category.id}>{category.label}</option>
-                ))}
-              </select>
-            </label>
+              <Select value={form.category} onValueChange={handleCategoryChange}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {categoryOptions.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>{category.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Label>
 
-            <label className="weekly-offer-form-field">
+            <Label className="weekly-offer-form-field">
               <span>Catalog product</span>
-              <select
-                value={form.productId}
-                onChange={(e) => handleProductChange(e.target.value)}
-                required
-              >
-                <option value="">
-                  {filteredProducts.length > 0 ? 'Select product' : 'No products in this category'}
-                </option>
-                {filteredProducts.map((product) => (
-                  <option key={product.id} value={product.id}>
-                    {product.title}
-                  </option>
-                ))}
-              </select>
-            </label>
+              <Select value={form.productId} onValueChange={handleProductChange}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={filteredProducts.length > 0 ? 'Select product' : 'No products in this category'} />
+                </SelectTrigger>
+                <SelectContent>
+                  {filteredProducts.map((product) => (
+                    <SelectItem key={product.id} value={String(product.id)}>
+                      {product.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Label>
           </div>
 
-          <label className="weekly-offer-form-field">
+          <Label className="weekly-offer-form-field">
             <span>Deal title</span>
-            <input
+            <Input
               type="text"
               value={form.title}
               onChange={(e) => handleChange('title', e.target.value)}
               placeholder="Laptop on Rent — HP ProBook i5"
               required
             />
-          </label>
+          </Label>
 
           <OfferImageUpload
             primaryImage={primaryImage}
@@ -361,82 +375,93 @@ export function WeeklyOfferFormModal({ deal, products, categories, onClose, onSa
             onError={setImageError}
           />
 
-          {imageError && <p className="weekly-offer-form-error" role="alert">{imageError}</p>}
+          {imageError && (
+            <Alert className="weekly-offer-form-error">
+              <AlertDescription>{imageError}</AlertDescription>
+            </Alert>
+          )}
 
           <div className="weekly-offer-form-grid">
-            <label className="weekly-offer-form-field">
+            <Label className="weekly-offer-form-field">
               <span>Discount %</span>
-              <select
-                value={form.discountPercent}
-                onChange={(e) => handleChange('discountPercent', e.target.value)}
+              <Select
+                value={String(form.discountPercent)}
+                onValueChange={(value) => handleChange('discountPercent', value)}
               >
-                <option value="10">10% Off</option>
-                <option value="20">20% Off</option>
-                <option value="40">40% Off</option>
-              </select>
-            </label>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10% Off</SelectItem>
+                  <SelectItem value="20">20% Off</SelectItem>
+                  <SelectItem value="40">40% Off</SelectItem>
+                </SelectContent>
+              </Select>
+            </Label>
 
-            <label className="weekly-offer-form-field">
+            <Label className="weekly-offer-form-field">
               <span>Rental period</span>
-              <select
-                value={form.period}
-                onChange={(e) => handleChange('period', e.target.value)}
-              >
-                <option value="day">Per day</option>
-                <option value="week">Per week</option>
-                <option value="month">Per month</option>
-              </select>
-            </label>
+              <Select value={form.period} onValueChange={(value) => handleChange('period', value)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="day">Per day</SelectItem>
+                  <SelectItem value="week">Per week</SelectItem>
+                  <SelectItem value="month">Per month</SelectItem>
+                </SelectContent>
+              </Select>
+            </Label>
           </div>
 
           <div className="weekly-offer-form-grid">
-            <label className="weekly-offer-form-field">
+            <Label className="weekly-offer-form-field">
               <span>Original price (₹)</span>
-              <input
+              <Input
                 type="number"
                 min="0"
                 value={form.originalPrice}
                 onChange={(e) => handleChange('originalPrice', e.target.value)}
               />
-            </label>
+            </Label>
 
-            <label className="weekly-offer-form-field">
+            <Label className="weekly-offer-form-field">
               <span>Offer price (₹)</span>
-              <input
+              <Input
                 type="number"
                 min="0"
                 value={form.offerPrice}
                 onChange={(e) => handleChange('offerPrice', e.target.value)}
               />
-            </label>
+            </Label>
           </div>
 
           <div className="weekly-offer-form-grid">
-            <label className="weekly-offer-form-field">
+            <Label className="weekly-offer-form-field">
               <span>Stock</span>
-              <input
+              <Input
                 type="number"
                 min="0"
                 value={form.stock}
                 onChange={(e) => handleChange('stock', e.target.value)}
               />
-            </label>
+            </Label>
 
-            <label className="weekly-offer-form-field">
+            <Label className="weekly-offer-form-field">
               <span>Sort order</span>
-              <input
+              <Input
                 type="number"
                 min="0"
                 value={form.sortOrder}
                 onChange={(e) => handleChange('sortOrder', e.target.value)}
               />
-            </label>
+            </Label>
           </div>
 
           <div className="weekly-offer-form-grid">
-            <label className="weekly-offer-form-field">
+            <Label className="weekly-offer-form-field">
               <span>Rating</span>
-              <input
+              <Input
                 type="number"
                 min="1"
                 max="5"
@@ -444,39 +469,38 @@ export function WeeklyOfferFormModal({ deal, products, categories, onClose, onSa
                 value={form.rating}
                 onChange={(e) => handleChange('rating', e.target.value)}
               />
-            </label>
+            </Label>
 
-            <label className="weekly-offer-form-field">
+            <Label className="weekly-offer-form-field">
               <span>Reviews</span>
-              <input
+              <Input
                 type="number"
                 min="0"
                 value={form.reviews}
                 onChange={(e) => handleChange('reviews', e.target.value)}
               />
-            </label>
+            </Label>
           </div>
 
           <label className="weekly-offer-form-check">
-            <input
-              type="checkbox"
+            <Checkbox
               checked={form.active}
-              onChange={(e) => handleChange('active', e.target.checked)}
+              onCheckedChange={(checked) => handleChange('active', checked === true)}
             />
             <span>Show this offer on the homepage</span>
           </label>
 
           <div className="weekly-offer-form-actions admin-modal-actions">
-            <button type="button" className="weekly-offer-form-btn weekly-offer-form-btn--ghost" onClick={onClose}>
+            <Button type="button" variant="outline" className="weekly-offer-form-btn weekly-offer-form-btn--ghost" onClick={onClose}>
               Cancel
-            </button>
-            <button type="submit" className="weekly-offer-form-btn weekly-offer-form-btn--primary" disabled={saving}>
+            </Button>
+            <Button type="submit" className="weekly-offer-form-btn weekly-offer-form-btn--primary" disabled={saving}>
               {saving ? 'Saving…' : 'Save offer'}
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }
 

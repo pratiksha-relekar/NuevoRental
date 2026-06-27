@@ -3,8 +3,8 @@ import { motion, useReducedMotion } from 'motion/react'
 import { ChevronDown } from 'lucide-react'
 import { RENTAL_PRODUCTS } from '../../data/products'
 import { formatINR } from '../../utils/cartSummary'
-import './AdminRevenueSection.css'
-
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 const BADGE_VARIANTS = ['pink', 'pink', 'blue', 'purple']
 
 const SEGMENT_COLORS = {
@@ -240,10 +240,10 @@ export function AdminRevenueSection() {
       >
         <div className="admin-revenue-card-head">
           <h3>Recent rentals</h3>
-          <button type="button" className="admin-revenue-filter" aria-label="Filter by today">
+          <Button type="button" variant="outline" className="admin-revenue-filter" aria-label="Filter by today">
             Today
             <ChevronDown size={14} aria-hidden="true" />
-          </button>
+          </Button>
         </div>
 
         <ul className="admin-revenue-list">
@@ -262,9 +262,9 @@ export function AdminRevenueSection() {
                 <strong>{item.name}</strong>
                 <span>{item.subtitle}</span>
               </div>
-              <span className={`admin-revenue-list-badge admin-revenue-list-badge--${item.badge}`}>
+              <Badge className={`admin-revenue-list-badge admin-revenue-list-badge--${item.badge}`}>
                 {item.time}
-              </span>
+              </Badge>
             </motion.li>
           ))}
         </ul>
@@ -278,7 +278,7 @@ export function AdminRevenueSection() {
       >
         <div className="admin-revenue-card-head">
           <h3>Total revenue</h3>
-          {isDemo && <span className="admin-revenue-demo-tag">Sample data</span>}
+          {isDemo && <Badge className="admin-revenue-demo-tag">Sample data</Badge>}
         </div>
 
         <div className="admin-revenue-chart-body">

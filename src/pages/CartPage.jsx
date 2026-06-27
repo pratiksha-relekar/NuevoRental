@@ -1,11 +1,10 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { Minus, Plus, ShieldCheck, ShoppingBag, Tag, Trash2, Truck } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { LinkButton } from '@/components/ui/link-button'
 import { useCartWishlist } from '../context/CartWishlistContext'
 import { computeCartSummary, formatINR } from '../utils/cartSummary'
-import '../styles/pageAnimations.css'
-import './CartWishlistPages.css'
-
 function CartPage() {
   const {
     cartItems,
@@ -38,9 +37,9 @@ function CartPage() {
           <div className="bag-empty page-animate-item">
             <ShoppingBag size={48} strokeWidth={1.5} aria-hidden="true" />
             <p>No items in your cart yet.</p>
-            <Link to="/rent-products" className="bag-btn bag-btn--primary">
+            <LinkButton to="/rent-products">
               Browse Products
-            </Link>
+            </LinkButton>
           </div>
         ) : (
           <div className="cart-layout">
@@ -83,31 +82,37 @@ function CartPage() {
 
                     <div className="bag-item-actions">
                       <div className="bag-qty">
-                        <button
+                        <Button
                           type="button"
+                          variant="outline"
+                          size="icon-xs"
                           aria-label="Decrease quantity"
                           onClick={() => updateCartQuantity(item.key, item.quantity - 1)}
                         >
                           <Minus size={14} />
-                        </button>
+                        </Button>
                         <span>{item.quantity}</span>
-                        <button
+                        <Button
                           type="button"
+                          variant="outline"
+                          size="icon-xs"
                           aria-label="Increase quantity"
                           onClick={() => updateCartQuantity(item.key, item.quantity + 1)}
                         >
                           <Plus size={14} />
-                        </button>
+                        </Button>
                       </div>
 
-                      <button
+                      <Button
                         type="button"
+                        variant="outline"
+                        size="icon-xs"
                         className="bag-remove"
                         aria-label={`Remove ${item.title} from cart`}
                         onClick={() => removeFromCart(item.key)}
                       >
                         <Trash2 size={16} />
-                      </button>
+                      </Button>
                     </div>
                   </li>
                 ))}
@@ -207,12 +212,12 @@ function CartPage() {
               </p>
 
               <div className="bag-summary-actions">
-                <button type="button" className="bag-btn bag-btn--ghost bag-btn--block" onClick={clearCart}>
+                <Button type="button" variant="outline" className="w-full" onClick={clearCart}>
                   Clear Cart
-                </button>
-                <Link to="/checkout" className="bag-btn bag-btn--primary bag-btn--block">
+                </Button>
+                <LinkButton to="/checkout" className="w-full">
                   Proceed to Checkout
-                </Link>
+                </LinkButton>
               </div>
             </aside>
           </div>

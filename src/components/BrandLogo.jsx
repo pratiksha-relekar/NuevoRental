@@ -1,7 +1,5 @@
 import { Link } from 'react-router-dom'
 import { NUEVO_RENTAL_LOGO_ALT, NUEVO_RENTAL_LOGO_SRC } from '../constants/brand'
-import './BrandLogo.css'
-
 const VARIANTS = {
   header: 'brand-logo--header',
   footer: 'brand-logo--footer',

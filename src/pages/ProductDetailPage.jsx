@@ -13,6 +13,10 @@ import {
   Phone,
   Plus,
 } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { LinkButton } from '@/components/ui/link-button'
 import { ProductCard } from '../components/RentalProducts'
 import RentalPriceModal from '../components/RentalPriceModal'
 import { useCartWishlist } from '../context/CartWishlistContext'
@@ -22,10 +26,6 @@ import {
   getRelatedProducts,
 } from '../data/productDetails'
 import { getDefaultProjectPlanId } from '../data/projectPlans'
-import '../styles/pageAnimations.css'
-import '../components/RentalProducts.css'
-import './ProductDetailPage.css'
-
 const IMAGE_AUTO_MS = 3500
 const GALLERY_PAUSE_MS = 5000
 
@@ -92,24 +92,26 @@ function ProductCarousel({ title, products, viewMoreHref = '/rent-products' }) {
             View More →
           </Link>
           <div className="pdp-carousel-nav">
-            <button
+            <Button
               type="button"
+              variant="outline"
               className="pdp-carousel-nav-btn"
               onClick={() => scroll(-1)}
               disabled={!canScrollLeft}
               aria-label="Scroll left"
             >
               <ChevronLeft size={18} />
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="outline"
               className="pdp-carousel-nav-btn"
               onClick={() => scroll(1)}
               disabled={!canScrollRight}
               aria-label="Scroll right"
             >
               <ChevronRight size={18} />
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -197,9 +199,9 @@ function ProductDetailPage() {
         <div className="pdp-inner">
           <h1>Product not found</h1>
           <p>The rental item you are looking for does not exist or has been removed.</p>
-          <Link to="/rent-products" className="pdp-btn pdp-btn--primary">
+          <LinkButton to="/rent-products" variant="default" className="pdp-btn pdp-btn--primary">
             Browse all products
-          </Link>
+          </LinkButton>
         </div>
       </section>
     )
@@ -305,9 +307,10 @@ function ProductDetailPage() {
 
                 <div className="pdp-thumbs" role="tablist" aria-label="Product images">
                   {product.images.map((image, index) => (
-                    <button
+                    <Button
                       key={`${image}-${index}`}
                       type="button"
+                      variant="outline"
                       role="tab"
                       className={`pdp-thumb${activeImage === index ? ' pdp-thumb--active' : ''}`}
                       aria-selected={activeImage === index}
@@ -315,7 +318,7 @@ function ProductDetailPage() {
                       onClick={() => handleThumbSelect(index)}
                     >
                       <img src={image} alt="" />
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -329,7 +332,7 @@ function ProductDetailPage() {
                 transition={{ delay: 0.1, duration: 0.5 }}
               >
                 {product.refurbished && (
-                  <span className="pdp-badge">Refurbished</span>
+                  <Badge className="pdp-badge">Refurbished</Badge>
                 )}
                 {product.activeDeal && (
                   <div className="pdp-deal-banner">
@@ -378,37 +381,40 @@ function ProductDetailPage() {
 
                 <div className="pdp-controls">
                   <div className="pdp-control">
-                    <label htmlFor="pdp-quantity">Quantity</label>
+                    <Label htmlFor="pdp-quantity">Quantity</Label>
                     <div className="pdp-quantity">
-                      <button
+                      <Button
                         type="button"
+                        variant="outline"
                         aria-label="Decrease quantity"
                         onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
                       >
                         <Minus size={16} />
-                      </button>
+                      </Button>
                       <span id="pdp-quantity">{quantity}</span>
-                      <button
+                      <Button
                         type="button"
+                        variant="outline"
                         aria-label="Increase quantity"
                         onClick={() => setQuantity((prev) => prev + 1)}
                       >
                         <Plus size={16} />
-                      </button>
+                      </Button>
                     </div>
                   </div>
 
                   <div className="pdp-control">
                     <span className="pdp-control-label">Project plan</span>
-                    <button
+                    <Button
                       type="button"
+                      variant="outline"
                       className="pdp-duration-trigger"
                       onClick={() => setShowDurationModal(true)}
                       aria-haspopup="dialog"
                     >
                       <span>{selectedPlan?.durationLabel ?? selectedPlan?.shortLabel ?? 'Select project plan'}</span>
                       <ChevronDown size={18} aria-hidden="true" />
-                    </button>
+                    </Button>
                   </div>
                 </div>
 
@@ -444,27 +450,29 @@ function ProductDetailPage() {
                 </ul>
 
                 <div className="pdp-actions">
-                  <motion.button
-                    type="button"
-                    className="pdp-btn pdp-btn--cart"
-                    onClick={handleAddToCart}
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Lock size={16} aria-hidden="true" className="pdp-cart-icon" />
-                    Add To Cart
-                  </motion.button>
-                  <motion.button
-                    type="button"
-                    className={`pdp-btn pdp-btn--wishlist${wishlisted ? ' pdp-btn--wishlist-active' : ''}`}
-                    aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-                    aria-pressed={wishlisted}
-                    onClick={handleToggleWishlist}
-                    whileHover={{ scale: 1.06 }}
-                    whileTap={{ scale: 0.94 }}
-                  >
-                    <Heart size={18} fill={wishlisted ? 'currentColor' : 'none'} />
-                  </motion.button>
+                  <motion.div whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}>
+                    <Button
+                      type="button"
+                      variant="default"
+                      className="pdp-btn pdp-btn--cart"
+                      onClick={handleAddToCart}
+                    >
+                      <Lock size={16} aria-hidden="true" className="pdp-cart-icon" />
+                      Add To Cart
+                    </Button>
+                  </motion.div>
+                  <motion.div whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className={`pdp-btn pdp-btn--wishlist${wishlisted ? ' pdp-btn--wishlist-active' : ''}`}
+                      aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+                      aria-pressed={wishlisted}
+                      onClick={handleToggleWishlist}
+                    >
+                      <Heart size={18} fill={wishlisted ? 'currentColor' : 'none'} />
+                    </Button>
+                  </motion.div>
                 </div>
               </motion.div>
             </div>
@@ -478,24 +486,26 @@ function ProductDetailPage() {
           transition={{ delay: 0.2, duration: 0.5 }}
         >
           <div className="pdp-tabs" role="tablist" aria-label="Product information">
-            <button
+            <Button
               type="button"
+              variant="outline"
               role="tab"
               className={`pdp-tab${activeTab === 'description' ? ' pdp-tab--active' : ''}`}
               aria-selected={activeTab === 'description'}
               onClick={() => setActiveTab('description')}
             >
               Description
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="outline"
               role="tab"
               className={`pdp-tab${activeTab === 'additional' ? ' pdp-tab--active' : ''}`}
               aria-selected={activeTab === 'additional'}
               onClick={() => setActiveTab('additional')}
             >
               Additional Info
-            </button>
+            </Button>
             <span
               className="pdp-tab-indicator"
               style={{ transform: activeTab === 'description' ? 'translateX(0)' : 'translateX(100%)' }}
@@ -604,18 +614,22 @@ function ProductDetailPage() {
       </a>
 
       {showScrollTop && (
-        <motion.button
-          type="button"
-          className="pdp-fab pdp-fab--top"
-          aria-label="Scroll to top"
-          onClick={scrollToTop}
+        <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.95 }}
         >
-          <ChevronUp size={22} />
-        </motion.button>
+          <Button
+            type="button"
+            variant="default"
+            className="pdp-fab pdp-fab--top"
+            aria-label="Scroll to top"
+            onClick={scrollToTop}
+          >
+            <ChevronUp size={22} />
+          </Button>
+        </motion.div>
       )}
     </section>
   )

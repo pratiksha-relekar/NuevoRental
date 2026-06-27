@@ -1,7 +1,5 @@
 import { RENTAL_BRANDS } from '../data/brands'
 import BrandMark from './BrandMark'
-import './PopularBrandsSection.css'
-
 function BrandItem({ brand }) {
   return (
     <div className="popular-brands-item" title={brand.name}>

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Button } from '@/components/ui/button'
 import { HERO_CAROUSEL_SLIDES } from '../data/heroCarouselSlides'
 
 function HeroSideCarousel() {
@@ -50,10 +51,12 @@ function HeroSideCarousel() {
 
       <div className="hero-carousel-dots" role="tablist" aria-label="Featured rental products">
         {HERO_CAROUSEL_SLIDES.map((item, index) => (
-          <button
+          <Button
             key={item.id}
             type="button"
             role="tab"
+            variant="ghost"
+            size="icon-xs"
             className={`hero-carousel-dot${index === activeIndex ? ' hero-carousel-dot--active' : ''}`}
             aria-label={`Show ${item.title}`}
             aria-selected={index === activeIndex}

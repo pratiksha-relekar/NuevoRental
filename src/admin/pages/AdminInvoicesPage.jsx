@@ -21,8 +21,26 @@ import {
 import { InvoiceDocument } from '../../components/invoice/InvoiceDocument'
 import { downloadInvoicePdf } from '../../utils/downloadInvoicePdf'
 import { InvoiceDetailModal } from '../components/InvoiceDetailModal'
-import './AdminInvoicesPage.css'
-
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 const STATUS_TABS = [
   { id: 'all', label: 'All Invoices' },
   { id: 'draft', label: 'Draft' },
@@ -221,7 +239,7 @@ function AdminInvoicesPage() {
             {formatINR(stats.outstanding)} outstanding
           </p>
         </div>
-        <button
+        <Button
           type="button"
           className="admin-invoices-create-btn"
           onClick={handleRefresh}
@@ -229,45 +247,51 @@ function AdminInvoicesPage() {
         >
           {isRefreshing ? <RefreshCw size={16} className="is-spinning" aria-hidden="true" /> : <Plus size={16} aria-hidden="true" />}
           {isRefreshing ? 'Syncing…' : 'Sync Invoices'}
-        </button>
+        </Button>
       </header>
 
       <section className="admin-invoices-panel">
         <div className="admin-invoices-tabs-row">
-          <div className="admin-invoices-tabs">
-            {STATUS_TABS.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                className={`admin-invoices-tab${activeTab === tab.id ? ' is-active' : ''}`}
-                onClick={() => setActiveTab(tab.id)}
-              >
-                {tab.label}
-                <span>{tabCount(tab.id)}</span>
-              </button>
-            ))}
-          </div>
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="admin-invoices-tabs">
+              {STATUS_TABS.map((tab) => (
+                <TabsTrigger
+                  key={tab.id}
+                  value={tab.id}
+                  className={`admin-invoices-tab${activeTab === tab.id ? ' is-active' : ''}`}
+                >
+                  {tab.label}
+                  <span>{tabCount(tab.id)}</span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
 
           <div className="admin-invoices-tab-actions">
-            <label className="admin-invoices-sort">
+            <Label className="admin-invoices-sort">
               <ArrowDownUp size={14} aria-hidden="true" />
-              <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} aria-label="Sort invoices">
-                {SORT_OPTIONS.map((option) => (
-                  <option key={option.id} value={option.id}>{option.label}</option>
-                ))}
-              </select>
-            </label>
-            <button type="button" className="admin-invoices-filter-btn">
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger aria-label="Sort invoices">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SORT_OPTIONS.map((option) => (
+                    <SelectItem key={option.id} value={option.id}>{option.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Label>
+            <Button type="button" variant="outline" className="admin-invoices-filter-btn">
               <Filter size={14} aria-hidden="true" />
               Filter
-            </button>
+            </Button>
           </div>
         </div>
 
         <div className="admin-invoices-table-toolbar">
           <label className="admin-invoices-search">
             <Search size={16} aria-hidden="true" />
-            <input
+            <Input
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -276,18 +300,19 @@ function AdminInvoicesPage() {
           </label>
 
           <div className="admin-invoices-table-meta">
-            <label>
+            <Label>
               <span>Showing</span>
-              <select
-                value={pageSize}
-                onChange={(e) => setPageSize(Number(e.target.value))}
-                aria-label="Results per page"
-              >
-                {PAGE_SIZE_OPTIONS.map((size) => (
-                  <option key={size} value={size}>{size}</option>
-                ))}
-              </select>
-            </label>
+              <Select value={String(pageSize)} onValueChange={(value) => setPageSize(Number(value))}>
+                <SelectTrigger aria-label="Results per page">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PAGE_SIZE_OPTIONS.map((size) => (
+                    <SelectItem key={size} value={String(size)}>{size}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Label>
             <span>
               of {filteredInvoices.length} result{filteredInvoices.length === 1 ? '' : 's'}
             </span>
@@ -295,25 +320,26 @@ function AdminInvoicesPage() {
         </div>
 
         <div className="admin-invoices-table-wrap">
-          <table className="admin-invoices-table">
-            <thead>
-              <tr>
-                <th scope="col">Invoice</th>
-                <th scope="col">Client / Customer</th>
-                <th scope="col">Total Amount</th>
-                <th scope="col">Paid Amount</th>
-                <th scope="col">Due Amount</th>
-                <th scope="col">Due Date</th>
-                <th scope="col">Status</th>
-                <th scope="col" className="admin-invoices-col-action">Action</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table className="admin-invoices-table">
+            <TableHeader>
+              <TableRow>
+                <TableHead scope="col">Invoice</TableHead>
+                <TableHead scope="col">Client / Customer</TableHead>
+                <TableHead scope="col">Total Amount</TableHead>
+                <TableHead scope="col">Paid Amount</TableHead>
+                <TableHead scope="col">Due Amount</TableHead>
+                <TableHead scope="col">Due Date</TableHead>
+                <TableHead scope="col">Status</TableHead>
+                <TableHead scope="col" className="admin-invoices-col-action">Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {paginatedInvoices.map((invoice) => (
-                <tr key={invoice.id}>
-                  <td>
-                    <button
+                <TableRow key={invoice.id}>
+                  <TableCell>
+                    <Button
                       type="button"
+                      variant="ghost"
                       className="admin-invoices-invoice-link"
                       onClick={() => handleQuickDownload(invoice)}
                       disabled={isPdfDownloading && pdfInvoice?.id === invoice.id}
@@ -323,40 +349,42 @@ function AdminInvoicesPage() {
                         <strong>{invoice.id}</strong>
                         <span>Created on: {invoice.createdLabel}</span>
                       </div>
-                    </button>
-                  </td>
-                  <td>
+                    </Button>
+                  </TableCell>
+                  <TableCell>
                     <div className="admin-invoices-cell-client">
                       <strong>{invoice.customerName}</strong>
                       <span>{invoice.customerCompany}</span>
                     </div>
-                  </td>
-                  <td><strong>{formatINR(invoice.totalAmount)}</strong></td>
-                  <td className="is-paid">{formatINR(invoice.paidAmount)}</td>
-                  <td className="is-due">{formatINR(invoice.dueAmount)}</td>
-                  <td>{invoice.dueDateLabel}</td>
-                  <td>
-                    <span className={`admin-invoices-status admin-invoices-status--${invoice.status}`}>
+                  </TableCell>
+                  <TableCell><strong>{formatINR(invoice.totalAmount)}</strong></TableCell>
+                  <TableCell className="is-paid">{formatINR(invoice.paidAmount)}</TableCell>
+                  <TableCell className="is-due">{formatINR(invoice.dueAmount)}</TableCell>
+                  <TableCell>{invoice.dueDateLabel}</TableCell>
+                  <TableCell>
+                    <Badge className={`admin-invoices-status admin-invoices-status--${invoice.status}`}>
                       {INVOICE_STATUS_LABELS[invoice.status] ?? invoice.status}
-                    </span>
-                  </td>
-                  <td className="admin-invoices-col-action">
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="admin-invoices-col-action">
                     <div className="admin-invoices-action-wrap">
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="icon-sm"
                         className="admin-invoices-action-btn"
                         aria-label={`Actions for ${invoice.id}`}
                         aria-expanded={actionMenu?.invoice.id === invoice.id}
                         onClick={(event) => handleOpenActionMenu(invoice, event)}
                       >
                         <MoreVertical size={16} />
-                      </button>
+                      </Button>
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
 
           {filteredInvoices.length === 0 && (
             <p className="admin-invoices-empty">
@@ -367,14 +395,16 @@ function AdminInvoicesPage() {
 
         {filteredInvoices.length > 0 && (
           <div className="admin-invoices-pagination">
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="icon-sm"
               aria-label="Previous page"
               disabled={currentPage <= 1}
               onClick={() => setPage((current) => Math.max(1, current - 1))}
             >
               <ChevronLeft size={16} />
-            </button>
+            </Button>
 
             {Array.from({ length: totalPages }, (_, index) => index + 1)
               .filter((pageNumber) => {
@@ -388,25 +418,28 @@ function AdminInvoicesPage() {
                 return (
                   <span key={pageNumber} className="admin-invoices-page-group">
                     {showEllipsis && <span className="admin-invoices-ellipsis">…</span>}
-                    <button
+                    <Button
                       type="button"
+                      variant={pageNumber === currentPage ? 'default' : 'outline'}
                       className={pageNumber === currentPage ? 'is-active' : ''}
                       onClick={() => setPage(pageNumber)}
                     >
                       {pageNumber}
-                    </button>
+                    </Button>
                   </span>
                 )
               })}
 
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="icon-sm"
               aria-label="Next page"
               disabled={currentPage >= totalPages}
               onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
             >
               <ChevronRight size={16} />
-            </button>
+            </Button>
           </div>
         )}
       </section>
@@ -419,8 +452,9 @@ function AdminInvoicesPage() {
           style={{ top: `${actionMenu.top}px`, left: `${actionMenu.left}px` }}
           role="menu"
         >
-          <button
+          <Button
             type="button"
+            variant="ghost"
             role="menuitem"
             onClick={() => {
               setSelectedInvoice(actionMenu.invoice)
@@ -429,16 +463,17 @@ function AdminInvoicesPage() {
           >
             <Eye size={14} aria-hidden="true" />
             View invoice
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="ghost"
             role="menuitem"
             onClick={() => handleQuickDownload(actionMenu.invoice)}
             disabled={isPdfDownloading}
           >
             <FileText size={14} aria-hidden="true" />
             {isPdfDownloading && pdfInvoice?.id === actionMenu.invoice.id ? 'Downloading…' : 'Download PDF'}
-          </button>
+          </Button>
         </div>
       )}
 

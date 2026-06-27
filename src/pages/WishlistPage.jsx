@@ -1,9 +1,8 @@
 import { Link } from 'react-router-dom'
 import { Heart, ShoppingBag } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { LinkButton } from '@/components/ui/link-button'
 import { useCartWishlist } from '../context/CartWishlistContext'
-import '../styles/pageAnimations.css'
-import './CartWishlistPages.css'
-
 function WishlistPage() {
   const {
     wishlistItems,
@@ -29,9 +28,9 @@ function WishlistPage() {
           <div className="bag-empty page-animate-item">
             <Heart size={48} strokeWidth={1.5} aria-hidden="true" />
             <p>Your wishlist is empty.</p>
-            <Link to="/rent-products" className="bag-btn bag-btn--primary">
+            <LinkButton to="/rent-products">
               Explore Rentals
-            </Link>
+            </LinkButton>
           </div>
         ) : (
           <ul className="wishlist-grid">
@@ -51,21 +50,23 @@ function WishlistPage() {
                   </p>
 
                   <div className="wishlist-card-actions">
-                    <button
+                    <Button
                       type="button"
-                      className="bag-btn bag-btn--primary bag-btn--sm"
+                      variant="default"
+                      size="sm"
                       onClick={() => addToCart(item, { quantity: 1, durationPlanId: '1m' })}
                     >
                       <ShoppingBag size={16} />
                       Add to Cart
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
-                      className="bag-btn bag-btn--ghost bag-btn--sm"
+                      variant="outline"
+                      size="sm"
                       onClick={() => toggleWishlist(item)}
                     >
                       Remove
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </li>

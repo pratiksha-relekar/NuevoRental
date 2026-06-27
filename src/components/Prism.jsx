@@ -1,7 +1,5 @@
 import { useEffect, useRef } from 'react'
 import { Renderer, Triangle, Program, Mesh } from 'ogl'
-import './Prism.css'
-
 function Prism({
   height = 3.5,
   baseWidth = 5.5,

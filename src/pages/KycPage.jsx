@@ -5,9 +5,11 @@ import { useAuth } from '../context/AuthContext'
 import { useKyc } from '../context/KycContext'
 import { useCamera } from '../hooks/useCamera'
 import { KYC_STEP_STATUS, KYC_STEPS } from '../data/kycSteps'
-import '../styles/pageAnimations.css'
-import './KycPage.css'
-
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { LinkButton } from '@/components/ui/link-button'
+import { Alert, AlertDescription, AlertAction } from '@/components/ui/alert'
 function UploadIcon() {
   return (
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -100,7 +102,7 @@ function DocumentUploadCard({ label, docType, document, onUpload, disabled = fal
 
   return (
     <div className={`kyc-upload-card kyc-upload-card--${status}`}>
-      <input
+      <Input
         ref={inputRef}
         type="file"
         accept="image/*,.pdf"
@@ -118,17 +120,18 @@ function DocumentUploadCard({ label, docType, document, onUpload, disabled = fal
           <img src={previewSrc} alt={`${label} preview`} className="kyc-upload-preview" />
         ) : null}
       </div>
-      <button
+      <Button
         type="button"
+        variant="outline"
         className="kyc-upload-btn"
         onClick={() => inputRef.current?.click()}
         disabled={disabled}
       >
         {document ? 'Replace file' : 'Upload document'}
-      </button>
-      <span className={`kyc-upload-status kyc-upload-status--${status}`}>
+      </Button>
+      <Badge className={`kyc-upload-status kyc-upload-status--${status}`}>
         {status === 'uploaded' ? 'Uploaded' : uploadingDoc === docType ? 'Uploading...' : 'Pending'}
-      </span>
+      </Badge>
     </div>
   )
 }
@@ -405,28 +408,30 @@ function KycPage() {
         </header>
 
         {(uploadError || saveError) && (
-          <div className="kyc-notice-banner kyc-notice-banner--alert" role="alert">
-            <p>{uploadError || saveError}</p>
-          </div>
+          <Alert className="kyc-notice-banner kyc-notice-banner--alert" variant="destructive">
+            <AlertDescription>{uploadError || saveError}</AlertDescription>
+          </Alert>
         )}
 
         {verificationNotice && (
-          <div className={`kyc-notice-banner${kycState.status === 'approved' ? ' kyc-notice-banner--approved' : ' kyc-notice-banner--alert'}`}>
-            <p>{verificationNotice.message}</p>
-            <button type="button" className="kyc-btn kyc-btn--ghost" onClick={() => void dismissVerificationNotice()}>
-              Dismiss
-            </button>
-          </div>
+          <Alert className={`kyc-notice-banner${kycState.status === 'approved' ? ' kyc-notice-banner--approved' : ' kyc-notice-banner--alert'}`}>
+            <AlertDescription>{verificationNotice.message}</AlertDescription>
+            <AlertAction>
+              <Button type="button" variant="outline" className="kyc-btn kyc-btn--ghost" onClick={() => void dismissVerificationNotice()}>
+                Dismiss
+              </Button>
+            </AlertAction>
+          </Alert>
         )}
 
         {kycState.status === 'rejected' && (
-          <div className="kyc-notice-banner kyc-notice-banner--alert">
-            <p>
+          <Alert className="kyc-notice-banner kyc-notice-banner--alert" variant="destructive">
+            <AlertDescription>
               {kycState.rejectionReason
                 ? `Your KYC was rejected: ${kycState.rejectionReason}. Update your documents and submit again.`
                 : 'Your KYC was rejected. Update your documents and submit again.'}
-            </p>
-          </div>
+            </AlertDescription>
+          </Alert>
         )}
 
         {!showWizard && !isApproved && (
@@ -440,10 +445,10 @@ function KycPage() {
                 <li>All data is encrypted and used only for rental KYC</li>
               </ul>
               <div className="kyc-intro-actions">
-                <button type="button" className="kyc-btn kyc-btn--primary" onClick={handleBegin}>
+                <Button type="button" variant="default" className="kyc-btn kyc-btn--primary" onClick={handleBegin}>
                   Start KYC Verification
-                </button>
-                <Link to="/dashboard" className="kyc-btn kyc-btn--ghost">Back to Dashboard</Link>
+                </Button>
+                <LinkButton to="/dashboard" variant="outline" className="kyc-btn kyc-btn--ghost">Back to Dashboard</LinkButton>
               </div>
             </div>
           </div>
@@ -505,14 +510,15 @@ function KycPage() {
                     </div>
                   )}
                   {canEditDocuments && (
-                    <button
+                    <Button
                       type="button"
+                      variant="default"
                       className="kyc-btn kyc-btn--primary"
                       disabled={!bothDocsUploaded || Boolean(uploadingDoc)}
                       onClick={handleContinueUpload}
                     >
                       Continue to OCR verification
-                    </button>
+                    </Button>
                   )}
                 </div>
               )}
@@ -548,9 +554,9 @@ function KycPage() {
                       <li>Keep your face inside the frame</li>
                     </ul>
                   </div>
-                  <button type="button" className="kyc-btn kyc-btn--primary" onClick={handleStartFaceCheck}>
+                  <Button type="button" variant="default" className="kyc-btn kyc-btn--primary" onClick={handleStartFaceCheck}>
                     Start live face check
-                  </button>
+                  </Button>
                 </div>
               )}
 
@@ -572,22 +578,24 @@ function KycPage() {
                         Make sure your face is clearly visible, well lit, and centered in the frame.
                       </p>
                       <div className="kyc-selfie-review-actions">
-                        <button
+                        <Button
                           type="button"
+                          variant="outline"
                           className="kyc-btn kyc-btn--ghost"
                           onClick={() => void handleRetakeSelfie()}
                           disabled={isSavingSelfie || !canEditDocuments}
                         >
                           Retake selfie
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                           type="button"
+                          variant="default"
                           className="kyc-btn kyc-btn--primary"
                           onClick={() => void handleConfirmSelfie()}
                           disabled={isSavingSelfie || !canEditDocuments || !selfieDraft}
                         >
                           {isSavingSelfie ? 'Saving selfie...' : 'Continue to face match'}
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   ) : (
@@ -597,8 +605,9 @@ function KycPage() {
                           <div className="kyc-camera-error">
                             <CameraIcon />
                             <p>{cameraError}</p>
-                            <button
+                            <Button
                               type="button"
+                              variant="outline"
                               className="kyc-btn kyc-btn--ghost"
                               onClick={() => {
                                 setShowSelfieReview(false)
@@ -606,7 +615,7 @@ function KycPage() {
                               }}
                             >
                               Retry camera access
-                            </button>
+                            </Button>
                           </div>
                         ) : (
                           <>
@@ -622,14 +631,15 @@ function KycPage() {
                         )}
                       </div>
                       <div className="kyc-selfie-review-actions">
-                        <button
+                        <Button
                           type="button"
+                          variant="default"
                           className="kyc-btn kyc-btn--primary"
                           onClick={handleCaptureSelfie}
                           disabled={!cameraReady || Boolean(cameraError) || !canEditDocuments}
                         >
                           Capture selfie
-                        </button>
+                        </Button>
                       </div>
                     </>
                   )}
@@ -647,14 +657,15 @@ function KycPage() {
                         <img src={selfiePreviewSrc} alt="Live selfie used for face match" />
                       </div>
                       {canEditDocuments && kycState.stepStatuses['face-match'] !== KYC_STEP_STATUS.DONE && (
-                        <button
+                        <Button
                           type="button"
+                          variant="outline"
                           className="kyc-btn kyc-btn--ghost"
                           onClick={() => void handleRetakeSelfie()}
                           disabled={isSavingSelfie}
                         >
                           Retake selfie
-                        </button>
+                        </Button>
                       )}
                     </div>
                   )}
@@ -676,8 +687,8 @@ function KycPage() {
                   </p>
                   {submittingReview && <p>Saving your KYC submission...</p>}
                   <div className="kyc-intro-actions">
-                    <Link to="/dashboard" className="kyc-btn kyc-btn--primary">View profile status</Link>
-                    <Link to="/rent-products" className="kyc-btn kyc-btn--ghost">Browse rental products</Link>
+                    <LinkButton to="/dashboard" variant="default" className="kyc-btn kyc-btn--primary">View profile status</LinkButton>
+                    <LinkButton to="/rent-products" variant="outline" className="kyc-btn kyc-btn--ghost">Browse rental products</LinkButton>
                   </div>
                 </div>
               )}
@@ -692,12 +703,12 @@ function KycPage() {
 
               {activeStepId === 'approved' && (
                 <div className="kyc-step-content kyc-step-content--center">
-                  <div className="kyc-approved-badge">KYC Approved</div>
+                  <Badge className="kyc-approved-badge">KYC Approved</Badge>
                   <h2>You are verified!</h2>
                   <p>Your identity is verified. You can now rent laptops, mobiles, printers, and more.</p>
                   <div className="kyc-intro-actions">
-                    <Link to="/rent-products" className="kyc-btn kyc-btn--primary">Browse rental products</Link>
-                    <Link to="/dashboard" className="kyc-btn kyc-btn--ghost">View profile status</Link>
+                    <LinkButton to="/rent-products" variant="default" className="kyc-btn kyc-btn--primary">Browse rental products</LinkButton>
+                    <LinkButton to="/dashboard" variant="outline" className="kyc-btn kyc-btn--ghost">View profile status</LinkButton>
                   </div>
                 </div>
               )}

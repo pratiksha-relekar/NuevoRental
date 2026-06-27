@@ -1,10 +1,21 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Lightfall from '../components/Lightfall'
 import { submitSupportRequest } from '../data/supportStorage'
-import '../styles/pageAnimations.css'
-import './ContactPage.css'
-
+import { Button, buttonVariants } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { LinkButton } from '@/components/ui/link-button'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { cn } from '@/lib/utils'
 const CONTACT_CHANNELS = [
   {
     icon: '📞',
@@ -115,6 +126,7 @@ function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submittedId, setSubmittedId] = useState(null)
   const [error, setError] = useState('')
+  const topicInputRef = useRef(null)
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -225,9 +237,9 @@ function ContactPage() {
               <li>GST invoices for business customers</li>
               <li>Device replacement &amp; maintenance support</li>
             </ul>
-            <Link to="/rent-products" className="contact-btn contact-btn--primary">
+            <LinkButton to="/rent-products" variant="default" className="contact-btn contact-btn--primary">
               Browse Products
-            </Link>
+            </LinkButton>
           </div>
 
           <form className="contact-form contact-reveal contact-reveal--d1" onSubmit={handleSubmit}>
@@ -235,54 +247,70 @@ function ContactPage() {
             <p className="contact-form-desc">Fill in your details and we&apos;ll get back to you shortly.</p>
 
             {submittedId && (
-              <p className="contact-form-success" role="status">
-                Thank you! Your inquiry <strong>{submittedId}</strong> was submitted. Our support team
-                will contact you within 24 hours.
-              </p>
+              <Alert className="contact-form-success" role="status">
+                <AlertDescription>
+                  Thank you! Your inquiry <strong>{submittedId}</strong> was submitted. Our support team
+                  will contact you within 24 hours.
+                </AlertDescription>
+              </Alert>
             )}
 
             {error && (
-              <p className="contact-form-error" role="alert">
-                {error}
-              </p>
+              <Alert className="contact-form-error" variant="destructive" role="alert">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             )}
 
             <div className="contact-form-row">
-              <label className="contact-field">
+              <Label className="contact-field">
                 <span>Full Name</span>
-                <input type="text" name="name" placeholder="Your name" autoComplete="name" />
-              </label>
-              <label className="contact-field">
+                <Input type="text" name="name" placeholder="Your name" autoComplete="name" />
+              </Label>
+              <Label className="contact-field">
                 <span>Phone</span>
-                <input type="tel" name="phone" placeholder="10-digit mobile" autoComplete="tel" />
-              </label>
+                <Input type="tel" name="phone" placeholder="10-digit mobile" autoComplete="tel" />
+              </Label>
             </div>
-            <label className="contact-field">
+            <Label className="contact-field">
               <span>Email</span>
-              <input type="email" name="email" placeholder="you@company.com" autoComplete="email" />
-            </label>
-            <label className="contact-field">
+              <Input type="email" name="email" placeholder="you@company.com" autoComplete="email" />
+            </Label>
+            <Label className="contact-field">
               <span>Inquiry Type</span>
-              <select name="topic" defaultValue="rental">
-                <option value="rental">Product Rental</option>
-                <option value="corporate">Corporate / Bulk Order</option>
-                <option value="delivery">Delivery &amp; Setup</option>
-                <option value="support">Technical Support</option>
-                <option value="billing">Billing &amp; Invoice</option>
-                <option value="other">Other</option>
-              </select>
-            </label>
-            <label className="contact-field">
+              <input type="hidden" name="topic" ref={topicInputRef} defaultValue="rental" />
+              <Select
+                defaultValue="rental"
+                onValueChange={(value) => {
+                  if (topicInputRef.current) {
+                    topicInputRef.current.value = value
+                  }
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select inquiry type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="rental">Product Rental</SelectItem>
+                  <SelectItem value="corporate">Corporate / Bulk Order</SelectItem>
+                  <SelectItem value="delivery">Delivery &amp; Setup</SelectItem>
+                  <SelectItem value="support">Technical Support</SelectItem>
+                  <SelectItem value="billing">Billing &amp; Invoice</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </Label>
+            <Label className="contact-field">
               <span>Message</span>
-              <textarea name="message" rows={4} placeholder="Tell us about your rental needs..." />
-            </label>
-            <button
+              <Textarea name="message" rows={4} placeholder="Tell us about your rental needs..." />
+            </Label>
+            <Button
               type="submit"
+              variant="default"
               className="contact-btn contact-btn--primary contact-btn--full"
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Submitting…' : 'Submit Inquiry'}
-            </button>
+            </Button>
           </form>
         </div>
 
@@ -329,10 +357,13 @@ function ContactPage() {
               <p>Get tailored pricing for bulk rentals, office setups, and long-term contracts.</p>
             </div>
             <div className="contact-cta-actions">
-              <Link to="/corporate" className="contact-btn contact-btn--primary">
+              <LinkButton to="/corporate" variant="default" className="contact-btn contact-btn--primary">
                 Corporate Rentals
-              </Link>
-              <a href="tel:8080808964" className="contact-btn contact-btn--outline">
+              </LinkButton>
+              <a
+                href="tel:8080808964"
+                className={cn(buttonVariants({ variant: 'outline' }), 'contact-btn contact-btn--outline')}
+              >
                 Call Now
               </a>
             </div>

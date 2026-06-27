@@ -11,19 +11,26 @@ import {
   SUPPORT_STATUS_LABELS,
   SUPPORT_STATUS_OPTIONS,
 } from '../../data/supportStorage'
-import './ProductFormModal.css'
-import './SupportRequestDetailModal.css'
-
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
 export function SupportRequestDetailModal({ request, onClose, onStatusChange, onNotesChange }) {
   if (!request) return null
 
   return (
-    <div className="admin-modal-root admin-modal-root--wide" role="presentation">
-      <button type="button" className="admin-modal-scrim" onClick={onClose} aria-label="Close modal" />
-      <div
-        className="admin-support-detail-modal"
-        role="dialog"
-        aria-modal="true"
+    <Dialog open onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DialogContent
+        className="admin-support-detail-modal admin-modal-root--wide"
+        showCloseButton={false}
         aria-labelledby="support-detail-title"
       >
         <div className="admin-support-detail-header">
@@ -37,21 +44,21 @@ export function SupportRequestDetailModal({ request, onClose, onStatusChange, on
               <p>{request.topicLabel}</p>
             </div>
           </div>
-          <button type="button" className="admin-support-detail-close" onClick={onClose} aria-label="Close">
+          <Button type="button" variant="ghost" className="admin-support-detail-close" onClick={onClose} aria-label="Close">
             <X size={18} />
-          </button>
+          </Button>
         </div>
 
         <div className="admin-support-detail-badges">
-          <span className={`admin-support-detail-status admin-support-detail-status--${request.status}`}>
+          <Badge className={`admin-support-detail-status admin-support-detail-status--${request.status}`}>
             {request.statusLabel}
-          </span>
+          </Badge>
           {request.isRegisteredUser && (
-            <span className="admin-support-detail-badge admin-support-detail-badge--user">
+            <Badge className="admin-support-detail-badge admin-support-detail-badge--user">
               Registered customer · {request.userOrderCount} order{request.userOrderCount === 1 ? '' : 's'}
-            </span>
+            </Badge>
           )}
-          <span className="admin-support-detail-badge">Submitted {request.createdLabel}</span>
+          <Badge className="admin-support-detail-badge">Submitted {request.createdLabel}</Badge>
         </div>
 
         <div className="admin-support-detail-actions">
@@ -113,28 +120,30 @@ export function SupportRequestDetailModal({ request, onClose, onStatusChange, on
 
           <section className="admin-support-detail-section admin-support-detail-section--full">
             <h3>Admin follow-up</h3>
-            <label className="admin-support-detail-field">
+            <Label className="admin-support-detail-field">
               <span>Ticket status</span>
-              <select
-                value={request.status}
-                onChange={(e) => onStatusChange(e.target.value)}
-              >
-                {SUPPORT_STATUS_OPTIONS.map((status) => (
-                  <option key={status} value={status}>
-                    {SUPPORT_STATUS_LABELS[status]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="admin-support-detail-field">
+              <Select value={request.status} onValueChange={onStatusChange}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SUPPORT_STATUS_OPTIONS.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {SUPPORT_STATUS_LABELS[status]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Label>
+            <Label className="admin-support-detail-field">
               <span>Internal notes</span>
-              <textarea
+              <Textarea
                 rows={4}
                 value={request.adminNotes ?? ''}
                 placeholder="Call summary, resolution steps, or follow-up reminders..."
                 onChange={(e) => onNotesChange(e.target.value)}
               />
-            </label>
+            </Label>
           </section>
         </div>
 
@@ -149,7 +158,7 @@ export function SupportRequestDetailModal({ request, onClose, onStatusChange, on
             Pan-India rental support across Pune, Mumbai, Delhi NCR, Bengaluru, and more.
           </p>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

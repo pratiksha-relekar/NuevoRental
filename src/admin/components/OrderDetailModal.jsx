@@ -15,9 +15,17 @@ import {
   ADMIN_ORDER_STATUS_OPTIONS,
 } from '../../data/orderStorage'
 import { getProductImage } from '../../data/products'
-import './ProductFormModal.css'
-import './OrderDetailModal.css'
-
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 function DetailSection({ title, icon: Icon, children }) {
   return (
     <section className="admin-order-detail-section">
@@ -37,9 +45,12 @@ export function OrderDetailModal({ order, onClose, onStatusChange }) {
   const delivery = order.delivery ?? {}
 
   return (
-    <div className="admin-modal-root admin-modal-root--wide" role="presentation">
-      <button type="button" className="admin-modal-scrim" onClick={onClose} aria-label="Close modal" />
-      <div className="admin-order-detail-modal" role="dialog" aria-modal="true" aria-labelledby="order-detail-title">
+    <Dialog open onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DialogContent
+        className="admin-order-detail-modal admin-modal-root--wide"
+        showCloseButton={false}
+        aria-labelledby="order-detail-title"
+      >
         <div className="admin-order-detail-header">
           <div className="admin-order-detail-header-main">
             <span className="admin-order-detail-eyebrow">{order.id}</span>
@@ -53,28 +64,28 @@ export function OrderDetailModal({ order, onClose, onStatusChange }) {
               </div>
             </div>
           </div>
-          <button type="button" className="admin-order-detail-close" onClick={onClose} aria-label="Close">
+          <Button type="button" variant="ghost" className="admin-order-detail-close" onClick={onClose} aria-label="Close">
             <X size={18} />
-          </button>
+          </Button>
         </div>
 
         <div className="admin-order-detail-badges">
-          <span className={`admin-order-detail-status admin-order-detail-status--${order.status}`}>
+          <Badge className={`admin-order-detail-status admin-order-detail-status--${order.status}`}>
             {ADMIN_ORDER_STATUS_LABELS[order.status] ?? order.status}
-          </span>
-          <span className={`admin-order-detail-kyc admin-order-detail-kyc--${customer.kyc.status}`}>
+          </Badge>
+          <Badge className={`admin-order-detail-kyc admin-order-detail-kyc--${customer.kyc.status}`}>
             <ShieldCheck size={14} aria-hidden="true" />
             KYC: {customer.kyc.statusLabel}
-          </span>
+          </Badge>
           {customer.isOnline && (
-            <span className="admin-order-detail-online">
+            <Badge className="admin-order-detail-online">
               <Wifi size={14} aria-hidden="true" />
               Active session
-            </span>
+            </Badge>
           )}
-          <span className="admin-order-detail-provider">
+          <Badge className="admin-order-detail-provider">
             {customer.provider === 'google' ? 'Google sign-in' : 'Email sign-in'}
-          </span>
+          </Badge>
         </div>
 
         <div className="admin-order-detail-layout">
@@ -330,23 +341,25 @@ export function OrderDetailModal({ order, onClose, onStatusChange }) {
                 )}
               </ul>
 
-              <label className="admin-order-detail-status-field">
+              <Label className="admin-order-detail-status-field">
                 <span>Update order status</span>
-                <select
-                  value={order.status}
-                  onChange={(e) => onStatusChange(e.target.value)}
-                >
-                  {ADMIN_ORDER_STATUS_OPTIONS.map((status) => (
-                    <option key={status} value={status}>
-                      {ADMIN_ORDER_STATUS_LABELS[status]}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                <Select value={order.status} onValueChange={onStatusChange}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ADMIN_ORDER_STATUS_OPTIONS.map((status) => (
+                      <SelectItem key={status} value={status}>
+                        {ADMIN_ORDER_STATUS_LABELS[status]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Label>
             </DetailSection>
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

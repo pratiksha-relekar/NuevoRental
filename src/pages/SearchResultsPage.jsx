@@ -1,13 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Search } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { CATEGORIES } from '../data/categories'
 import { POPULAR_SEARCHES, searchProducts } from '../utils/productSearch'
 import { ProductCard } from '../components/RentalProducts'
-import '../styles/pageAnimations.css'
-import '../components/RentalProducts.css'
-import './SearchResultsPage.css'
-
 function SearchResultsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const query = (searchParams.get('q') ?? '').trim()
@@ -49,16 +47,16 @@ function SearchResultsPage() {
         <header className="search-page-header page-animate-item">
           <form className="search-page-form" role="search" onSubmit={handleSearchSubmit}>
             <Search size={20} className="search-page-form-icon" aria-hidden="true" />
-            <input
+            <Input
               type="search"
               value={inputValue}
               onChange={(event) => setInputValue(event.target.value)}
               placeholder="Search laptops, printers, desktops, and more..."
               aria-label="Search products"
             />
-            <button type="submit" className="search-page-form-btn">
+            <Button type="submit" variant="default" className="search-page-form-btn">
               Search
-            </button>
+            </Button>
           </form>
         </header>
 
@@ -79,26 +77,28 @@ function SearchResultsPage() {
 
             {results.length > 0 && categoriesInResults.length > 1 && (
               <div className="search-page-filters page-animate-item" role="tablist" aria-label="Filter by category">
-                <button
+                <Button
                   type="button"
+                  variant="outline"
                   role="tab"
                   className={`search-filter-chip${categoryFilter === 'all' ? ' search-filter-chip--active' : ''}`}
                   aria-selected={categoryFilter === 'all'}
                   onClick={() => setCategory('all')}
                 >
                   All
-                </button>
+                </Button>
                 {categoriesInResults.map((cat) => (
-                  <button
+                  <Button
                     key={cat.id}
                     type="button"
+                    variant="outline"
                     role="tab"
                     className={`search-filter-chip${categoryFilter === cat.id ? ' search-filter-chip--active' : ''}`}
                     aria-selected={categoryFilter === cat.id}
                     onClick={() => setCategory(cat.id)}
                   >
                     {cat.label}
-                  </button>
+                  </Button>
                 ))}
               </div>
             )}
@@ -112,9 +112,9 @@ function SearchResultsPage() {
             ) : (
               <div className="search-empty page-animate-item">
                 <p>No products in this category match your search.</p>
-                <button type="button" className="search-empty-btn" onClick={() => setCategory('all')}>
+                <Button type="button" variant="outline" className="search-empty-btn" onClick={() => setCategory('all')}>
                   Show all matching results
-                </button>
+                </Button>
               </div>
             )}
           </>

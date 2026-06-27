@@ -1,10 +1,9 @@
 import { useMemo } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { ArrowUpRight } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { getContentGrowthQuarters } from '../../data/contentStorage'
 import { formatINR } from '../../utils/cartSummary'
-import './AdminContentGrowthChart.css'
-
 function formatCompactINR(value) {
   if (value >= 100000) return `₹${Math.round(value / 1000)}k`
   if (value >= 1000) return `₹${Math.round(value / 1000)}k`
@@ -24,9 +23,9 @@ export function AdminContentGrowthChart() {
           <h3>Growth statistics</h3>
           <span className="admin-content-growth-badge">Yearly</span>
         </div>
-        <button type="button" className="admin-content-growth-expand" aria-label="View growth details">
+        <Button type="button" variant="outline" size="icon-sm" className="admin-content-growth-expand" aria-label="View growth details">
           <ArrowUpRight size={16} />
-        </button>
+        </Button>
       </div>
 
       <div className="admin-content-growth-total">

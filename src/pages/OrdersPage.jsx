@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { CheckCircle2, FileText, Package, ShoppingBag } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { LinkButton } from '@/components/ui/link-button'
 import { useAuth } from '../context/AuthContext'
 import { getOrderStatusLabel, useOrders } from '../context/OrdersContext'
 import { buildInvoiceFromOrder } from '../data/invoiceStorage'
 import { InvoiceViewModal } from '../components/invoice/InvoiceViewModal'
 import { formatINR } from '../utils/cartSummary'
-import '../styles/pageAnimations.css'
-import './CartWishlistPages.css'
-import './OrdersPage.css'
-
 function formatOrderDate(value) {
   return new Intl.DateTimeFormat('en-IN', {
     day: 'numeric',
@@ -77,9 +75,9 @@ function OrdersPage() {
           <div className="bag-empty page-animate-item">
             <ShoppingBag size={48} strokeWidth={1.5} aria-hidden="true" />
             <p>No rental orders yet.</p>
-            <Link to="/rent-products" className="bag-btn bag-btn--primary">
+            <LinkButton to="/rent-products">
               Browse Products
-            </Link>
+            </LinkButton>
           </div>
         ) : (
           <ul className="orders-list">
@@ -137,14 +135,14 @@ function OrdersPage() {
                 </dl>
 
                 <div className="orders-card-actions">
-                  <button
+                  <Button
                     type="button"
                     className="orders-invoice-btn"
                     onClick={() => setSelectedInvoice(buildInvoiceFromOrder(order))}
                   >
                     <FileText size={15} aria-hidden="true" />
                     View Invoice
-                  </button>
+                  </Button>
                 </div>
               </li>
             ))}
@@ -153,10 +151,10 @@ function OrdersPage() {
 
         {orders.length > 0 && (
           <div className="orders-footer-actions page-animate-item">
-            <Link to="/rent-products" className="bag-btn bag-btn--primary">
+            <LinkButton to="/rent-products">
               <Package size={16} aria-hidden="true" />
               Rent More Products
-            </Link>
+            </LinkButton>
           </div>
         )}
       </div>

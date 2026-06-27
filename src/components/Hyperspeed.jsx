@@ -2,8 +2,6 @@ import { BloomEffect, EffectComposer, EffectPass, RenderPass, SMAAEffect, SMAAPr
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
-import './Hyperspeed.css';
-
 const DEFAULT_EFFECT_OPTIONS = {
  onSpeedUp: () => {},
  onSlowDown: () => {},

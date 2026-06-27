@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Search } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { getProductImage } from '../data/products'
 import { CATEGORIES } from '../data/categories'
 import { getSearchSuggestions, POPULAR_SEARCHES } from '../utils/productSearch'
-import './HeaderSearch.css'
-
 const CATEGORY_LABELS = Object.fromEntries(CATEGORIES.map((cat) => [cat.id, cat.label]))
 
 function HeaderSearch() {
@@ -92,7 +92,7 @@ function HeaderSearch() {
     <div className="header-search-wrap" ref={rootRef}>
       <form className="header-search" role="search" onSubmit={handleSubmit}>
         <Search size={18} className="header-search-icon" aria-hidden="true" />
-        <input
+        <Input
           ref={inputRef}
           type="search"
           value={query}
@@ -109,9 +109,9 @@ function HeaderSearch() {
           aria-autocomplete="list"
           autoComplete="off"
         />
-        <button type="submit" className="header-search-submit">
+        <Button type="submit" variant="default" className="header-search-submit">
           Search
-        </button>
+        </Button>
       </form>
 
       {showDropdown && (
@@ -122,15 +122,16 @@ function HeaderSearch() {
               <ul className="header-search-popular">
                 {POPULAR_SEARCHES.map((term, index) => (
                   <li key={term}>
-                    <button
+                    <Button
                       type="button"
+                      variant="outline"
                       className={`header-search-popular-btn${activeIndex === index ? ' is-active' : ''}`}
                       onMouseDown={(event) => event.preventDefault()}
                       onClick={() => goToSearch(term)}
                     >
                       <Search size={14} aria-hidden="true" />
                       {term}
-                    </button>
+                    </Button>
                   </li>
                 ))}
               </ul>
@@ -162,28 +163,30 @@ function HeaderSearch() {
                   </li>
                 ))}
               </ul>
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 className="header-search-see-all"
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => goToSearch(query)}
               >
                 See all results for &quot;{query.trim()}&quot;
-              </button>
+              </Button>
             </div>
           )}
 
           {showNoResults && (
             <div className="header-search-section header-search-section--empty">
               <p>No products found for &quot;{query.trim()}&quot;</p>
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 className="header-search-see-all"
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => goToSearch(query)}
               >
                 Search anyway
-              </button>
+              </Button>
             </div>
           )}
         </div>

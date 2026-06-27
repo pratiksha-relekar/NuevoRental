@@ -1,6 +1,4 @@
 import { useRef } from 'react'
-import './SpotlightCard.css'
-
 function SpotlightCard({
   children,
   className = '',

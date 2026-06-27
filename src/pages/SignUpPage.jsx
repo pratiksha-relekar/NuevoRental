@@ -3,8 +3,15 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getAuthErrorMessage } from '../backend/firebase/auth'
 import GoogleAuthButton from '../components/GoogleAuthButton'
-import '../styles/pageAnimations.css'
-import './AuthPage.css'
+import AuthShell from '../components/AuthShell'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+const SIGNUP_FEATURES = [
+  'Create an account in under two minutes',
+  'Browse 100+ devices ready to rent',
+  'Corporate billing & KYC support built in',
+]
 
 function SignUpPage() {
   const navigate = useNavigate()
@@ -83,101 +90,121 @@ function SignUpPage() {
   }
 
   return (
-    <section className="page-section auth-page" aria-labelledby="signup-heading">
-      <div className="page-section-inner auth-page-inner">
-        <div className="auth-card page-animate-item">
-          <span className="page-eyebrow">Get Started</span>
-          <h1 id="signup-heading" className="page-title auth-title">
-            Create Your Account
-          </h1>
-          <p className="auth-lead">Join Nuevo Rental and start renting tech in minutes.</p>
+    <AuthShell
+      ariaLabelledBy="signup-heading"
+      brandEyebrow="Get Started"
+      brandTitle="Join thousands renting IT equipment"
+      brandLead="Create your account and unlock flexible rental plans for laptops, desktops, printers, and more — delivered to your door."
+      features={SIGNUP_FEATURES}
+      mobileTagline="Create your account"
+    >
+      <header className="auth-card-header">
+        <span className="page-eyebrow auth-card-eyebrow">New Account</span>
+        <h1 id="signup-heading" className="page-title auth-title">
+          Create Your Account
+        </h1>
+        <p className="auth-lead">Join Nuevo Rental and start renting tech in minutes.</p>
+      </header>
 
-          <form className="auth-form" onSubmit={handleSubmit} noValidate>
-            <div className="auth-field-group">
-              <div className="auth-field-row">
-                <label className="auth-field">
-                  <span>First Name</span>
-                  <input
-                    type="text"
-                    name="firstName"
-                    value={form.firstName}
-                    onChange={updateField('firstName')}
-                    placeholder="First name"
-                    autoComplete="given-name"
-                    disabled={loading}
-                  />
-                </label>
-                <label className="auth-field">
-                  <span>Last Name</span>
-                  <input
-                    type="text"
-                    name="lastName"
-                    value={form.lastName}
-                    onChange={updateField('lastName')}
-                    placeholder="Last name"
-                    autoComplete="family-name"
-                    disabled={loading}
-                  />
-                </label>
-              </div>
+      <form className="auth-form" onSubmit={handleSubmit} noValidate>
+        <div className="auth-field-group">
+          <div className="auth-field-row">
+            <div className="auth-field">
+              <Label htmlFor="signup-firstName">
+                <span>First Name</span>
+              </Label>
+              <Input
+                id="signup-firstName"
+                type="text"
+                name="firstName"
+                value={form.firstName}
+                onChange={updateField('firstName')}
+                placeholder="First name"
+                autoComplete="given-name"
+                disabled={loading}
+              />
             </div>
-
-            <label className="auth-field">
-              <span>Email</span>
-              <input
-                type="email"
-                name="email"
-                value={form.email}
-                onChange={updateField('email')}
-                placeholder="you@company.com"
-                autoComplete="email"
+            <div className="auth-field">
+              <Label htmlFor="signup-lastName">
+                <span>Last Name</span>
+              </Label>
+              <Input
+                id="signup-lastName"
+                type="text"
+                name="lastName"
+                value={form.lastName}
+                onChange={updateField('lastName')}
+                placeholder="Last name"
+                autoComplete="family-name"
                 disabled={loading}
               />
-            </label>
-
-            <label className="auth-field">
-              <span>Password</span>
-              <input
-                type="password"
-                name="password"
-                value={form.password}
-                onChange={updateField('password')}
-                placeholder="Create a password"
-                autoComplete="new-password"
-                disabled={loading}
-              />
-            </label>
-
-            <label className="auth-field">
-              <span>Confirm Password</span>
-              <input
-                type="password"
-                name="confirmPassword"
-                value={form.confirmPassword}
-                onChange={updateField('confirmPassword')}
-                placeholder="Confirm your password"
-                autoComplete="new-password"
-                disabled={loading}
-              />
-            </label>
-
-            {error && <p className="auth-error" role="alert">{error}</p>}
-
-            <button type="submit" className="auth-btn auth-btn--primary" disabled={loading}>
-              {loading ? 'Creating account…' : 'Sign Up'}
-            </button>
-          </form>
-
-          <div className="auth-divider">or</div>
-
-          <GoogleAuthButton onClick={handleGoogle} disabled={loading} />
-
-          <p className="auth-switch">
-            Already have an account? <Link to="/login">Login</Link>
-          </p>
+            </div>
+          </div>
         </div>
-      </div>
-    </section>
+
+        <div className="auth-field">
+          <Label htmlFor="signup-email">
+            <span>Email</span>
+          </Label>
+          <Input
+            id="signup-email"
+            type="email"
+            name="email"
+            value={form.email}
+            onChange={updateField('email')}
+            placeholder="you@company.com"
+            autoComplete="email"
+            disabled={loading}
+          />
+        </div>
+
+        <div className="auth-field">
+          <Label htmlFor="signup-password">
+            <span>Password</span>
+          </Label>
+          <Input
+            id="signup-password"
+            type="password"
+            name="password"
+            value={form.password}
+            onChange={updateField('password')}
+            placeholder="Create a password"
+            autoComplete="new-password"
+            disabled={loading}
+          />
+        </div>
+
+        <div className="auth-field">
+          <Label htmlFor="signup-confirmPassword">
+            <span>Confirm Password</span>
+          </Label>
+          <Input
+            id="signup-confirmPassword"
+            type="password"
+            name="confirmPassword"
+            value={form.confirmPassword}
+            onChange={updateField('confirmPassword')}
+            placeholder="Confirm your password"
+            autoComplete="new-password"
+            disabled={loading}
+          />
+        </div>
+
+        {error && <p className="auth-error" role="alert">{error}</p>}
+
+        <Button type="submit" variant="default" className="w-full" disabled={loading}>
+          {loading ? 'Creating account…' : 'Sign Up'}
+        </Button>
+      </form>
+
+      <div className="auth-divider">or</div>
+
+      <GoogleAuthButton onClick={handleGoogle} disabled={loading} />
+
+      <p className="auth-switch">
+        Already have an account? <Link to="/login">Login</Link>
+      </p>
+    </AuthShell>
   )
 }
 

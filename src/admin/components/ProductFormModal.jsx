@@ -7,8 +7,20 @@ import {
 } from '../../backend/storage/imageStorage'
 import { getProductImage } from '../../data/products'
 import { PROJECT_PLAN_OPTIONS } from '../../data/projectPlans'
-import './ProductFormModal.css'
-
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
 const CONDITIONS = ['New', 'Refurbished', 'Used – Good', 'Used – Like New']
 const STATUSES = ['active', 'inactive', 'draft']
 const MAX_GALLERY_IMAGES = 6
@@ -121,34 +133,37 @@ function ProductImageUpload({
         </div>
 
         <div className="admin-image-upload-actions">
-          <button
+          <Button
             type="button"
+            variant="outline"
             className="admin-image-upload-btn"
             disabled={uploading}
             onClick={() => deviceInputRef.current?.click()}
           >
             <Upload size={16} aria-hidden="true" />
             Upload from device
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="outline"
             className="admin-image-upload-btn admin-image-upload-btn--camera"
             disabled={uploading}
             onClick={() => cameraInputRef.current?.click()}
           >
             <Camera size={16} aria-hidden="true" />
             Take photo
-          </button>
+          </Button>
           {preview && (
-            <button
+            <Button
               type="button"
+              variant="outline"
               className="admin-image-upload-btn admin-image-upload-btn--danger"
               disabled={uploading}
               onClick={() => onPrimaryChange('')}
             >
               <Trash2 size={16} aria-hidden="true" />
               Remove primary
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -178,42 +193,46 @@ function ProductImageUpload({
       <div className="admin-image-gallery">
         <div className="admin-image-gallery-head">
           <span>Gallery images</span>
-          <button
+          <Button
             type="button"
+            variant="outline"
             className="admin-image-gallery-add"
             disabled={uploading || galleryImages.length >= MAX_GALLERY_IMAGES}
             onClick={() => galleryInputRef.current?.click()}
           >
             <ImagePlus size={14} aria-hidden="true" />
             Add more
-          </button>
+          </Button>
         </div>
 
         <div className="admin-image-gallery-grid">
           {galleryImages.map((image, index) => (
             <div key={`${isRemoteImageUrl(image) ? image : image.slice(0, 24)}-${index}`} className="admin-image-gallery-item">
               <img src={image} alt={`Gallery ${index + 1}`} />
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon-xs"
                 className="admin-image-gallery-remove"
                 aria-label={`Remove gallery image ${index + 1}`}
                 onClick={() => onGalleryChange(galleryImages.filter((_, itemIndex) => itemIndex !== index))}
               >
                 <X size={14} />
-              </button>
+              </Button>
             </div>
           ))}
 
           {galleryImages.length === 0 && (
-            <button
+            <Button
               type="button"
+              variant="outline"
               className="admin-image-gallery-empty"
               disabled={uploading}
               onClick={() => galleryInputRef.current?.click()}
             >
               <Upload size={18} aria-hidden="true" />
               <span>Add gallery photos</span>
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -268,8 +287,6 @@ export function ProductFormModal({ open, product, categories, onClose, onSave })
     setImageError('')
   }, [open, product, categories])
 
-  if (!open) return null
-
   const updateField = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }))
   }
@@ -290,43 +307,51 @@ export function ProductFormModal({ open, product, categories, onClose, onSave })
   }
 
   return (
-    <div className="admin-modal-root" role="presentation">
-      <button type="button" className="admin-modal-scrim" onClick={onClose} aria-label="Close modal" />
-      <div className="admin-modal-card admin-product-modal" role="dialog" aria-modal="true" aria-labelledby="product-modal-title">
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DialogContent
+        className="admin-modal-card admin-product-modal"
+        showCloseButton={false}
+        aria-labelledby="product-modal-title"
+      >
         <div className="admin-modal-header">
           <h2 id="product-modal-title">{product ? 'Edit product' : 'Add new product'}</h2>
-          <button type="button" className="admin-modal-close" onClick={onClose} aria-label="Close">
+          <Button type="button" variant="ghost" className="admin-modal-close" onClick={onClose} aria-label="Close">
             <X size={18} />
-          </button>
+          </Button>
         </div>
 
         <form className="admin-modal-form" onSubmit={handleSubmit}>
-          <label className="admin-modal-field admin-modal-field--full">
+          <Label className="admin-modal-field admin-modal-field--full">
             <span>Title</span>
-            <input
+            <Input
               type="text"
               value={form.title}
               onChange={(e) => updateField('title', e.target.value)}
               placeholder="e.g. Dell Latitude i7 Laptop on Rent"
               required
             />
-          </label>
+          </Label>
 
           <div className="admin-modal-row">
-            <label className="admin-modal-field">
+            <Label className="admin-modal-field">
               <span>Category</span>
-              <select value={form.category} onChange={(e) => updateField('category', e.target.value)}>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+              <Select value={form.category} onValueChange={(value) => updateField('category', value)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Label>
 
-            <label className="admin-modal-field">
+            <Label className="admin-modal-field">
               <span>Price (₹)</span>
-              <input
+              <Input
                 type="number"
                 min="0"
                 value={form.rentalPrice}
@@ -334,99 +359,114 @@ export function ProductFormModal({ open, product, categories, onClose, onSave })
                 placeholder="4200"
                 required
               />
-            </label>
+            </Label>
           </div>
 
           <div className="admin-modal-row">
-            <label className="admin-modal-field">
+            <Label className="admin-modal-field">
               <span>Original price (₹)</span>
-              <input
+              <Input
                 type="number"
                 min="0"
                 value={form.originalPrice}
                 onChange={(e) => updateField('originalPrice', e.target.value)}
                 placeholder="5000"
               />
-            </label>
+            </Label>
 
-            <label className="admin-modal-field">
+            <Label className="admin-modal-field">
               <span>Security deposit (₹)</span>
-              <input
+              <Input
                 type="number"
                 min="0"
                 value={form.securityDeposit}
                 onChange={(e) => updateField('securityDeposit', e.target.value)}
                 placeholder="0"
               />
-            </label>
+            </Label>
           </div>
 
           <div className="admin-modal-row">
-            <label className="admin-modal-field">
+            <Label className="admin-modal-field">
               <span>Base project plan</span>
-              <select value={form.period} onChange={(e) => updateField('period', e.target.value)}>
-                {PROJECT_PLAN_OPTIONS.map((plan) => (
-                  <option key={plan.value} value={plan.value}>
-                    {plan.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+              <Select value={form.period} onValueChange={(value) => updateField('period', value)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PROJECT_PLAN_OPTIONS.map((plan) => (
+                    <SelectItem key={plan.value} value={plan.value}>
+                      {plan.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Label>
 
-            <label className="admin-modal-field">
+            <Label className="admin-modal-field">
               <span>Condition</span>
-              <select value={form.condition} onChange={(e) => updateField('condition', e.target.value)}>
-                {CONDITIONS.map((condition) => (
-                  <option key={condition} value={condition}>
-                    {condition}
-                  </option>
-                ))}
-              </select>
-            </label>
+              <Select value={form.condition} onValueChange={(value) => updateField('condition', value)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CONDITIONS.map((condition) => (
+                    <SelectItem key={condition} value={condition}>
+                      {condition}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Label>
           </div>
 
           <div className="admin-modal-row">
-            <label className="admin-modal-field">
+            <Label className="admin-modal-field">
               <span>Status</span>
-              <select value={form.status} onChange={(e) => updateField('status', e.target.value)}>
-                {STATUSES.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
-            </label>
+              <Select value={form.status} onValueChange={(value) => updateField('status', value)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUSES.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Label>
           </div>
 
-          <label className="admin-modal-field admin-modal-field--full">
+          <Label className="admin-modal-field admin-modal-field--full">
             <span>Location</span>
-            <input
+            <Input
               type="text"
               value={form.location}
               onChange={(e) => updateField('location', e.target.value)}
               placeholder="e.g. Whitefield, Bengaluru"
             />
-          </label>
+          </Label>
 
-          <label className="admin-modal-field admin-modal-field--full">
+          <Label className="admin-modal-field admin-modal-field--full">
             <span>Description</span>
-            <textarea
+            <Textarea
               rows={3}
               value={form.description}
               onChange={(e) => updateField('description', e.target.value)}
               placeholder="Short product description for listing and detail page"
             />
-          </label>
+          </Label>
 
-          <label className="admin-modal-field admin-modal-field--full">
+          <Label className="admin-modal-field admin-modal-field--full">
             <span>Additional info</span>
-            <textarea
+            <Textarea
               rows={3}
               value={form.additionalInfo}
               onChange={(e) => updateField('additionalInfo', e.target.value)}
               placeholder="Warranty, delivery notes, accessories included, etc."
             />
-          </label>
+          </Label>
 
           <ProductImageUpload
             primaryImage={primaryImage}
@@ -439,22 +479,26 @@ export function ProductFormModal({ open, product, categories, onClose, onSave })
             onError={setImageError}
           />
 
-          {imageError && <p className="admin-image-upload-error" role="alert">{imageError}</p>}
+          {imageError && (
+            <Alert className="admin-image-upload-error">
+              <AlertDescription>{imageError}</AlertDescription>
+            </Alert>
+          )}
 
           <div className="admin-modal-row">
-            <label className="admin-modal-field">
+            <Label className="admin-modal-field">
               <span>Delivery days</span>
-              <input
+              <Input
                 type="number"
                 min="1"
                 value={form.deliveryDays}
                 onChange={(e) => updateField('deliveryDays', e.target.value)}
               />
-            </label>
+            </Label>
 
-            <label className="admin-modal-field">
+            <Label className="admin-modal-field">
               <span>Rating</span>
-              <input
+              <Input
                 type="number"
                 min="1"
                 max="5"
@@ -462,46 +506,43 @@ export function ProductFormModal({ open, product, categories, onClose, onSave })
                 value={form.rating}
                 onChange={(e) => updateField('rating', e.target.value)}
               />
-            </label>
+            </Label>
           </div>
 
           <div className="admin-modal-checks">
             <label className="admin-modal-check">
-              <input
-                type="checkbox"
+              <Checkbox
                 checked={form.featured}
-                onChange={(e) => updateField('featured', e.target.checked)}
+                onCheckedChange={(checked) => updateField('featured', checked === true)}
               />
               Featured
             </label>
             <label className="admin-modal-check">
-              <input
-                type="checkbox"
+              <Checkbox
                 checked={form.verified}
-                onChange={(e) => updateField('verified', e.target.checked)}
+                onCheckedChange={(checked) => updateField('verified', checked === true)}
               />
               Verified listing
             </label>
             <label className="admin-modal-check">
-              <input
-                type="checkbox"
+              <Checkbox
                 checked={form.refurbished}
-                onChange={(e) => updateField('refurbished', e.target.checked)}
+                onCheckedChange={(checked) => updateField('refurbished', checked === true)}
               />
               Refurbished
             </label>
           </div>
 
           <div className="admin-modal-footer">
-            <button type="button" className="admin-modal-btn admin-modal-btn--ghost" onClick={onClose}>
+            <Button type="button" variant="outline" className="admin-modal-btn admin-modal-btn--ghost" onClick={onClose}>
               Cancel
-            </button>
-            <button type="submit" className="admin-modal-btn admin-modal-btn--primary">
+            </Button>
+            <Button type="submit" className="admin-modal-btn admin-modal-btn--primary">
               {product ? 'Save changes' : 'Add product'}
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

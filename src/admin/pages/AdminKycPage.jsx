@@ -21,8 +21,19 @@ import {
 } from '../../data/kycStorage'
 import { formatKycStatus } from '../../data/userStorage'
 import { KycReviewModal } from '../components/KycReviewModal'
-import './AdminKycPage.css'
-
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 const FILTER_TABS = [
   { id: 'all', label: 'All users' },
   { id: 'in_review', label: 'Awaiting review' },
@@ -155,12 +166,14 @@ function AdminKycPage() {
             before confirming rental orders on Nuevo Rental.
           </p>
           {loadError && (
-            <p className="admin-kyc-load-error" role="alert">{loadError}</p>
+            <Alert className="admin-kyc-load-error">
+              <AlertDescription>{loadError}</AlertDescription>
+            </Alert>
           )}
         </div>
-        <button type="button" className="admin-kyc-refresh-btn" onClick={() => void refresh()} disabled={loading}>
+        <Button type="button" className="admin-kyc-refresh-btn" onClick={() => void refresh()} disabled={loading}>
           {loading ? 'Refreshing...' : 'Refresh queue'}
-        </button>
+        </Button>
       </header>
 
       <div className="admin-kyc-stat-grid">
@@ -184,22 +197,23 @@ function AdminKycPage() {
         </div>
 
         <div className="admin-kyc-toolbar">
-          <div className="admin-kyc-tabs">
-            {FILTER_TABS.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                className={`admin-kyc-tab${activeFilter === tab.id ? ' is-active' : ''}`}
-                onClick={() => setActiveFilter(tab.id)}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+          <Tabs value={activeFilter} onValueChange={setActiveFilter}>
+            <TabsList className="admin-kyc-tabs">
+              {FILTER_TABS.map((tab) => (
+                <TabsTrigger
+                  key={tab.id}
+                  value={tab.id}
+                  className={`admin-kyc-tab${activeFilter === tab.id ? ' is-active' : ''}`}
+                >
+                  {tab.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
 
           <label className="admin-kyc-search">
             <Search size={16} aria-hidden="true" />
-            <input
+            <Input
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -209,25 +223,25 @@ function AdminKycPage() {
         </div>
 
         <div className="admin-kyc-table-wrap">
-          <table className="admin-kyc-table">
-            <thead>
-              <tr>
-                <th>Customer</th>
-                <th>Documents</th>
-                <th>OCR details</th>
-                <th>Orders</th>
-                <th>KYC status</th>
-                <th>Submitted</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table className="admin-kyc-table">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Customer</TableHead>
+                <TableHead>Documents</TableHead>
+                <TableHead>OCR details</TableHead>
+                <TableHead>Orders</TableHead>
+                <TableHead>KYC status</TableHead>
+                <TableHead>Submitted</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {filteredUsers.map((user) => (
-                <tr
+                <TableRow
                   key={user.email}
                   className={user.needsReview ? 'is-review-priority' : ''}
                 >
-                  <td>
+                  <TableCell>
                     <div className="admin-kyc-user-cell">
                       <span className="admin-kyc-avatar" aria-hidden="true">
                         {user.initials}
@@ -244,8 +258,8 @@ function AdminKycPage() {
                         {user.phone && <em className="admin-kyc-user-phone">{user.phone}</em>}
                       </div>
                     </div>
-                  </td>
-                  <td>
+                  </TableCell>
+                  <TableCell>
                     <div className="admin-kyc-docs-cell">
                       <span className={user.kyc.documents.hasAadhaar ? 'is-uploaded' : ''}>
                         <FileImage size={13} aria-hidden="true" />
@@ -256,8 +270,8 @@ function AdminKycPage() {
                         PAN {user.kyc.documents.hasPan ? '✓' : '—'}
                       </span>
                     </div>
-                  </td>
-                  <td>
+                  </TableCell>
+                  <TableCell>
                     {user.kyc.ocrData ? (
                       <div className="admin-kyc-ocr-cell">
                         <strong>{user.kyc.ocrData.name || '—'}</strong>
@@ -267,8 +281,8 @@ function AdminKycPage() {
                     ) : (
                       <em className="admin-kyc-muted">Not extracted</em>
                     )}
-                  </td>
-                  <td>
+                  </TableCell>
+                  <TableCell>
                     <div className="admin-kyc-orders-cell">
                       <strong>{user.orderCount}</strong>
                       {user.pendingOrderCount > 0 && (
@@ -277,49 +291,50 @@ function AdminKycPage() {
                         </span>
                       )}
                     </div>
-                  </td>
-                  <td>
-                    <span className={`admin-kyc-status admin-kyc-status--${user.kycStatus}`}>
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={`admin-kyc-status admin-kyc-status--${user.kycStatus}`}>
                       <ShieldCheck size={12} aria-hidden="true" />
                       {formatKycStatus(user.kycStatus)}
-                    </span>
-                  </td>
-                  <td>{user.kyc.submittedLabel}</td>
-                  <td>
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{user.kyc.submittedLabel}</TableCell>
+                  <TableCell>
                     <div className="admin-kyc-actions-cell">
-                      <button
+                      <Button
                         type="button"
                         className="admin-kyc-review-btn"
                         onClick={() => void openReview(user)}
                       >
                         <Eye size={15} aria-hidden="true" />
                         Review
-                      </button>
+                      </Button>
                       {user.canReview && (
                         <>
-                          <button
+                          <Button
                             type="button"
                             className="admin-kyc-quick-btn admin-kyc-quick-btn--approve"
                             onClick={() => void handleApprove(user)}
                             disabled={!user.hasDocuments}
                           >
                             Approve
-                          </button>
-                          <button
+                          </Button>
+                          <Button
                             type="button"
+                            variant="outline"
                             className="admin-kyc-quick-btn admin-kyc-quick-btn--reject"
                             onClick={() => void handleReject(user)}
                           >
                             Reject
-                          </button>
+                          </Button>
                         </>
                       )}
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
 
           {!loading && filteredUsers.length === 0 && (
             <p className="admin-kyc-empty">No users match your search or filter.</p>
@@ -343,19 +358,19 @@ function AdminKycPage() {
                     <span className="admin-kyc-user-email">{user.email}</span>
                   </div>
                 </div>
-                <span className={`admin-kyc-status admin-kyc-status--${user.kycStatus}`}>
+                <Badge className={`admin-kyc-status admin-kyc-status--${user.kycStatus}`}>
                   {formatKycStatus(user.kycStatus)}
-                </span>
+                </Badge>
               </div>
               <div className="admin-kyc-card-meta">
                 <span>{user.kyc.documents.hasAadhaar && user.kyc.documents.hasPan ? 'Docs uploaded' : 'Docs incomplete'}</span>
                 <span>{user.orderCount} orders</span>
                 {user.pendingOrderCount > 0 && <span>{user.pendingOrderCount} pending</span>}
               </div>
-              <button type="button" className="admin-kyc-review-btn" onClick={() => openReview(user)}>
+              <Button type="button" className="admin-kyc-review-btn" onClick={() => openReview(user)}>
                 <Eye size={15} aria-hidden="true" />
                 Review KYC
-              </button>
+              </Button>
             </motion.article>
           ))}
         </div>

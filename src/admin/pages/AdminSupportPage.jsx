@@ -23,8 +23,11 @@ import {
   updateSupportRequestStatus,
 } from '../../data/supportStorage'
 import { SupportRequestDetailModal } from '../components/SupportRequestDetailModal'
-import './AdminSupportPage.css'
-
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 const FILTER_TABS = [
   { id: 'all', label: 'All requests' },
   { id: 'open', label: 'Open' },
@@ -205,7 +208,9 @@ function AdminSupportPage() {
             tickets from the Nuevo Rental website.
           </p>
           {loadError && (
-            <p className="admin-support-load-error" role="alert">{loadError}</p>
+            <Alert className="admin-support-load-error">
+              <AlertDescription>{loadError}</AlertDescription>
+            </Alert>
           )}
         </div>
       </header>
@@ -217,25 +222,25 @@ function AdminSupportPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div className="admin-support-alert-copy">
+          <Alert className="admin-support-alert-copy border-0 bg-transparent p-0 shadow-none">
             <AlertCircle size={22} aria-hidden="true" />
             <div>
-              <strong>
+              <AlertTitle>
                 {stats.urgent} urgent support request{stats.urgent === 1 ? '' : 's'} need attention
-              </strong>
-              <p>
+              </AlertTitle>
+              <AlertDescription>
                 Technical support and delivery inquiries are waiting for a callback. Review details
                 and contact customers directly from each ticket.
-              </p>
+              </AlertDescription>
             </div>
-          </div>
-          <button
+          </Alert>
+          <Button
             type="button"
             className="admin-support-alert-btn"
             onClick={() => setActiveFilter('open')}
           >
             View open tickets
-          </button>
+          </Button>
         </motion.aside>
       )}
 
@@ -262,22 +267,23 @@ function AdminSupportPage() {
         </div>
 
         <div className="admin-support-toolbar">
-          <div className="admin-support-tabs">
-            {FILTER_TABS.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                className={`admin-support-tab${activeFilter === tab.id ? ' is-active' : ''}`}
-                onClick={() => setActiveFilter(tab.id)}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+          <Tabs value={activeFilter} onValueChange={setActiveFilter}>
+            <TabsList className="admin-support-tabs">
+              {FILTER_TABS.map((tab) => (
+                <TabsTrigger
+                  key={tab.id}
+                  value={tab.id}
+                  className={`admin-support-tab${activeFilter === tab.id ? ' is-active' : ''}`}
+                >
+                  {tab.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
 
           <label className="admin-support-search">
             <Search size={16} aria-hidden="true" />
-            <input
+            <Input
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -307,15 +313,15 @@ function AdminSupportPage() {
                     <p>{request.email}</p>
                   </div>
                 </div>
-                <span className={`admin-support-status admin-support-status--${request.status}`}>
+                <Badge className={`admin-support-status admin-support-status--${request.status}`}>
                   {request.statusLabel}
-                </span>
+                </Badge>
               </div>
 
               <div className="admin-support-card-meta">
-                <span className={`admin-support-topic admin-support-topic--${request.topic}`}>
+                <Badge className={`admin-support-topic admin-support-topic--${request.topic}`}>
                   {request.topicLabel}
-                </span>
+                </Badge>
                 <span>{request.createdLabel}</span>
                 {request.isRegisteredUser && (
                   <span className="admin-support-registered">Registered · {request.userOrderCount} orders</span>
@@ -340,14 +346,14 @@ function AdminSupportPage() {
                   )}
                 </div>
 
-                <button
+                <Button
                   type="button"
                   className="admin-support-view-btn"
                   onClick={() => openRequest(request)}
                 >
                   <Eye size={16} aria-hidden="true" />
                   View details
-                </button>
+                </Button>
               </div>
             </motion.article>
           ))}

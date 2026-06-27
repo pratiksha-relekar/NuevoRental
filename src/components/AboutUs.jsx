@@ -1,8 +1,6 @@
-import { Link } from 'react-router-dom'
+import { LinkButton } from '@/components/ui/link-button'
 import SpotlightCard from './SpotlightCard'
 import Strands from './Strands'
-import './AboutUs.css'
-
 const STATS = [
   { value: '10+', label: 'Years of Trust' },
   { value: '500+', label: 'Business Clients' },
@@ -257,9 +255,9 @@ function AboutUs() {
               </ul>
             </div>
 
-            <Link to="/rent-products" className="about-cta-btn">
+            <LinkButton to="/rent-products" variant="default" className="about-cta-btn">
               Explore Rental Products
-            </Link>
+            </LinkButton>
           </div>
         </section>
 
@@ -385,12 +383,12 @@ function AboutUs() {
             To be India&apos;s most trusted electronics rental platform.
           </p>
           <div className="about-promise-actions">
-            <Link to="/contact" className="about-cta-btn about-cta-btn--primary">
+            <LinkButton to="/contact" variant="default" className="about-cta-btn about-cta-btn--primary">
               Get in Touch
-            </Link>
-            <Link to="/corporate" className="about-cta-btn about-cta-btn--ghost">
+            </LinkButton>
+            <LinkButton to="/corporate" variant="outline" className="about-cta-btn about-cta-btn--ghost">
               Corporate Rentals
-            </Link>
+            </LinkButton>
           </div>
         </SpotlightCard>
       </div>
