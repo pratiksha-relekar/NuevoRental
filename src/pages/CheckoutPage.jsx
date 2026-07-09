@@ -247,6 +247,7 @@ function CheckoutPage() {
 
               <Button
                 type="button"
+                variant="outline"
                 className="checkout-location-btn"
                 onClick={handleUseCurrentLocation}
                 disabled={locationLoading}

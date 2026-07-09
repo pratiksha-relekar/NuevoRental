@@ -22,11 +22,13 @@ import {
   AdminOutlineButton,
   AdminPrimaryButton,
   AdminStatusBadge,
+  adminDialogContentXWideClass,
 } from './admin-ui'
 
+const sectionClass = 'min-w-0 border border-[#e5e5e5] bg-[#fafafa] p-4'
 const sectionTitleClass = 'mb-3 flex items-center gap-2 text-[11px] font-semibold tracking-wide text-[#666] uppercase'
 const dtClass = 'text-[10px] font-semibold tracking-wide text-[#888] uppercase'
-const ddClass = 'text-sm text-[#1a1a1a]'
+const ddClass = 'mt-1 text-sm leading-relaxed text-[#1a1a1a] break-words [overflow-wrap:anywhere]'
 
 function getKycStatusTone(status) {
   if (status === 'approved') return 'success'
@@ -73,7 +75,7 @@ export function KycReviewModal({ user, loading = false, onClose, onApprove, onRe
   return (
     <Dialog open onOpenChange={(v) => !v && onClose()}>
       <DialogContent
-        className="max-h-[min(92vh,900px)] max-w-[980px] gap-0 overflow-auto rounded-none border-[#d8d8d8] p-0"
+        className={adminDialogContentXWideClass}
         showCloseButton={false}
         aria-labelledby="kyc-review-title"
       >
@@ -131,13 +133,13 @@ export function KycReviewModal({ user, loading = false, onClose, onApprove, onRe
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-4 px-6 py-4 max-lg:grid-cols-1">
+        <div className="grid grid-cols-1 gap-4 px-6 py-4 lg:grid-cols-2">
           <section className={sectionClass}>
             <h3 className={sectionTitleClass}>
               <User size={16} aria-hidden="true" />
               Customer profile
             </h3>
-            <dl className="grid grid-cols-2 gap-2.5 max-sm:grid-cols-1">
+            <dl className="grid grid-cols-1 gap-3">
               <div>
                 <dt className={dtClass}>Phone</dt>
                 <dd className={ddClass}>{user.phone || 'Not provided'}</dd>
@@ -180,7 +182,7 @@ export function KycReviewModal({ user, loading = false, onClose, onApprove, onRe
               OCR extracted details
             </h3>
             {kyc.ocrData ? (
-              <dl className="grid grid-cols-2 gap-2.5 max-sm:grid-cols-1">
+              <dl className="grid grid-cols-1 gap-3">
                 <div>
                   <dt className={dtClass}>Name on ID</dt>
                   <dd className={ddClass}>{kyc.ocrData.name || '—'}</dd>

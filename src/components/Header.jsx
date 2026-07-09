@@ -21,7 +21,7 @@ const LOCATIONS = [
 ]
 
 const SHOP_LINKS = [
-  { label: 'All Rentals', to: '/rent-products' },
+  { label: 'All Rentals', to: '/rent-products?category=all' },
   { label: 'Laptops', to: '/rent-products?category=laptops' },
   { label: 'Desktops', to: '/rent-products?category=desktops' },
   { label: 'Mobile Phones', to: '/rent-products?category=mobiles' },
@@ -46,7 +46,7 @@ const NAV_ITEMS = [
   { type: 'link', label: 'Find Store', to: '/locations' },
   { type: 'dropdown', id: 'whats-new', label: "What's New", links: WHATS_NEW_LINKS },
   { type: 'link', label: 'Special Offer', to: '/pricing', icon: 'bolt' },
-  { type: 'link', label: 'All Products', to: '/rent-products' },
+  { type: 'link', label: 'All Products', to: '/rent-products?category=all' },
   { type: 'link', label: 'Contact Us', to: '/contact' },
 ]
 
@@ -55,7 +55,7 @@ const NAV_DROPDOWN_IDS = new Set(['shop', 'super-deals', 'whats-new'])
 function getMenuLinks(menuId) {
   if (menuId === 'categories') {
     return [
-      { label: 'All Products', to: '/rent-products' },
+      { label: 'All Products', to: '/rent-products?category=all' },
       ...CATEGORIES.map((c) => ({ label: c.label, to: `/rent-products?category=${c.id}` })),
     ]
   }
@@ -510,7 +510,7 @@ function Header() {
               {!isMobile && openMenu === 'categories' && (
                 <ul className="header-dropdown-menu header-dropdown-menu--desktop header-categories-menu">
                   <li>
-                    <Link to="/rent-products" onClick={closeMenus}>All Products</Link>
+                    <Link to="/rent-products?category=all" onClick={closeMenus}>All Products</Link>
                   </li>
                   {CATEGORIES.map((category) => (
                     <li key={category.id}>

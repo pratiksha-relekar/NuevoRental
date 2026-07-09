@@ -137,6 +137,7 @@ function OrdersPage() {
                 <div className="orders-card-actions">
                   <Button
                     type="button"
+                    variant="outline"
                     className="orders-invoice-btn"
                     onClick={() => setSelectedInvoice(buildInvoiceFromOrder(order))}
                   >
@@ -151,7 +152,7 @@ function OrdersPage() {
 
         {orders.length > 0 && (
           <div className="orders-footer-actions page-animate-item">
-            <LinkButton to="/rent-products">
+            <LinkButton to="/rent-products" variant="default" className="bag-btn bag-btn--primary">
               <Package size={16} aria-hidden="true" />
               Rent More Products
             </LinkButton>

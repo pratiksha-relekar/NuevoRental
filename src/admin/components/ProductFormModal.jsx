@@ -26,6 +26,7 @@ import {
   AdminIconButton,
   AdminOutlineButton,
   AdminPrimaryButton,
+  adminDialogContentClass,
   adminInputClass,
   adminSelectTriggerClass,
 } from './admin-ui'
@@ -322,7 +323,7 @@ export function ProductFormModal({ open, product, categories, onClose, onSave })
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent
-        className="max-h-[min(90vh,860px)] max-w-[640px] gap-0 overflow-auto rounded-none border-[#d8d8d8] p-0"
+        className={adminDialogContentClass}
         showCloseButton={false}
         aria-labelledby="product-modal-title"
       >

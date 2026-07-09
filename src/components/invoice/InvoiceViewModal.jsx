@@ -4,11 +4,14 @@ import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { cn } from '@/lib/utils'
 import { InvoiceDocument } from './InvoiceDocument'
 import { downloadInvoicePdf } from '../../utils/downloadInvoicePdf'
+
+const invoiceDialogClass =
+  'invoice-view-modal max-h-[min(94vh,920px)] w-[min(calc(100vw-2rem),980px)] max-w-[980px] gap-0 overflow-auto rounded-[18px] border border-[#e8edf2] bg-[#eef2f7] p-[18px] sm:max-w-[980px]'
 export function InvoiceViewModal({ invoice, onClose }) {
   const invoiceRef = useRef(null)
   const [isDownloading, setIsDownloading] = useState(false)
@@ -32,13 +35,15 @@ export function InvoiceViewModal({ invoice, onClose }) {
   return (
     <Dialog open={Boolean(invoice)} onOpenChange={(nextOpen) => { if (!nextOpen) onClose() }}>
       <DialogContent
-        className="invoice-view-modal"
+        className={cn(invoiceDialogClass, 'grid-cols-1')}
         showCloseButton={false}
       >
-        <DialogHeader className="invoice-view-modal-toolbar">
+        <div className="invoice-view-modal-toolbar">
           <div>
             <span className="invoice-view-modal-eyebrow">{invoice.orderId}</span>
-            <DialogTitle id="invoice-view-title">{invoice.id}</DialogTitle>
+            <DialogTitle id="invoice-view-title" className="text-xl font-bold text-[#1a2744]">
+              {invoice.id}
+            </DialogTitle>
           </div>
 
           <div className="invoice-view-modal-actions">
@@ -62,7 +67,7 @@ export function InvoiceViewModal({ invoice, onClose }) {
               <X size={18} />
             </Button>
           </div>
-        </DialogHeader>
+        </div>
 
         {downloadError && (
           <p className="invoice-view-modal-error" role="alert">{downloadError}</p>

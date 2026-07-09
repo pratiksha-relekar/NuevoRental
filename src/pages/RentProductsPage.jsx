@@ -64,13 +64,16 @@ function RentProductsPage() {
 
   const [filters, setFilters] = useState(() => ({
     ...DEFAULT_FILTERS,
-    category: categoryFromUrl && categoryFromUrl !== 'all' ? categoryFromUrl : 'all',
+    category:
+      categoryFromUrl && categoryFromUrl !== 'all' ? categoryFromUrl : DEFAULT_FILTERS.category,
   }))
 
   useEffect(() => {
-    if (categoryFromUrl) {
-      setFilters((prev) => ({ ...prev, category: categoryFromUrl }))
-    }
+    setFilters((prev) => ({
+      ...prev,
+      category:
+        categoryFromUrl && categoryFromUrl !== 'all' ? categoryFromUrl : DEFAULT_FILTERS.category,
+    }))
   }, [categoryFromUrl])
 
   const filteredProducts = useMemo(() => {

@@ -19,6 +19,7 @@ import {
   AdminIconButton,
   AdminOutlineButton,
   AdminPrimaryButton,
+  adminDialogContentWideClass,
   adminInputClass,
   adminSelectTriggerClass,
 } from './admin-ui'
@@ -313,7 +314,7 @@ export function WeeklyOfferFormModal({ deal, products, categories, onClose, onSa
   return (
     <Dialog open onOpenChange={(v) => !v && onClose()}>
       <DialogContent
-        className="max-h-[min(92vh,900px)] max-w-[760px] gap-0 overflow-auto rounded-none border-[#d8d8d8] p-0"
+        className={adminDialogContentWideClass}
         showCloseButton={false}
         aria-labelledby="weekly-offer-form-title"
       >

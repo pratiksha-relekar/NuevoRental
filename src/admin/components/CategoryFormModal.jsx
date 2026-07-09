@@ -10,6 +10,7 @@ import {
   AdminIconButton,
   AdminOutlineButton,
   AdminPrimaryButton,
+  adminDialogContentClass,
   adminInputClass,
 } from './admin-ui'
 
@@ -44,7 +45,7 @@ export function CategoryFormModal({ open, category, onClose, onSave }) {
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent
-        className="max-w-[640px] gap-0 rounded-none border-[#d8d8d8] p-0"
+        className={adminDialogContentClass}
         showCloseButton={false}
         aria-labelledby="category-modal-title"
       >

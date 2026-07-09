@@ -212,10 +212,19 @@ function CartPage() {
               </p>
 
               <div className="bag-summary-actions">
-                <Button type="button" variant="outline" className="w-full" onClick={clearCart}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="bag-btn bag-btn--outline bag-btn--block"
+                  onClick={clearCart}
+                >
                   Clear Cart
                 </Button>
-                <LinkButton to="/checkout" className="w-full">
+                <LinkButton
+                  to="/checkout"
+                  variant="default"
+                  className="bag-btn bag-btn--primary bag-btn--block"
+                >
                   Proceed to Checkout
                 </LinkButton>
               </div>

@@ -108,14 +108,23 @@
   box-sizing: border-box;
 }
 
+html {
+  overflow-x: clip;
+  max-width: 100%;
+}
+
 body {
   margin: 0;
   padding: 0;
+  overflow-x: clip;
+  max-width: 100%;
 }
 
 #root {
   width: 100%;
   min-height: 100svh;
+  overflow-x: clip;
+  max-width: 100%;
 }
 
 a {
@@ -128,6 +137,8 @@ button {
 
 img {
   display: block;
+  max-width: 100%;
+  height: auto;
 }
 
 h1,
@@ -188,10 +199,15 @@ h6 {
 @layer components {
   .app {
     @apply flex min-h-svh w-full flex-col bg-white;
+    overflow-x: clip;
+    min-width: 0;
+    max-width: 100%;
   }
 
   .app > main {
     @apply flex-1 w-full;
+    min-width: 0;
+    max-width: 100%;
   }
 
   .page-section {
@@ -291,6 +307,14 @@ h6 {
 @media (max-width: 768px) {
   .page-section {
     padding: 40px 16px 64px;
+  }
+
+  .header-nav-link[data-slot='button'],
+  .header-categories-btn[data-slot='button'],
+  .pdp-duration-trigger[data-slot='button'],
+  .bag-summary-actions [data-slot='button'] {
+    white-space: normal;
+    text-align: center;
   }
 }
 

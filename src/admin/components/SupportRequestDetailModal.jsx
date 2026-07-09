@@ -25,6 +25,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import {
   AdminIconButton,
+  adminDialogContentWideClass,
   adminInputClass,
   adminSelectTriggerClass,
   AdminStatusBadge,
@@ -50,7 +51,7 @@ export function SupportRequestDetailModal({ request, onClose, onStatusChange, on
   return (
     <Dialog open onOpenChange={(v) => !v && onClose()}>
       <DialogContent
-        className="max-h-[min(92vh,860px)] max-w-[760px] gap-0 overflow-auto rounded-none border-[#d8d8d8] p-0"
+        className={adminDialogContentWideClass}
         showCloseButton={false}
         aria-labelledby="support-detail-title"
       >

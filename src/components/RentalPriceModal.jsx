@@ -1,21 +1,47 @@
+import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { motion } from 'motion/react'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+
 function RentalPriceModal({ open, plans, selectedPlanId, onSelect, onClose }) {
-  return (
-    <Dialog open={open} onOpenChange={(nextOpen) => { if (!nextOpen) onClose() }}>
-      <DialogContent
-        className="rental-price-modal"
-        showCloseButton={false}
-      >
-        <DialogHeader className="rental-price-modal-header">
-          <DialogTitle id="rental-price-modal-title">Select Project Plan</DialogTitle>
+  useEffect(() => {
+    if (!open) return undefined
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') onClose()
+    }
+
+    document.addEventListener('keydown', handleEscape)
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [open, onClose])
+
+  if (!open) return null
+
+  return createPortal(
+    <div
+      className="rental-price-modal-root"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="rental-price-modal-title"
+    >
+      <button
+        type="button"
+        className="rental-price-modal-backdrop"
+        aria-label="Close plan selector"
+        onClick={onClose}
+      />
+
+      <div className="rental-price-modal">
+        <div className="rental-price-modal-header">
+          <h2 id="rental-price-modal-title">Select Project Plan</h2>
           <Button
             type="button"
             variant="outline"
@@ -25,7 +51,7 @@ function RentalPriceModal({ open, plans, selectedPlanId, onSelect, onClose }) {
           >
             <X size={22} />
           </Button>
-        </DialogHeader>
+        </div>
 
         <div className="rental-price-modal-grid">
           {plans.map((plan, index) => {
@@ -56,8 +82,9 @@ function RentalPriceModal({ open, plans, selectedPlanId, onSelect, onClose }) {
             )
           })}
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>,
+    document.body,
   )
 }
 

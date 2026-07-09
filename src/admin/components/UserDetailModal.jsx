@@ -4,7 +4,7 @@ import { FileImage, ShieldCheck, X } from 'lucide-react'
 import { buildKycDetail, getKycDocumentPreview, loadAdminKycUserDetail } from '../../data/kycStorage'
 import { formatKycStatus } from '../../data/userStorage'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
-import { AdminIconButton } from './admin-ui'
+import { AdminIconButton, adminDialogContentWideClass } from './admin-ui'
 
 const labelClass = 'text-[11px] font-semibold tracking-wide text-[#444] uppercase'
 const dtClass = 'text-[10px] font-semibold tracking-wide text-[#888] uppercase'
@@ -64,7 +64,7 @@ export function UserDetailModal({ user, onClose }) {
   return (
     <Dialog open onOpenChange={(v) => !v && onClose()}>
       <DialogContent
-        className="max-h-[min(92vh,860px)] max-w-[760px] gap-0 overflow-auto rounded-none border-[#d8d8d8] p-0"
+        className={adminDialogContentWideClass}
         showCloseButton={false}
         aria-labelledby="user-detail-title"
       >
@@ -123,7 +123,7 @@ export function UserDetailModal({ user, onClose }) {
           </div>
         </div>
 
-        <section className="border-t border-[#e5e5e5] px-6 py-4">
+        <section className="border-t border-[#e5e5e5] px-6 py-5 pb-6">
           <div className="mb-4 flex items-center justify-between gap-3">
             <h3 className="flex items-center gap-2 text-[11px] font-semibold tracking-wide text-[#666] uppercase">
               <ShieldCheck size={16} aria-hidden="true" />
@@ -180,7 +180,7 @@ export function UserDetailModal({ user, onClose }) {
         </section>
 
         {user.aboutMe && (
-          <div className="border-t border-[#e5e5e5] px-6 py-4">
+          <div className="border-t border-[#e5e5e5] px-6 py-5 pb-6">
             <span className={labelClass}>About</span>
             <p className="mt-2 text-sm leading-relaxed text-[#444]">{user.aboutMe}</p>
           </div>

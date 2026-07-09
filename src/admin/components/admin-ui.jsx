@@ -24,6 +24,15 @@ export const adminIconBtnDangerClass = ''
 
 export const adminPanelClass = 'border border-[#e5e5e5] bg-white'
 
+export const adminDialogContentClass =
+  'max-h-[min(92vh,860px)] w-[min(calc(100vw-2rem),720px)] max-w-[720px] gap-0 overflow-auto rounded-none border-[#d8d8d8] p-0 sm:max-w-[720px]'
+
+export const adminDialogContentWideClass =
+  'max-h-[min(92vh,860px)] w-[min(calc(100vw-2rem),760px)] max-w-[760px] gap-0 overflow-auto rounded-none border-[#d8d8d8] p-0 sm:max-w-[760px]'
+
+export const adminDialogContentXWideClass =
+  'max-h-[min(92vh,900px)] w-[min(calc(100vw-2rem),980px)] max-w-[980px] gap-0 overflow-auto rounded-none border-[#d8d8d8] p-0 sm:max-w-[980px]'
+
 export const adminTableWrapClass = 'overflow-x-auto border-t border-[#e5e5e5]'
 
 export const adminTableClass =

@@ -27,17 +27,18 @@ import {
 import { cn } from '@/lib/utils'
 import {
   AdminIconButton,
+  adminDialogContentXWideClass,
   adminSelectTriggerClass,
   AdminStatusBadge,
 } from './admin-ui'
 
 const labelClass = 'text-[11px] font-semibold tracking-wide text-[#444] uppercase'
 
-const sectionClass = 'border border-[#e5e5e5] bg-[#fafafa] p-4'
+const sectionClass = 'min-w-0 border border-[#e5e5e5] bg-[#fafafa] p-4'
 const sectionTitleClass = 'mb-3 flex items-center gap-2 text-[11px] font-semibold tracking-wide text-[#666] uppercase'
-const dlClass = 'grid grid-cols-2 gap-2.5 max-md:grid-cols-1'
+const dlClass = 'grid grid-cols-1 gap-3'
 const dtClass = 'text-[10px] font-semibold tracking-wide text-[#888] uppercase'
-const ddClass = 'text-sm text-[#1a1a1a]'
+const ddClass = 'mt-1 text-sm leading-relaxed text-[#1a1a1a] break-words [overflow-wrap:anywhere]'
 
 function getOrderStatusTone(status) {
   if (status === 'placed' || status === 'confirmed') return 'warning'
@@ -75,7 +76,7 @@ export function OrderDetailModal({ order, onClose, onStatusChange }) {
   return (
     <Dialog open onOpenChange={(v) => !v && onClose()}>
       <DialogContent
-        className="max-h-[min(92vh,900px)] max-w-[980px] gap-0 overflow-auto rounded-none border-[#d8d8d8] p-0"
+        className={adminDialogContentXWideClass}
         showCloseButton={false}
         aria-labelledby="order-detail-title"
       >
@@ -95,7 +96,7 @@ export function OrderDetailModal({ order, onClose, onStatusChange }) {
                 <h2 id="order-detail-title" className="text-lg font-bold text-[#1a1a1a]">
                   {order.customerName}
                 </h2>
-                <p className="text-sm text-[#888]">{order.userEmail}</p>
+                <p className="break-words text-sm text-[#888] [overflow-wrap:anywhere]">{order.userEmail}</p>
               </div>
             </div>
           </div>
@@ -123,8 +124,8 @@ export function OrderDetailModal({ order, onClose, onStatusChange }) {
           </AdminStatusBadge>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 px-6 py-4 max-md:grid-cols-1">
-          <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-1 gap-4 px-6 py-4 lg:grid-cols-2">
+          <div className="flex min-w-0 flex-col gap-4">
             <DetailSection title="Customer profile" icon={User}>
               <dl className={dlClass}>
                 <div>
@@ -249,7 +250,7 @@ export function OrderDetailModal({ order, onClose, onStatusChange }) {
             </DetailSection>
           </div>
 
-          <div className="flex flex-col gap-4">
+          <div className="flex min-w-0 flex-col gap-4">
             <DetailSection title="Delivery & schedule" icon={Truck}>
               <dl className={dlClass}>
                 <div>
