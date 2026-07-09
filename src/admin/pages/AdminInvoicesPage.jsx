@@ -276,9 +276,9 @@ function AdminInvoicesPage() {
       />
 
       <AdminPanel>
-        <div className="flex flex-col gap-3 border-b border-[#e5e5e5] p-4 lg:flex-row lg:items-center lg:justify-between">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <AdminTabsList className="flex-wrap">
+        <div className="flex flex-col gap-4 border-b border-[#e5e5e5] p-4 lg:flex-row lg:items-center lg:justify-between">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="min-w-0 w-full lg:w-auto">
+            <AdminTabsList className="admin-invoices-tabs w-full max-lg:overflow-x-auto max-lg:flex-nowrap max-lg:[-webkit-overflow-scrolling:touch] lg:flex-wrap">
               {STATUS_TABS.map((tab) => (
                 <AdminTabTrigger key={tab.id} value={tab.id} count={tabCount(tab.id)}>
                   {tab.label}
@@ -287,7 +287,7 @@ function AdminInvoicesPage() {
             </AdminTabsList>
           </Tabs>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex w-full shrink-0 flex-wrap items-center gap-2 lg:w-auto lg:justify-end">
             <Label className="inline-flex items-center gap-2 text-xs font-semibold tracking-wide text-[#666] uppercase">
               <ArrowDownUp size={14} aria-hidden="true" />
               <Select value={sortBy} onValueChange={setSortBy}>

@@ -67,6 +67,9 @@ function DetailSection({ title, icon: Icon, children }) {
   )
 }
 
+const orderDetailOverlayClass =
+  'z-[1300] bg-slate-900/55 backdrop-blur-none supports-backdrop-filter:backdrop-blur-none'
+
 export function OrderDetailModal({ order, onClose, onStatusChange }) {
   if (!order) return null
 
@@ -76,7 +79,8 @@ export function OrderDetailModal({ order, onClose, onStatusChange }) {
   return (
     <Dialog open onOpenChange={(v) => !v && onClose()}>
       <DialogContent
-        className={adminDialogContentXWideClass}
+        className={cn(adminDialogContentXWideClass, 'order-detail-modal')}
+        overlayClassName={orderDetailOverlayClass}
         showCloseButton={false}
         aria-labelledby="order-detail-title"
       >
@@ -407,7 +411,13 @@ export function OrderDetailModal({ order, onClose, onStatusChange }) {
                   <SelectTrigger className={cn(adminSelectTriggerClass, 'w-full')}>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent
+                    side="top"
+                    sideOffset={8}
+                    align="start"
+                    positionerClassName="z-[1400]"
+                    className="order-detail-status-select max-h-[min(280px,45svh)] rounded-none border-[#ddd] bg-white shadow-[0_12px_32px_rgba(0,0,0,0.16)]"
+                  >
                     {ADMIN_ORDER_STATUS_OPTIONS.map((status) => (
                       <SelectItem key={status} value={status}>
                         {ADMIN_ORDER_STATUS_LABELS[status]}

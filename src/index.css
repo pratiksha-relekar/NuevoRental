@@ -313,7 +313,7 @@ h6 {
   .header-categories-btn[data-slot='button'],
   .pdp-duration-trigger[data-slot='button'],
   .bag-summary-actions [data-slot='button'] {
-    white-space: normal;
+    white-space: nowrap;
     text-align: center;
   }
 }

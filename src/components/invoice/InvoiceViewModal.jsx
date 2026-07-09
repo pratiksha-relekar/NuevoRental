@@ -1,21 +1,32 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Download, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { cn } from '@/lib/utils'
 import { InvoiceDocument } from './InvoiceDocument'
 import { downloadInvoicePdf } from '../../utils/downloadInvoicePdf'
 
-const invoiceDialogClass =
-  'invoice-view-modal max-h-[min(94vh,920px)] w-[min(calc(100vw-2rem),980px)] max-w-[980px] gap-0 overflow-auto rounded-[18px] border border-[#e8edf2] bg-[#eef2f7] p-[18px] sm:max-w-[980px]'
 export function InvoiceViewModal({ invoice, onClose }) {
   const invoiceRef = useRef(null)
   const [isDownloading, setIsDownloading] = useState(false)
   const [downloadError, setDownloadError] = useState('')
+
+  useEffect(() => {
+    if (!invoice) return undefined
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') onClose()
+    }
+
+    document.addEventListener('keydown', handleEscape)
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [invoice, onClose])
 
   if (!invoice) return null
 
@@ -32,18 +43,25 @@ export function InvoiceViewModal({ invoice, onClose }) {
     }
   }
 
-  return (
-    <Dialog open={Boolean(invoice)} onOpenChange={(nextOpen) => { if (!nextOpen) onClose() }}>
-      <DialogContent
-        className={cn(invoiceDialogClass, 'grid-cols-1')}
-        showCloseButton={false}
-      >
+  return createPortal(
+    <div
+      className="invoice-view-modal-root"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="invoice-view-title"
+    >
+      <button
+        type="button"
+        className="invoice-view-modal-scrim"
+        aria-label="Close invoice"
+        onClick={onClose}
+      />
+
+      <div className="invoice-view-modal">
         <div className="invoice-view-modal-toolbar">
-          <div>
+          <div className="invoice-view-modal-heading">
             <span className="invoice-view-modal-eyebrow">{invoice.orderId}</span>
-            <DialogTitle id="invoice-view-title" className="text-xl font-bold text-[#1a2744]">
-              {invoice.id}
-            </DialogTitle>
+            <h2 id="invoice-view-title">{invoice.id}</h2>
           </div>
 
           <div className="invoice-view-modal-actions">
@@ -76,7 +94,8 @@ export function InvoiceViewModal({ invoice, onClose }) {
         <div className="invoice-view-modal-preview">
           <InvoiceDocument ref={invoiceRef} invoice={invoice} />
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>,
+    document.body,
   )
 }

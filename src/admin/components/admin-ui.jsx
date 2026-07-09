@@ -93,7 +93,7 @@ export function AdminTabTrigger({ children, className, count, ...props }) {
   return (
     <TabsTrigger
       className={cn(
-        'group/admin-tab h-9 gap-2 rounded-none border border-transparent bg-transparent px-3 text-xs font-semibold tracking-wide text-[#666] uppercase data-[state=active]:border-[#1a1a1a] data-[state=active]:bg-[#1a1a1a] data-[state=active]:text-white',
+        'group/admin-tab h-9 shrink-0 flex-none gap-2 rounded-none border border-transparent bg-transparent px-3 text-xs font-semibold tracking-wide text-[#666] uppercase data-[state=active]:border-[#1a1a1a] data-[state=active]:bg-[#1a1a1a] data-[state=active]:text-white',
         className,
       )}
       {...props}
