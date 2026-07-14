@@ -393,7 +393,7 @@ function Header() {
             </Link>
             <Link
               to="/cart"
-              className="header-action-btn header-action-btn--cart"
+              className={`header-action-btn header-action-btn--cart${badgePulse.cart ? ' header-action-btn--pulse' : ''}`}
               aria-label={`Cart${cartCount > 0 ? `, ${cartCount} items` : ''}`}
             >
               <CartIcon />

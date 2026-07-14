@@ -6,7 +6,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronUp,
-  Heart,
   Lock,
   MapPin,
   Minus,
@@ -19,6 +18,7 @@ import { Label } from '@/components/ui/label'
 import { LinkButton } from '@/components/ui/link-button'
 import { ProductCard } from '../components/RentalProducts'
 import RentalPriceModal from '../components/RentalPriceModal'
+import WishlistHeartButton from '../components/WishlistHeartButton'
 import { useCartWishlist } from '../context/CartWishlistContext'
 import {
   getProductById,
@@ -462,16 +462,11 @@ function ProductDetailPage() {
                     </Button>
                   </motion.div>
                   <motion.div whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className={`pdp-btn pdp-btn--wishlist${wishlisted ? ' pdp-btn--wishlist-active' : ''}`}
-                      aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-                      aria-pressed={wishlisted}
+                    <WishlistHeartButton
+                      variant="pdp"
+                      active={wishlisted}
                       onClick={handleToggleWishlist}
-                    >
-                      <Heart size={18} fill={wishlisted ? 'currentColor' : 'none'} />
-                    </Button>
+                    />
                   </motion.div>
                 </div>
               </motion.div>

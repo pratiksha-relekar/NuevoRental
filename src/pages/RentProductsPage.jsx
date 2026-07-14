@@ -11,7 +11,22 @@ import {
 } from '@/components/ui/select'
 import { ProductCard } from '../components/RentalProducts'
 import { useCatalog } from '../context/CatalogContext'
+import { CATEGORIES as SEED_CATEGORIES } from '../data/categories'
 import { getProductPlanPricing, RENTAL_DURATION_FILTERS } from '../data/projectPlans'
+
+const FILTER_CATEGORY_IDS = [
+  'laptops',
+  'desktops',
+  'printers',
+  'projectors',
+  'tvs',
+  'accessories',
+]
+
+const FILTER_CATEGORY_LABELS = {
+  projectors: 'Projector',
+  accessories: 'Accessories (Keyboards, Mouse, UPS, Webcam)',
+}
 const FILTER_LABELS = [
   'Category',
   'City',
@@ -76,6 +91,21 @@ function RentProductsPage() {
     }))
   }, [categoryFromUrl])
 
+  const filterCategories = useMemo(() => {
+    const catalogById = Object.fromEntries(categories.map((cat) => [cat.id, cat]))
+    const seedById = Object.fromEntries(SEED_CATEGORIES.map((cat) => [cat.id, cat]))
+
+    return FILTER_CATEGORY_IDS.map((id) => {
+      const category = catalogById[id] || seedById[id]
+      if (!category) return null
+
+      return {
+        ...category,
+        label: FILTER_CATEGORY_LABELS[id] ?? category.label,
+      }
+    }).filter(Boolean)
+  }, [categories])
+
   const filteredProducts = useMemo(() => {
     const priceRange = PRICE_RANGES.find((range) => range.value === filters.priceRange) ?? PRICE_RANGES[0]
 
@@ -135,7 +165,7 @@ function RentProductsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map((cat) => (
+                  {filterCategories.map((cat) => (
                     <SelectItem key={cat.id} value={cat.id}>{cat.label}</SelectItem>
                   ))}
                 </SelectContent>

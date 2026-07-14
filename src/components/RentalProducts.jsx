@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useMemo, useRef, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import WishlistHeartButton from './WishlistHeartButton'
 import { getProductImage } from '../data/products'
 import { getDefaultProjectPlanId, getProductPlanPricing } from '../data/projectPlans'
 import { useCatalog } from '../context/CatalogContext'
@@ -31,20 +32,6 @@ function EyeIcon() {
         strokeLinejoin="round"
       />
       <circle cx="8" cy="8" r="2.5" stroke="currentColor" strokeWidth="1.4" />
-    </svg>
-  )
-}
-
-function HeartIcon({ filled }) {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path
-        d="M8 14S1.5 9.5 1.5 5.5C1.5 3.5 3 2 5 2C6.5 2 7.5 2.8 8 4C8.5 2.8 9.5 2 11 2C13 2 14.5 3.5 14.5 5.5C14.5 9.5 8 14 8 14Z"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinejoin="round"
-        fill={filled ? 'currentColor' : 'none'}
-      />
     </svg>
   )
 }
@@ -113,16 +100,13 @@ export function ProductCard({ product, durationFilter = 'all' }) {
             <span className="product-action-btn" aria-hidden="true">
               <EyeIcon />
             </span>
-            <Button
-              type="button"
-              variant="outline"
-              className={`product-action-btn product-action-btn--wishlist${wishlisted ? ' product-action-btn--active' : ''}`}
+            <WishlistHeartButton
+              variant="product"
+              active={wishlisted}
+              className="product-action-btn product-action-btn--wishlist"
               aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-              aria-pressed={wishlisted}
               onClick={handleWishlist}
-            >
-              <HeartIcon filled={wishlisted} />
-            </Button>
+            />
           </div>
         </div>
 
