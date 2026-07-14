@@ -1,3 +1,5 @@
+import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import {
   BadgeCheck,
   CreditCard,
@@ -15,7 +17,6 @@ import {
   ADMIN_ORDER_STATUS_OPTIONS,
 } from '../../data/orderStorage'
 import { getProductImage } from '../../data/products'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import {
   Select,
@@ -27,7 +28,6 @@ import {
 import { cn } from '@/lib/utils'
 import {
   AdminIconButton,
-  adminDialogContentXWideClass,
   adminSelectTriggerClass,
   AdminStatusBadge,
 } from './admin-ui'
@@ -67,36 +67,58 @@ function DetailSection({ title, icon: Icon, children }) {
   )
 }
 
-const orderDetailOverlayClass =
-  'z-[1300] bg-slate-900/55 backdrop-blur-none supports-backdrop-filter:backdrop-blur-none'
-
 export function OrderDetailModal({ order, onClose, onStatusChange }) {
+  useEffect(() => {
+    if (!order) return undefined
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') onClose()
+    }
+
+    document.addEventListener('keydown', handleEscape)
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [order, onClose])
+
   if (!order) return null
 
   const { customer, summaryBreakdown } = order
   const delivery = order.delivery ?? {}
 
-  return (
-    <Dialog open onOpenChange={(v) => !v && onClose()}>
-      <DialogContent
-        className={cn(adminDialogContentXWideClass, 'order-detail-modal')}
-        overlayClassName={orderDetailOverlayClass}
-        showCloseButton={false}
-        aria-labelledby="order-detail-title"
-      >
-        <div className="flex items-start justify-between border-b border-[#e5e5e5] px-6 py-4">
-          <div>
+  return createPortal(
+    <div
+      className="order-detail-modal-root"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="order-detail-title"
+    >
+      <button
+        type="button"
+        className="order-detail-modal-scrim"
+        aria-label="Close order details"
+        onClick={onClose}
+      />
+
+      <div className="order-detail-modal">
+        <div className="flex items-start justify-between border-b border-[#e5e5e5] px-4 py-4 sm:px-6">
+          <div className="min-w-0 flex-1 pr-3">
             <span className="mb-1.5 inline-block text-[11px] font-semibold tracking-wide text-[#666] uppercase">
               {order.id}
             </span>
             <div className="flex items-center gap-3">
               <span
-                className="inline-flex size-11 items-center justify-center border border-[#e5e5e5] bg-[#fafafa] text-sm font-bold text-[#1a1a1a]"
+                className="inline-flex size-11 shrink-0 items-center justify-center border border-[#e5e5e5] bg-[#fafafa] text-sm font-bold text-[#1a1a1a]"
                 aria-hidden="true"
               >
                 {customer.initials}
               </span>
-              <div>
+              <div className="min-w-0">
                 <h2 id="order-detail-title" className="text-lg font-bold text-[#1a1a1a]">
                   {order.customerName}
                 </h2>
@@ -109,7 +131,7 @@ export function OrderDetailModal({ order, onClose, onStatusChange }) {
           </AdminIconButton>
         </div>
 
-        <div className="flex flex-wrap gap-2 border-b border-[#e5e5e5] px-6 py-4">
+        <div className="flex flex-wrap gap-2 border-b border-[#e5e5e5] px-4 py-4 sm:px-6">
           <AdminStatusBadge tone={getOrderStatusTone(order.status)}>
             {ADMIN_ORDER_STATUS_LABELS[order.status] ?? order.status}
           </AdminStatusBadge>
@@ -128,7 +150,7 @@ export function OrderDetailModal({ order, onClose, onStatusChange }) {
           </AdminStatusBadge>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 px-6 py-4 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 px-4 py-4 sm:px-6 lg:grid-cols-2">
           <div className="flex min-w-0 flex-col gap-4">
             <DetailSection title="Customer profile" icon={User}>
               <dl className={dlClass}>
@@ -429,7 +451,8 @@ export function OrderDetailModal({ order, onClose, onStatusChange }) {
             </DetailSection>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>,
+    document.body,
   )
 }

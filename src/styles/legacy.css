@@ -14299,34 +14299,47 @@ body.auth-standalone-open #root {
   }
 }
 
-/* Admin order detail modal — mobile only */
-@media (max-width: 767px) {
-  [data-slot='dialog-overlay']:has(+ [data-slot='dialog-content'].order-detail-modal) {
-    z-index: 1300 !important;
-    background: rgba(15, 23, 42, 0.55) !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-  }
+/* Admin order detail modal */
+.order-detail-modal-root {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
 
-  [data-slot='dialog-content'].order-detail-modal {
-    position: fixed !important;
-    top: max(12px, env(safe-area-inset-top)) !important;
-    right: max(12px, env(safe-area-inset-right)) !important;
-    bottom: max(12px, env(safe-area-inset-bottom)) !important;
-    left: max(12px, env(safe-area-inset-left)) !important;
-    width: auto !important;
-    max-width: none !important;
-    height: auto !important;
-    max-height: none !important;
-    transform: none !important;
-    translate: none !important;
-    margin: 0 !important;
-    z-index: 1301 !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch;
-    border-radius: 12px !important;
-    filter: none !important;
-    isolation: isolate;
+.order-detail-modal-scrim {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgba(15, 23, 42, 0.55);
+  cursor: pointer;
+}
+
+.order-detail-modal {
+  position: relative;
+  z-index: 1;
+  width: min(calc(100vw - 2rem), 980px);
+  max-width: 980px;
+  max-height: min(92svh, 900px);
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #d8d8d8;
+  box-shadow: 0 24px 60px rgba(26, 39, 68, 0.18);
+  -webkit-overflow-scrolling: touch;
+  isolation: isolate;
+  filter: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+@media (max-width: 767px) {
+  .order-detail-modal {
+    width: 100%;
+    max-height: min(94svh, 900px);
   }
 
   .order-detail-status-select {
